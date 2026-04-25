@@ -1,8 +1,8 @@
 package nlu.fit.web.souvenirecommerce.model;
 
+import jakarta.persistence.*;
 import lombok.*;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Getter
@@ -10,21 +10,19 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@Entity
+@Table(name = "categories")
 public class Category {
-    private int id;
-    private String category_name;
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer id;
+
+    @Column(name = "category_name")
+    private String categoryName;
+
     private String image;
+
+    @OneToMany(mappedBy = "category", fetch = FetchType.LAZY)
     private List<Product> products;
-
-    public Category(int id, String name) {
-        this.id = id;
-        this.category_name = name;
-        this.products = new ArrayList<>();
-    }
-    public Category(int id, String name, String image) {
-        this.id = id;
-        this.category_name = name;
-        this.image = image;
-    }
 }
-
