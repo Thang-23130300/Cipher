@@ -109,6 +109,7 @@
     </style>
 </head>
 <body>
+<c:set var="currentAdminUser" value="${not empty sessionScope.user ? sessionScope.user : sessionScope.userInSession}" />
 <div class="admin-container">
     <jsp:include page="common/admin-sidebar.jsp"/>
 
@@ -136,8 +137,8 @@
                         <div style="text-align: center;">
                             <div class="profile-avatar">
                                 <c:choose>
-                                    <c:when test="${not empty sessionScope.user.fullName}">
-                                        ${sessionScope.user.fullName.substring(0,1).toUpperCase()}
+                                    <c:when test="${not empty currentAdminUser.fullName}">
+                                        ${currentAdminUser.fullName.substring(0,1).toUpperCase()}
                                     </c:when>
                                     <c:otherwise>A</c:otherwise>
                                 </c:choose>
@@ -150,19 +151,19 @@
                             <div class="form-group">
                                 <label>Họ và tên</label>
                                 <input type="text" name="fullName" class="form-control"
-                                       value="${sessionScope.user.fullName}" placeholder="Nhập họ tên" required>
+                                       value="${currentAdminUser.fullName}" placeholder="Nhập họ tên" required>
                             </div>
 
                             <div class="form-group">
                                 <label>Email</label>
                                 <input type="email" name="email" class="form-control"
-                                       value="${sessionScope.user.email}" placeholder="Nhập email" required>
+                                       value="${currentAdminUser.email}" placeholder="Nhập email" required>
                             </div>
 
                             <div class="form-group">
                                 <label>Số điện thoại</label>
                                 <input type="tel" name="phone" class="form-control"
-                                       value="${sessionScope.user.phone}" placeholder="Nhập số điện thoại">
+                                       value="${currentAdminUser.phone}" placeholder="Nhập số điện thoại">
                             </div>
 
                             <button type="submit" class="btn-save">
