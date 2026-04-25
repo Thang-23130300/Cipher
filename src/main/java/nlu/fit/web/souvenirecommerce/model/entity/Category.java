@@ -1,4 +1,4 @@
-package nlu.fit.web.souvenirecommerce.model;
+package nlu.fit.web.souvenirecommerce.model.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
