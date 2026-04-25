@@ -7,7 +7,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import nlu.fit.web.souvenirecommerce.dao.CategoryDAO;
 import nlu.fit.web.souvenirecommerce.dao.ProductDAO;
-import nlu.fit.web.souvenirecommerce.model.Product;
+import nlu.fit.web.souvenirecommerce.model.entity.Product;
+import nlu.fit.web.souvenirecommerce.model.entity.Category;
 
 import java.io.IOException;
 
@@ -80,7 +81,10 @@ public class AdminProductController extends HttpServlet {
         try {
             if ("add".equals(action)) {
                 Product product = new Product();
-                product.setCategoryId(Integer.parseInt(req.getParameter("categoryId")));
+                int categoryId = Integer.parseInt(req.getParameter("categoryId"));
+                Category category = new Category();
+                category.setId(categoryId);
+                product.setCategory(category);
                 product.setName(req.getParameter("name"));
                 product.setDescription(req.getParameter("description"));
                 product.setOriginalPrice(Double.parseDouble(req.getParameter("price")));
@@ -109,7 +113,9 @@ public class AdminProductController extends HttpServlet {
             } else if ("edit".equals(action)) {
                 Product product = new Product();
                 product.setId(Integer.parseInt(req.getParameter("id")));
-                product.setCategoryId(Integer.parseInt(req.getParameter("categoryId")));
+                Category category = new Category();
+                category.setId(Integer.parseInt(req.getParameter("categoryId")));
+                product.setCategory(category);
                 product.setName(req.getParameter("name"));
                 product.setDescription(req.getParameter("description"));
                 product.setOriginalPrice(Double.parseDouble(req.getParameter("price")));
