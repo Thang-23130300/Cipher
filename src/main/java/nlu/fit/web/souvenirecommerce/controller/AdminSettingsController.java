@@ -52,6 +52,9 @@ public class AdminSettingsController extends HttpServlet {
         String action = req.getParameter("action");
         HttpSession session = req.getSession();
         User currentUser = (User) session.getAttribute("user");
+        if (currentUser == null) {
+            currentUser = (User) session.getAttribute("userInSession");
+        }
 
         if (currentUser == null) {
             resp.sendRedirect(req.getContextPath() + "/login");
@@ -70,6 +73,7 @@ public class AdminSettingsController extends HttpServlet {
                     currentUser.setEmail(email);
                     currentUser.setPhone(phone);
                     session.setAttribute("user", currentUser);
+                    session.setAttribute("userInSession", currentUser);
 
                     session.setAttribute("message", "Cập nhật thông tin thành công!");
                     session.setAttribute("messageType", "success");
