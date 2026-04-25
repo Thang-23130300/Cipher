@@ -1,5 +1,6 @@
 package nlu.fit.web.souvenirecommerce.model;
 
+import jakarta.persistence.*;
 import lombok.*;
 
 @Getter
@@ -7,35 +8,45 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@Entity
+@Table(name = "products")
 public class Product {
 
-    private int id;
-    private Integer categoryId;
-    private String categoryName;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer id;
+
     private String name;
+
     private String description;
+
+    @Column(name = "short_description")
     private String shortDescription;
+
+    @Column(name = "original_price")
     private double originalPrice;
-    private int discountPercent = 0;
+
+    @Column(name = "discount_percent")
+    private int discountPercent;
+
+    @Column(name = "sale_price")
     private Double salePrice;
+
     private String image;
+
+    @Column(name = "stock_quantity")
     private int stockQuantity;
+
+    @Column(name = "total_sold")
     private int totalSold;
+
+    @Column(name = "avg_rating")
     private double avgRating;
+
+    @Column(name = "review_count")
     private int reviewCount;
 
-    public Product(int id, Integer categoryId, String name, String description,
-                   double originalPrice, String image, int stockQuantity,
-                   int totalSold, double avgRating, int reviewCount) {
-        this.id = id;
-        this.categoryId = categoryId;
-        this.name = name;
-        this.description = description;
-        this.originalPrice = originalPrice;
-        this.image = image;
-        this.stockQuantity = stockQuantity;
-        this.totalSold = totalSold;
-        this.avgRating = avgRating;
-        this.reviewCount = reviewCount;
-    }
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "category_id")
+    private Category category;
 }
