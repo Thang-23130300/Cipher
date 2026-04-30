@@ -6,6 +6,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import nlu.fit.web.souvenirecommerce.dao.AuthorizationDAO;
 import nlu.fit.web.souvenirecommerce.dao.UserDAO;
 import nlu.fit.web.souvenirecommerce.model.User;
 
@@ -14,6 +15,7 @@ import java.io.IOException;
 @WebServlet(name = "LoginController", value = "/login")
 public class LoginController extends HttpServlet {
     private UserDAO dao = new UserDAO(); // Khai báo dùng chung cho các method
+    private AuthorizationDAO authorizationDAO = new AuthorizationDAO();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -41,9 +43,13 @@ public class LoginController extends HttpServlet {
             // ĐĂNG NHẬP THÀNH CÔNG: Lưu user vào Session
             HttpSession session = request.getSession();
             session.setAttribute("userInSession", authUser);
+            session.setAttribute("user", authUser);
 
-            // Nếu là Admin thì chuyển đến trang admin dashboard
-            if ("Admin".equals(authUser.getRole())) {
+            boolean canAccessAdmin = "Admin".equalsIgnoreCase(authUser.getRole())
+                    || authorizationDAO.hasPermission(authUser.getId(), "dashboard", "read");
+
+            // Nếu có quyền quản trị thì chuyển đến trang admin dashboard
+            if (canAccessAdmin) {
                 response.sendRedirect(request.getContextPath() + "/admin/dashboard");
             } else {
                 // User thường thì chuyển về trang chủ

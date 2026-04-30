@@ -1,6 +1,7 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <c:set var="ctx" value="${pageContext.request.contextPath}" />
+<c:set var="currentAdminUser" value="${not empty sessionScope.user ? sessionScope.user : sessionScope.userInSession}" />
 
 <aside class="admin-sidebar">
     <div class="sidebar-header">
@@ -90,17 +91,33 @@
                     <span>Cài đặt</span>
                 </a>
             </li>
+            <li class="sidebar-menu-item">
+                <a href="${ctx}/admin/roles" class="sidebar-menu-button ${param.activePage == 'roles' ? 'active' : ''}">
+                    <svg class="sidebar-menu-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                        <circle cx="9" cy="7" r="4"/>
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                    </svg>
+                    <span>Phân quyền</span>
+                </a>
+            </li>
         </ul>
     </div>
 
     <div class="sidebar-footer">
         <div class="sidebar-user">
             <div class="sidebar-user-avatar">
-                ${sessionScope.user.fullName.substring(0, 1).toUpperCase()}
+                <c:choose>
+                    <c:when test="${not empty currentAdminUser.fullName}">
+                        ${currentAdminUser.fullName.substring(0, 1).toUpperCase()}
+                    </c:when>
+                    <c:otherwise>A</c:otherwise>
+                </c:choose>
             </div>
             <div class="sidebar-user-info">
-                <span class="sidebar-user-name">${sessionScope.user.fullName}</span>
-                <span class="sidebar-user-role">${sessionScope.user.role}</span>
+                <span class="sidebar-user-name">${currentAdminUser.fullName}</span>
+                <span class="sidebar-user-role">${currentAdminUser.role}</span>
             </div>
         </div>
     </div>
