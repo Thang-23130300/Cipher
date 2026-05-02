@@ -6,7 +6,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-import nlu.fit.web.souvenirecommerce.model.Category;
+import nlu.fit.web.souvenirecommerce.model.entity.Category;
 import nlu.fit.web.souvenirecommerce.model.User;
 import nlu.fit.web.souvenirecommerce.service.HeaderService;
 

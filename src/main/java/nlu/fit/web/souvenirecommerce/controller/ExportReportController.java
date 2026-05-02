@@ -9,7 +9,7 @@ import nlu.fit.web.souvenirecommerce.dao.OrderDAO;
 import nlu.fit.web.souvenirecommerce.dao.ProductDAO;
 import nlu.fit.web.souvenirecommerce.dao.UserDAO;
 import nlu.fit.web.souvenirecommerce.model.Order;
-import nlu.fit.web.souvenirecommerce.model.Product;
+import nlu.fit.web.souvenirecommerce.model.entity.Product;
 import nlu.fit.web.souvenirecommerce.model.User;
 
 import java.io.IOException;
@@ -119,7 +119,7 @@ public class ExportReportController extends HttpServlet {
             writer.println(String.format("%d,\"%s\",\"%s\",%s,%d,%d,%.1f,%s",
                     p.getId(),
                     p.getName().replace("\"", "\"\""),
-                    p.getCategoryName() != null ? p.getCategoryName().replace("\"", "\"\"") : "",
+                    p.getCategory() != null ? p.getCategory().getCategoryName().replace("\"", "\"\"") : "",
                     String.format("%.0f", p.getOriginalPrice()),
                     p.getStockQuantity(),
                     p.getTotalSold(),
