@@ -6,7 +6,7 @@ import nlu.fit.web.souvenirecommerce.dao.PromotionDAO;
 import nlu.fit.web.souvenirecommerce.dto.HomeCategoryDTO;
 import nlu.fit.web.souvenirecommerce.dto.HomePageDTO;
 import nlu.fit.web.souvenirecommerce.dto.ProductCardDTO;
-import nlu.fit.web.souvenirecommerce.model.Product;
+import nlu.fit.web.souvenirecommerce.model.entity.Product;
 import nlu.fit.web.souvenirecommerce.model.Promotion;
 import nlu.fit.web.souvenirecommerce.util.ProductCardMapper;
 
@@ -30,57 +30,27 @@ public class HomeService {
 
         HomePageDTO dto = new HomePageDTO();
 
-        /* ================= 1. BANNER ================= */
-        dto.setBannerCategories(
-                HomeCategoryDTO.fromCategories(
-                        homeDAO.getBannerCategories(BANNER_LIMIT)
-                )
-        );
+        /* Banner */
+        dto.setBannerCategories(HomeCategoryDTO.fromCategories(homeDAO.getBannerCategories(BANNER_LIMIT)));
 
-        /* ================= 2. TOP CATEGORY ================= */
-        dto.setTopCategorySections(
-                HomeCategoryDTO.fromCategories(
-                        homeDAO.getTopCategoriesWithProducts(
-                                TOP_CATEGORY_LIMIT,
-                                CATEGORY_PRODUCT_LIMIT
-                        )
-                )
-        );
+        /*Top category */
+        dto.setTopCategorySections(HomeCategoryDTO.fromCategories(homeDAO.getTopCategoriesWithProducts(TOP_CATEGORY_LIMIT, CATEGORY_PRODUCT_LIMIT)));
 
-        /* ================= 3. EXTENSION CATEGORY ================= */
-        dto.setExtensionSections(
-                HomeCategoryDTO.fromCategories(
-                        homeDAO.getExtensionCategories(EXTENSION_LIMIT)
-                )
-        );
+        /* Extension*/
+        dto.setExtensionSections(HomeCategoryDTO.fromCategories(homeDAO.getExtensionCategories(EXTENSION_LIMIT)));
 
-        /* ================= 4. TOP RATED PRODUCTS ================= */
-        dto.setTopRatedProductCards(
-                mapToProductCardDTOs(
-                        productDAO.getTopRatedProducts(TOP_RATED_LIMIT)
-                )
-        );
+        /* Top rated */
+        dto.setTopRatedProductCards(mapToProductCardDTOs(productDAO.getTopRatedProducts(TOP_RATED_LIMIT)));
 
-        /* ================= 5. NEWEST PRODUCTS ================= */
-        dto.setNewestProductCards(
-                mapToProductCardDTOs(
-                        productDAO.getNewestProducts(NEWEST_LIMIT)
-                )
-        );
+        /* Newest */
+        dto.setNewestProductCards(mapToProductCardDTOs(productDAO.getNewestProducts(NEWEST_LIMIT)));
 
-        /* ================= 6. MAP PRODUCT CHO CATEGORY ================= */
-        dto.getTopCategorySections().forEach(section ->
-                section.setProductCards(
-                        mapToProductCardDTOs(
-                                section.getCategory().getProducts()
-                        )
-                )
-        );
-
+        /* Map */
+        dto.getTopCategorySections().forEach(section -> section.setProductCards(mapToProductCardDTOs(section.getCategory().getProducts())));
         return dto;
     }
 
-    /* ================= HELPER ================= */
+    /* Map helper*/
     private List<ProductCardDTO> mapToProductCardDTOs(List<Product> products) {
 
         List<ProductCardDTO> cards = new ArrayList<>();

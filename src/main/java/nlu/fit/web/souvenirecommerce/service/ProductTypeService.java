@@ -5,8 +5,8 @@ import nlu.fit.web.souvenirecommerce.dao.*;
 import nlu.fit.web.souvenirecommerce.dao.ProductDAO;
 import nlu.fit.web.souvenirecommerce.dto.ProductCardDTO;
 import nlu.fit.web.souvenirecommerce.dto.ProductTypeDTO;
-import nlu.fit.web.souvenirecommerce.model.Category;
-import nlu.fit.web.souvenirecommerce.model.Product;
+import nlu.fit.web.souvenirecommerce.model.entity.Category;
+import nlu.fit.web.souvenirecommerce.model.entity.Product;
 import nlu.fit.web.souvenirecommerce.model.Promotion;
 import nlu.fit.web.souvenirecommerce.util.ProductCardMapper;
 

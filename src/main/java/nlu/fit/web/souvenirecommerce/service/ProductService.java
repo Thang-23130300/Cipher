@@ -4,6 +4,8 @@ import nlu.fit.web.souvenirecommerce.dao.*;
 import nlu.fit.web.souvenirecommerce.dto.ProductCardDTO;
 import nlu.fit.web.souvenirecommerce.dto.ProductDetailDTO;
 import nlu.fit.web.souvenirecommerce.model.*;
+import nlu.fit.web.souvenirecommerce.model.entity.Category;
+import nlu.fit.web.souvenirecommerce.model.entity.Product;
 import nlu.fit.web.souvenirecommerce.util.ProductCardMapper;
 
 import java.util.ArrayList;
@@ -22,7 +24,7 @@ public class ProductService {
         Product product = productDAO.getProductById(productId);
         if (product == null) return null;
 
-        Category category = categoryDAO.getCategoryById(product.getCategoryId());
+        Category category = categoryDAO.getCategoryById(product.getCategory().getId());
         Promotion promotion = promotionDAO.getActivePromotionByProductId(productId);
 
         ReviewSummary summary = reviewDAO.getReviewSummaryByProductId(productId);
@@ -31,9 +33,8 @@ public class ProductService {
         for (int i = 1; i <= 5; i++) {
             ratingCount.putIfAbsent(i, 0);
         }
-        List<Product> relatedProducts =
-                productDAO.getRelatedProducts(
-                        product.getCategoryId(),
+        List<Product> relatedProducts = productDAO.getRelatedProducts(
+                product.getCategory().getId(),
                         productId,
                         5
                 );
