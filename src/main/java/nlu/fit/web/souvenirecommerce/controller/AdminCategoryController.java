@@ -6,7 +6,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import nlu.fit.web.souvenirecommerce.dao.CategoryDAO;
-import nlu.fit.web.souvenirecommerce.model.Category;
+import nlu.fit.web.souvenirecommerce.model.entity.Category;
 
 import java.io.IOException;
 
@@ -34,7 +34,7 @@ public class AdminCategoryController extends HttpServlet {
         try {
             if ("add".equals(action)) {
                 Category category = new Category();
-                category.setCategory_name(req.getParameter("name"));
+                category.setCategoryName(req.getParameter("name"));
                 category.setImage(req.getParameter("imageUrl"));
 
                 if (categoryDAO.insertCategory(category)) {
@@ -48,7 +48,7 @@ public class AdminCategoryController extends HttpServlet {
             } else if ("edit".equals(action)) {
                 Category category = new Category();
                 category.setId(Integer.parseInt(req.getParameter("id")));
-                category.setCategory_name(req.getParameter("name"));
+                category.setCategoryName(req.getParameter("name"));
                 category.setImage(req.getParameter("imageUrl"));
 
                 if (categoryDAO.updateCategory(category)) {

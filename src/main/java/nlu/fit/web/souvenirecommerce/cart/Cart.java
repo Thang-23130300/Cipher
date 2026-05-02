@@ -1,6 +1,6 @@
 package nlu.fit.web.souvenirecommerce.cart;
 
-import nlu.fit.web.souvenirecommerce.model.Product;
+import nlu.fit.web.souvenirecommerce.model.entity.Product;
 import nlu.fit.web.souvenirecommerce.model.User;
 
 import java.io.Serializable;
