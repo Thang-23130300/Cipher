@@ -1,220 +1,130 @@
 package nlu.fit.web.souvenirecommerce.dao;
 
-import nlu.fit.web.souvenirecommerce.model.Category;
-import nlu.fit.web.souvenirecommerce.util.DBContext;
+import nlu.fit.web.souvenirecommerce.model.entity.Category;
+import nlu.fit.web.souvenirecommerce.model.entity.Product;
+import nlu.fit.web.souvenirecommerce.util.HibernateUtil;
+import org.hibernate.Session;
+import org.hibernate.Transaction;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.util.ArrayList;
 import java.util.List;
 
 public class CategoryDAO {
-
+    // User
     public List<Category> getAllCategories() {
-        List<Category> list = new ArrayList<>();
-        String sql = "SELECT id, category_name, image FROM categories ORDER BY id DESC";
-
-        try (Connection conn = DBContext.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
-
-            while (rs.next()) {
-                list.add(new Category(
-                        rs.getInt("id"),
-                        rs.getString("category_name"),
-                        rs.getString("image")
-                ));
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            String hql = "FROM Category c ORDER BY c.id DESC";
+            return session.createQuery(hql, Category.class).list();
         }
-        return list;
     }
 
-    // Get category by id
     public Category getCategoryById(int id) {
-        String sql = "SELECT id, category_name, image FROM categories WHERE id = ?";
-
-        try (Connection conn = DBContext.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setInt(1, id);
-            ResultSet rs = ps.executeQuery();
-
-            if (rs.next()) {
-                return new Category(
-                        rs.getInt("id"),
-                        rs.getString("category_name"),
-                        rs.getString("image")
-                );
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            return session.find(Category.class, id);
         }
-        return null;
     }
 
-    // Top selling categories
     public List<Category> getTopSellingCategories(int limit) {
-        String sql = """
-            SELECT c.id, c.category_name, c.image
-            FROM categories c
-            JOIN products p ON c.id = p.category_id
-            GROUP BY c.id, c.category_name, c.image
-            ORDER BY SUM(p.total_sold) DESC
-            LIMIT ?
-        """;
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            String hql = """
+                SELECT c FROM Category c
+                JOIN c.products p
+                GROUP BY c
+                ORDER BY SUM(p.totalSold) DESC
+            """;
 
-        List<Category> list = new ArrayList<>();
-
-        try (Connection conn = DBContext.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setInt(1, limit);
-            ResultSet rs = ps.executeQuery();
-
-            while (rs.next()) {
-                list.add(new Category(
-                        rs.getInt("id"),
-                        rs.getString("category_name"),
-                        rs.getString("image")
-                ));
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
+            return session.createQuery(hql, Category.class)
+                    .setMaxResults(limit)
+                    .list();
         }
-        return list;
     }
 
-    // Get top selling category ids
     public List<Integer> getTopSellingCategoryIds(int limit) {
-        String sql = """
-            SELECT category_id
-            FROM products
-            GROUP BY category_id
-            ORDER BY SUM(total_sold) DESC
-            LIMIT ?
-        """;
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            String hql = """
+                SELECT c.id FROM Category c
+                JOIN c.products p
+                GROUP BY c
+                ORDER BY SUM(p.totalSold) DESC
+            """;
 
-        List<Integer> ids = new ArrayList<>();
-
-        try (Connection conn = DBContext.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setInt(1, limit);
-            ResultSet rs = ps.executeQuery();
-
-            while (rs.next()) {
-                ids.add(rs.getInt("category_id"));
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
+            return session.createQuery(hql, Integer.class)
+                    .setMaxResults(limit)
+                    .list();
         }
-        return ids;
     }
 
-    // Categories not in top selling
     public List<Category> getCategoriesNotIn(List<Integer> usedIds) {
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
 
-        if (usedIds == null || usedIds.isEmpty()) {
-            return getAllCategories();
-        }
-
-        StringBuilder sql = new StringBuilder(
-                "SELECT id, category_name, image FROM categories WHERE id NOT IN ("
-        );
-
-        for (int i = 0; i < usedIds.size(); i++) {
-            sql.append("?");
-            if (i < usedIds.size() - 1) sql.append(",");
-        }
-        sql.append(")");
-
-        List<Category> list = new ArrayList<>();
-
-        try (Connection conn = DBContext.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
-
-            for (int i = 0; i < usedIds.size(); i++) {
-                ps.setInt(i + 1, usedIds.get(i));
+            if (usedIds == null || usedIds.isEmpty()) {
+                return getAllCategories();
             }
 
-            ResultSet rs = ps.executeQuery();
-            while (rs.next()) {
-                list.add(new Category(
-                        rs.getInt("id"),
-                        rs.getString("category_name"),
-                        rs.getString("image")
-                ));
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
+            String hql = "FROM Category c WHERE c.id NOT IN (:ids)";
+            return session.createQuery(hql, Category.class)
+                    .setParameter("ids", usedIds)
+                    .list();
         }
-        return list;
     }
 
-    /* ================= ADMIN CRUD ================= */
+    // Admin
 
     public boolean insertCategory(Category category) {
-        String sql = "INSERT INTO categories (category_name, image) VALUES (?, ?)";
-
-        try (Connection conn = DBContext.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setString(1, category.getCategory_name());
-            ps.setString(2, category.getImage());
-            return ps.executeUpdate() > 0;
+        Transaction tx = null;
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            tx = session.beginTransaction();
+            session.persist(category);
+            tx.commit();
+            return true;
         } catch (Exception e) {
+            if (tx != null) tx.rollback();
             e.printStackTrace();
+            return false;
         }
-        return false;
     }
 
     public boolean updateCategory(Category category) {
-        String sql = "UPDATE categories SET category_name = ?, image = ? WHERE id = ?";
-
-        try (Connection conn = DBContext.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setString(1, category.getCategory_name());
-            ps.setString(2, category.getImage());
-            ps.setInt(3, category.getId());
-            return ps.executeUpdate() > 0;
+        Transaction tx = null;
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            tx = session.beginTransaction();
+            session.merge(category);
+            tx.commit();
+            return true;
         } catch (Exception e) {
+            if (tx != null) tx.rollback();
             e.printStackTrace();
+            return false;
         }
-        return false;
     }
 
     public boolean deleteCategory(int id) {
-        String sql = "DELETE FROM categories WHERE id = ?";
+        Transaction tx = null;
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            tx = session.beginTransaction();
 
-        try (Connection conn = DBContext.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+            Category category = session.find(Category.class, id);
+            if (category != null) {
+                session.remove(category);
+            }
 
-            ps.setInt(1, id);
-            return ps.executeUpdate() > 0;
+            tx.commit();
+            return true;
         } catch (Exception e) {
+            if (tx != null) tx.rollback();
             e.printStackTrace();
+            return false;
         }
-        return false;
     }
 
     public int getProductCountByCategory(int categoryId) {
-        String sql = "SELECT COUNT(*) as total FROM products WHERE category_id = ?";
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            String hql = "SELECT COUNT(p.id) FROM Product p WHERE p.category.id = :categoryId";
 
-        try (Connection conn = DBContext.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+            Long count = session.createQuery(hql, Long.class)
+                    .setParameter("categoryId", categoryId)
+                    .uniqueResult();
 
-            ps.setInt(1, categoryId);
-            ResultSet rs = ps.executeQuery();
-            if (rs.next()) {
-                return rs.getInt("total");
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
+            return count != null ? count.intValue() : 0;
         }
-        return 0;
     }
 }
