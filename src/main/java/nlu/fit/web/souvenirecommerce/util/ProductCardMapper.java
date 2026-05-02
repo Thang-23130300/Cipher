@@ -1,7 +1,7 @@
 package nlu.fit.web.souvenirecommerce.util;
 
 import nlu.fit.web.souvenirecommerce.dto.ProductCardDTO;
-import nlu.fit.web.souvenirecommerce.model.Product;
+import nlu.fit.web.souvenirecommerce.model.entity.Product;
 import nlu.fit.web.souvenirecommerce.model.Promotion;
 
 public class ProductCardMapper {

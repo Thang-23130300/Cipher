@@ -1,7 +1,8 @@
 package nlu.fit.web.souvenirecommerce.dao;
 
 import nlu.fit.web.souvenirecommerce.Enums.ProductSort;
-import nlu.fit.web.souvenirecommerce.model.Product;
+import nlu.fit.web.souvenirecommerce.model.entity.Product;
+import nlu.fit.web.souvenirecommerce.model.entity.Category;
 import nlu.fit.web.souvenirecommerce.util.DBContext;
 
 import java.sql.Connection;
@@ -321,7 +322,9 @@ public class ProductDAO {
             while (rs.next()) {
                 Product p = new Product();
                 p.setId(rs.getInt("id"));
-                p.setCategoryId(rs.getInt("category_id"));
+                Category category = new Category();
+                category.setId(rs.getInt("category_id"));
+                p.setCategory(category);
                 p.setName(rs.getString("name"));
                 p.setDescription(rs.getString("description"));
                 p.setOriginalPrice(rs.getDouble("original_price"));
@@ -341,19 +344,24 @@ public class ProductDAO {
     }
 
     private Product mapProduct(ResultSet rs) throws Exception {
-        Product p = new Product(
-                rs.getInt("id"),
-                rs.getObject("category_id") != null ? rs.getInt("category_id") : null,
-                rs.getString("name"),
-                rs.getString("description"),
-                rs.getDouble("original_price"),
-                rs.getString("image_url"),
-                rs.getInt("stock_quantity"),
-                rs.getInt("total_sold"),
-                rs.getDouble("avg_rating"),
-                rs.getInt("review_count")
-        );
+        Product p = new Product();
+        p.setId(rs.getInt("id"));
+        Integer categoryId = (Integer) rs.getObject("category_id");
+        if (categoryId != null) {
+            Category category = new Category();
+            category.setId(categoryId);
+            p.setCategory(category);
+        }
+        p.setName(rs.getString("name"));
+        p.setDescription(rs.getString("description"));
+        p.setOriginalPrice(rs.getDouble("original_price"));
+        p.setImage(rs.getString("image_url"));
+        p.setStockQuantity(rs.getInt("stock_quantity"));
+        p.setTotalSold(rs.getInt("total_sold"));
+        p.setAvgRating(rs.getDouble("avg_rating"));
+        p.setReviewCount(rs.getInt("review_count"));
 
+        // discount
         int discount = rs.getInt("discount_percent");
         if (discount > 0) {
             p.setDiscountPercent(discount);
@@ -419,7 +427,7 @@ public class ProductDAO {
         return list;
     }
 
-    public boolean insertProduct(Product product) {
+    public boolean insertProduct(Product product,Category category) {
         String sql = """
         INSERT INTO products (
             category_id, name, description, original_price,
@@ -431,7 +439,7 @@ public class ProductDAO {
         try (Connection conn = DBContext.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
-            ps.setObject(1, product.getCategoryId());
+            ps.setObject(1, product.getCategory() != null ? product.getCategory().getId() : null);
             ps.setString(2, product.getName());
             ps.setString(3, product.getDescription());
             ps.setDouble(4, product.getOriginalPrice());
@@ -456,7 +464,7 @@ public class ProductDAO {
         try (Connection conn = DBContext.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
-            ps.setObject(1, product.getCategoryId());
+            ps.setObject(1, product.getCategory() != null ? product.getCategory().getId() : null);
             ps.setString(2, product.getName());
             ps.setString(3, product.getDescription());
             ps.setDouble(4, product.getOriginalPrice());
