@@ -2,7 +2,7 @@ package nlu.fit.web.souvenirecommerce.dto;
 
 import lombok.*;
 import nlu.fit.web.souvenirecommerce.Enums.ProductSort;
-import nlu.fit.web.souvenirecommerce.model.Category;
+import nlu.fit.web.souvenirecommerce.model.entity.Category;
 
 import java.util.List;
 
