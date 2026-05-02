@@ -1,7 +1,7 @@
 package nlu.fit.web.souvenirecommerce.dao;
 
-import nlu.fit.web.souvenirecommerce.model.Category;
-import nlu.fit.web.souvenirecommerce.model.Product;
+import nlu.fit.web.souvenirecommerce.model.entity.Category;
+import nlu.fit.web.souvenirecommerce.model.entity.Product;
 
 import java.util.List;
 
