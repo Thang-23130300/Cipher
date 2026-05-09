@@ -1,4 +1,4 @@
-package nlu.fit.web.souvenirecommerce.controller.UserController;
+package nlu.fit.web.souvenirecommerce.controller.user;
 
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
