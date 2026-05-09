@@ -1,6 +1,7 @@
 package nlu.fit.web.souvenirecommerce.cloudinary;
 
 import com.cloudinary.Cloudinary;
+import com.cloudinary.api.ApiResponse;
 import com.cloudinary.utils.ObjectUtils;
 import nlu.fit.web.souvenirecommerce.util.ApplicationLoader;
 
@@ -17,7 +18,7 @@ public class CloudinaryService {
         cloudinary = new Cloudinary(config);
     }
 
-    public static Map<String, Object> getImages(String cursor) throws Exception {
+    public static ApiResponse getImages(String cursor) throws Exception {
         Map options = ObjectUtils.asMap(
                 "max_results", 20
         );

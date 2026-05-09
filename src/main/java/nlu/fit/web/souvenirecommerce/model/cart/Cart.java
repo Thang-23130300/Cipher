@@ -1,4 +1,4 @@
-package nlu.fit.web.souvenirecommerce.cart;
+package nlu.fit.web.souvenirecommerce.model.cart;
 
 import nlu.fit.web.souvenirecommerce.model.entity.Product;
 import nlu.fit.web.souvenirecommerce.model.User;
