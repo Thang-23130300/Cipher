@@ -1,8 +1,9 @@
-package nlu.fit.web.souvenirecommerce.cloudinary;
+package nlu.fit.web.souvenirecommerce.controller.cloudinary;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
+import nlu.fit.web.souvenirecommerce.service.CloudinaryService;
 
 import java.io.IOException;
 import java.util.*;

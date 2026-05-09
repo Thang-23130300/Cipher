@@ -1,4 +1,4 @@
-package nlu.fit.web.souvenirecommerce.cloudinary;
+package nlu.fit.web.souvenirecommerce.service;
 
 import com.cloudinary.Cloudinary;
 import com.cloudinary.api.ApiResponse;
