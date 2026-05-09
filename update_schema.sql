@@ -89,7 +89,7 @@ WHERE u.role = 'Admin' AND ur.user_id IS NULL;
 
 INSERT INTO user_roles (user_id, role_id, assigned_by)
 SELECT u.id, r.id, NULL
-FROM users u 
+FROM users u
 JOIN roles r ON r.name = 'Customer'
 LEFT JOIN user_roles ur ON ur.user_id = u.id AND ur.role_id = r.id
 WHERE (u.role IS NULL OR u.role <> 'Admin') AND ur.user_id IS NULL;
