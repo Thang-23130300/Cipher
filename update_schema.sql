@@ -92,6 +92,6 @@ SELECT u.id, r.id, NULL
 FROM users u
 JOIN roles r ON r.name = 'Customer'
 LEFT JOIN user_roles ur ON ur.user_id = u.id AND ur.role_id = r.id
-WHERE (u.role IS NULL OR u.role <> 'Admin') AND ur.user_id IS NULL; 
+WHERE (u.role IS NULL OR u.role <> 'Admin') AND ur.user_id IS NULL;
 
 SET FOREIGN_KEY_CHECKS = 1; 
