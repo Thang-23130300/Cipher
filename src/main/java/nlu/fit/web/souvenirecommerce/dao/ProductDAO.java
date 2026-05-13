@@ -27,21 +27,13 @@ public class ProductDAO {
         COALESCE(p.avg_rating, 0) AS avg_rating,
         COALESCE(p.review_count, 0) AS review_count,
 
-        COALESCE(MAX(pr.discount_percent), 0) AS discount_percent,
-        CASE
-            WHEN MAX(pr.discount_percent) IS NOT NULL
-            THEN ROUND(p.original_price * (100 - MAX(pr.discount_percent)) / 100, 2)
-            ELSE NULL
-        END AS sale_price,
+        0 AS discount_percent,
+        NULL AS sale_price,
 
         c.category_name
 
     FROM products p
     LEFT JOIN categories c ON p.category_id = c.id
-    LEFT JOIN promotions pr
-        ON p.id = pr.product_id
-       AND (pr.start_date IS NULL OR pr.start_date <= NOW())
-       AND (pr.end_date IS NULL OR pr.end_date >= NOW())
 """
             ;
     private static final String BASE_SELECT = """
@@ -57,18 +49,10 @@ public class ProductDAO {
             COALESCE(p.avg_rating, 0) AS avg_rating,
             COALESCE(p.review_count, 0) AS review_count,
         
-            COALESCE(MAX(pr.discount_percent), 0) AS discount_percent,
-            CASE
-                WHEN MAX(pr.discount_percent) IS NOT NULL
-                THEN ROUND(p.original_price * (100 - MAX(pr.discount_percent)) / 100, 2)
-                ELSE NULL
-            END AS sale_price
+            0 AS discount_percent,
+            NULL AS sale_price
         
         FROM products p
-        LEFT JOIN promotions pr
-            ON p.id = pr.product_id
-           AND (pr.start_date IS NULL OR pr.start_date <= NOW())
-           AND (pr.end_date IS NULL OR pr.end_date >= NOW())
         
         GROUP BY
             p.id,

@@ -20,7 +20,7 @@
 
     <link rel="icon"
           type="image/png"
-          href="/assets/images/logo-inola.png">
+          href="${pageContext.request.contextPath}/assets/images/logo.png">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -30,9 +30,9 @@
           href="${pageContext.request.contextPath}/assets/css/Base.css">
 
     <link rel="stylesheet"
-          href="${pageContext.request.contextPath}/assets/css/header-renew.css">
+          href="${pageContext.request.contextPath}/assets/css/layout/header.css">
     <link rel="stylesheet"
-          href="${pageContext.request.contextPath}/assets/css/footer.css">
+          href="${pageContext.request.contextPath}/assets/css/layout/footer.css">
 
     <c:if test="${not empty pageCss}">
         <link rel="stylesheet"
@@ -45,13 +45,13 @@
 
 <body>
 
-<jsp:include page="/views/common/header-renew.jsp"/>
+<jsp:include page="/WEB-INF/layout/header.jsp"/>
 
 <main id="main-content">
     <jsp:include page="${contentPage}"/>
 </main>
 
-<jsp:include page="/views/common/footer.jsp"/>
+<jsp:include page="/WEB-INF/layout/footer.jsp"/>
 
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"
         integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo="

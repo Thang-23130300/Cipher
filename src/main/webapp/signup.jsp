@@ -8,6 +8,7 @@
     <title>Đăng ký - INOLA</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/signup.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/layout/footer.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/HomePageFooter.css">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
@@ -24,7 +25,7 @@
 
     <section class="auth-panel">
         <a class="brand-link" href="${pageContext.request.contextPath}/home" aria-label="Về trang chủ">
-            <img src="${pageContext.request.contextPath}/assets/images/logo-inola.png" alt="INOLA">
+            <img src="${pageContext.request.contextPath}/assets/images/logo.png" alt="INOLA">
         </a>
 
         <div class="auth-copy">

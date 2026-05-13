@@ -7,6 +7,7 @@
     <title>Khôi phục mật khẩu - INOLA</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/login.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/layout/footer.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/forgot_password.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/HomePageFooter.css">
     <style>
@@ -20,15 +21,15 @@
             text-align: center;
         }
         .auth-card h2 {
-            color: #800080;
+            color: var(--brand-primary);
             margin-bottom: 15px;
             font-weight: 700;
             text-transform: uppercase;
         }
         .error-msg {
-            color: #ff4d4d;
-            background: #fff1f0;
-            border: 1px solid #ffa39e;
+            color: var(--danger);
+            background: var(--danger-bg);
+            border: 1px solid var(--danger-border);
             padding: 10px;
             border-radius: 4px;
             margin-bottom: 20px;
@@ -46,24 +47,24 @@
             text-align: center;
             font-size: 24px;
             font-weight: bold;
-            border: 2px solid #dddddd;
+            border: 2px solid var(--border-default);
             border-radius: 8px;
             transition: all 0.3s ease;
         }
         .code-box:focus {
-            border-color: #800080;
-            box-shadow: 0 0 8px rgba(128, 0, 128, 0.2);
+            border-color: var(--brand-primary);
+            box-shadow: var(--focus-ring);
             outline: none;
         }
         .back-link {
             display: inline-block;
             margin-top: 20px;
-            color: #666666;
+            color: var(--text-soft);
             text-decoration: none;
             font-size: 14px;
         }
         .back-link:hover {
-            color: #800080;
+            color: var(--brand-primary);
         }
     </style>
 </head>

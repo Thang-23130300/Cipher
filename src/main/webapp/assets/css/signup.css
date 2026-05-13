@@ -1,18 +1,20 @@
+@import url("theme.css");
+
 :root {
-    --auth-bg: #f4f6f1;
-    --auth-surface: #ffffff;
-    --auth-text: #1f2933;
-    --auth-muted: #667085;
-    --auth-border: #d8ded2;
-    --auth-primary: #247a52;
-    --auth-primary-dark: #1b5e40;
-    --auth-accent: #c28a35;
-    --auth-danger: #b42318;
-    --auth-danger-bg: #fff1f0;
-    --auth-success: #027a48;
-    --auth-success-bg: #ecfdf3;
-    --auth-warning: #b54708;
-    --auth-warning-bg: #fffaeb;
+    --auth-bg: var(--surface-page);
+    --auth-surface: var(--surface-default);
+    --auth-text: var(--text-strong);
+    --auth-muted: var(--text-soft);
+    --auth-border: var(--border-default);
+    --auth-primary: var(--brand-primary);
+    --auth-primary-dark: var(--brand-primary-hover);
+    --auth-accent: var(--brand-accent);
+    --auth-danger: var(--danger);
+    --auth-danger-bg: var(--danger-bg);
+    --auth-success: var(--success);
+    --auth-success-bg: var(--success-bg);
+    --auth-warning: var(--warning);
+    --auth-warning-bg: var(--warning-bg);
 }
 
 * {
@@ -100,7 +102,7 @@ body.auth-page {
     align-items: center;
     gap: 10px;
     border: 1px solid var(--auth-border);
-    background: #fbfcf8;
+    background: var(--surface-subtle);
     padding: 10px 12px;
     color: var(--auth-muted);
 }
@@ -111,7 +113,7 @@ body.auth-page {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    background: #eef2e9;
+    background: var(--brand-primary-soft);
     color: var(--auth-muted);
     font-weight: 800;
 }
@@ -130,7 +132,7 @@ body.auth-page {
 .step.active span,
 .step.completed span {
     background: var(--auth-primary);
-    color: #ffffff;
+    color: var(--text-on-primary);
 }
 
 .signup-form {
@@ -160,7 +162,7 @@ body.auth-page {
     align-items: center;
     gap: 12px;
     border: 1px solid var(--auth-border);
-    background: #fbfcf8;
+    background: var(--surface-subtle);
     padding: 0 14px;
 }
 
@@ -221,7 +223,7 @@ body.auth-page {
 
 .primary-button {
     background: var(--auth-primary);
-    color: #ffffff;
+    color: var(--text-on-primary);
 }
 
 .primary-button:hover {
@@ -235,7 +237,7 @@ body.auth-page {
 }
 
 .secondary-button {
-    background: #ffffff;
+    background: var(--surface-default);
     border-color: var(--auth-border);
     color: var(--auth-text);
 }
@@ -277,19 +279,19 @@ body.auth-page {
 .error-text {
     color: var(--auth-danger);
     background: var(--auth-danger-bg);
-    border-color: #fecdca;
+    border-color: var(--danger-border);
 }
 
 .success-text {
     color: var(--auth-success);
     background: var(--auth-success-bg);
-    border-color: #abefc6;
+    border-color: var(--success-border);
 }
 
 .warning-text {
     color: var(--auth-warning);
     background: var(--auth-warning-bg);
-    border-color: #fedf89;
+    border-color: var(--warning-border);
 }
 
 .loading {
@@ -304,7 +306,7 @@ body.auth-page {
 .spinner {
     width: 22px;
     height: 22px;
-    border: 3px solid #e5e7eb;
+    border: 3px solid var(--border-subtle);
     border-top-color: var(--auth-primary);
     border-radius: 50%;
     animation: spin 0.8s linear infinite;
@@ -349,7 +351,7 @@ body.auth-page {
     position: relative;
     min-height: 660px;
     overflow: hidden;
-    background: #1f2933;
+    background: var(--surface-inverse);
 }
 
 .auth-media img {

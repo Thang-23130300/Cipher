@@ -10,10 +10,11 @@
 
     <meta name="context-path" content="${pageContext.request.contextPath}">
 
-    <link rel="stylesheet" href="assets/css/ShoppingCart.css"/>
-    <link rel="stylesheet" href="assets/css/HomePageFooter.css"/>
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/ShoppingCart.css"/>
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/HomePageFooter.css"/>
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/layout/footer.css"/>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"/>
-    <link rel="stylesheet" href="assets/css/cart.css"/>
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/cart.css"/>
 </head>
 <body>
 
