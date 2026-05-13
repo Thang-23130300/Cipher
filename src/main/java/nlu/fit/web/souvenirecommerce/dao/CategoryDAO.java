@@ -17,7 +17,7 @@ public class CategoryDAO {
         }
     }
 
-    public Category getCategoryById(int id) {
+    public Category getCategoryById(Long id) {
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
             return session.find(Category.class, id);
         }
@@ -38,7 +38,7 @@ public class CategoryDAO {
         }
     }
 
-    public List<Integer> getTopSellingCategoryIds(int limit) {
+    public List<Long> getTopSellingCategoryIds(int limit) {
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
             String hql = """
                 SELECT c.id FROM Category c
@@ -47,13 +47,13 @@ public class CategoryDAO {
                 ORDER BY SUM(p.totalSold) DESC
             """;
 
-            return session.createQuery(hql, Integer.class)
+            return session.createQuery(hql, Long.class)
                     .setMaxResults(limit)
                     .list();
         }
     }
 
-    public List<Category> getCategoriesNotIn(List<Integer> usedIds) {
+    public List<Category> getCategoriesNotIn(List<Long> usedIds) {
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
 
             if (usedIds == null || usedIds.isEmpty()) {
@@ -97,7 +97,7 @@ public class CategoryDAO {
         }
     }
 
-    public boolean deleteCategory(int id) {
+    public boolean deleteCategory(Long id) {
         Transaction tx = null;
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
             tx = session.beginTransaction();
@@ -116,7 +116,7 @@ public class CategoryDAO {
         }
     }
 
-    public int getProductCountByCategory(int categoryId) {
+    public int getProductCountByCategory(Long categoryId) {
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
             String hql = "SELECT COUNT(p.id) FROM Product p WHERE p.category.id = :categoryId";
 

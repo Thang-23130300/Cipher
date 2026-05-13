@@ -81,7 +81,7 @@ public class AdminProductController extends HttpServlet {
         try {
             if ("add".equals(action)) {
                 Product product = new Product();
-                int categoryId = Integer.parseInt(req.getParameter("categoryId"));
+                Long categoryId = Long.parseLong(req.getParameter("categoryId"));
                 Category category = new Category();
                 category.setId(categoryId);
                 product.setCategory(category);
@@ -114,7 +114,7 @@ public class AdminProductController extends HttpServlet {
                 Product product = new Product();
                 product.setId(Integer.parseInt(req.getParameter("id")));
                 Category category = new Category();
-                category.setId(Integer.parseInt(req.getParameter("categoryId")));
+                category.setId(Long.parseLong(req.getParameter("categoryId")));
                 product.setCategory(category);
                 product.setName(req.getParameter("name"));
                 product.setDescription(req.getParameter("description"));

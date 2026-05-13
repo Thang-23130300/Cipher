@@ -47,7 +47,7 @@ public class AdminCategoryController extends HttpServlet {
 
             } else if ("edit".equals(action)) {
                 Category category = new Category();
-                category.setId(Integer.parseInt(req.getParameter("id")));
+                category.setId(Long.parseLong(req.getParameter("id")));
                 category.setCategoryName(req.getParameter("name"));
                 category.setImage(req.getParameter("imageUrl"));
 
@@ -60,7 +60,7 @@ public class AdminCategoryController extends HttpServlet {
                 }
 
             } else if ("delete".equals(action)) {
-                int id = Integer.parseInt(req.getParameter("id"));
+                long id = Long.parseLong(req.getParameter("id"));
                 int productCount = categoryDAO.getProductCountByCategory(id);
 
                 if (productCount > 0) {

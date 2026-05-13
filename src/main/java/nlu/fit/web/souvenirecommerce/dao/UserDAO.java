@@ -543,7 +543,7 @@ public class UserDAO {
         return false;
     }
 
-        //check
+    //check
     public boolean updatePassword(int userId, String newPassword) {
         String sql = "UPDATE users SET password = ? WHERE id = ?";
         try (Connection conn = DBContext.getConnection();
@@ -559,5 +559,23 @@ public class UserDAO {
         return false;
     }
 
+    // Kiểm tra email đã tồn tại chưa
+    public boolean emailExists(String email) {
+        String sql = "SELECT COUNT(*) as count FROM users WHERE email = ?";
+
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, email.trim());
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                return rs.getInt("count") > 0;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
 
 }
