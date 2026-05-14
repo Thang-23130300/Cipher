@@ -8,7 +8,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import nlu.fit.web.souvenirecommerce.dao.ProductDAO;
 import nlu.fit.web.souvenirecommerce.dao.ProductSpecificationDAO;
 import nlu.fit.web.souvenirecommerce.dao.PromotionDAO;
-import nlu.fit.web.souvenirecommerce.model.Product;
+import nlu.fit.web.souvenirecommerce.model.entity.Product;
 import nlu.fit.web.souvenirecommerce.model.ProductSpecification;
 import nlu.fit.web.souvenirecommerce.model.Promotion;
 

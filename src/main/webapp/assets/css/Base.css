@@ -1,3 +1,5 @@
+@import url("theme.css");
+
 /* Base :
 1 . Moi truong
 2 . Font va type
@@ -78,33 +80,7 @@ p {
 }
 
 /* color */
-:root {
-    --bg-main: #F3F3F3;
-    --bg-white: #ffffff;
-    --bg-light: #f9f9f9;
-
-    --text-main: #333333;
-    --text-heading: #1b1b1b;
-    --text-secondary: #444444;
-    --text-muted: #888695;
-
-    --color-primary: #16a34a;
-    --color-primary-dark: #15803d;
-    --color-accent: #93a400;
-
-    --color-price: #000000;
-    --color-sale: #93a400;
-
-    --border-light: #eeeeee;
-    --border-normal: #e0e0e0;
-
-    --shadow-sm: 0 3px 10px rgba(0,0,0,0.08);
-    --shadow-md: 0 6px 18px rgba(0,0,0,0.12);
-
-    --radius-sm: 6px;
-    --radius-md: 12px;
-    --radius-lg: 20px;
-}
+/* Color tokens are defined in theme.css. */
 
 /* Layout */
 .section {
@@ -232,13 +208,13 @@ p {
 .product-card .discount-tag {
     font-size: 12px;
     color: var(--color-sale);
-    background: #FEF6F5;
+    background: var(--brand-accent-soft);
     border: 1px solid var(--color-sale);
     padding: 1px 4px;
     border-radius: 4px;
 }
 
-.product-card .product-sold {
+.product-card .product-sold,
 .product-sold {
     padding: 6px 10px;
     display: flex;
@@ -253,7 +229,7 @@ p {
 }
 
 .rating {
-    color: #f5a623;
+    color: var(--rating);
     font-size: 13px;
     display: flex;
     align-items: center;
@@ -265,12 +241,12 @@ p {
 }
 
 .review-count {
-    color: #777;
+    color: var(--text-soft);
     margin-left: 4px;
 }
 
 .price-container {
-    background: #f3f3f3;
+    background: var(--surface-muted);
     color: var(--text-main);
     padding: 12px;
     display: flex;
@@ -302,7 +278,7 @@ p {
 }
 
 .btn-primary {
-    background: #000;
+    background: var(--surface-inverse);
     color: var(--bg-white);
 }
 
@@ -318,7 +294,7 @@ p {
 }
 
 .btn-outline:hover {
-    background: #f1f1f1;
+    background: var(--surface-muted);
 }
 
 
@@ -334,4 +310,4 @@ p {
     .product-card .img-box {
         height: 200px;
     }
-}}
+}

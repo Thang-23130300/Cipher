@@ -1,10 +1,11 @@
+@import url("theme.css");
 
 .main-content-Donhang {
     padding: 25px 40px;
 }
 
 .donhang-container {
-    background: #fff;
+    background: var(--surface-default);
     padding: 25px;
     border-radius: 12px;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
@@ -95,24 +96,24 @@
     border-radius: 8px;
     font-size: 13px;
     font-weight: 600;
-    color: #fff;
+    color: var(--text-on-primary);
     text-align: center;
 }
 
 .badge.success {
-    background: #16a34a;
+    background: var(--success);
 }
 
 .badge.red {
-    background: #dc2626;
+    background: var(--danger);
 }
 
 .badge.blue {
-    background: #3b82f6;
+    background: var(--brand-secondary);
 }
 
 .badge.gray {
-    background: #6b7280;
+    background: var(--text-soft);
 }
 
 /* --- PAGINATION (Copy từ Đơn hàng) --- */
@@ -125,15 +126,15 @@
 
 .pagination button {
     padding: 6px 14px;
-    border: 1px solid #d1d5db;
-    background: #fff;
+    border: 1px solid var(--border-default);
+    background: var(--surface-default);
     border-radius: 6px;
     cursor: pointer;
 }
 
 .pagination .page.active {
-    background: #3b82f6;
-    color: #fff;
+    background: var(--brand-primary);
+    color: var(--text-on-primary);
     border-color: transparent;
 }
 
@@ -144,8 +145,8 @@
 
 /* Nút Thêm mới (Sản phẩm cần nút này) */
 .btn-add-new {
-    background: #22c55e;
-    color: #fff;
+    background: var(--brand-primary);
+    color: var(--text-on-primary);
     padding: 8px 18px;
     border-radius: 8px;
     text-decoration: none;
@@ -158,13 +159,13 @@
 }
 
 .btn-add-new:hover {
-    background: #16a34a;
+    background: var(--brand-primary-hover);
 }
 
 /* Nút xuất (Style giống Đơn hàng) */
 .export-btn {
-    background: #2f4026;
-    color: #fff;
+    background: var(--surface-inverse);
+    color: var(--text-on-primary);
     padding: 8px 18px;
     border: none;
     border-radius: 8px;
@@ -201,7 +202,7 @@
 }
 
 .name-col small {
-    color: #6b7280;
+    color: var(--text-soft);
     font-size: 12px;
 }
 
@@ -217,9 +218,9 @@
 }
 
 .action-btn:hover {
-    color: #3b82f6;
+    color: var(--brand-primary);
 }
 
 .action-btn.delete:hover {
-    color: #ef4444;
+    color: var(--danger);
 }

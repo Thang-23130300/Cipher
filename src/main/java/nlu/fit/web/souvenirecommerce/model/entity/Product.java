@@ -32,6 +32,7 @@ public class Product {
     @Column(name = "sale_price")
     private Double salePrice;
 
+    @Column(name = "image_url")
     private String image;
 
     @Column(name = "stock_quantity")
@@ -49,4 +50,16 @@ public class Product {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id")
     private Category category;
+
+    public Long getCategoryId(){
+        return this.category != null ? this.category.getId() : null;
+    }
+
+    public String getImageUrl() {
+        return image;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.image = imageUrl;
+    }
 }

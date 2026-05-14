@@ -24,25 +24,16 @@ public class ProductDAO {
         p.stock_quantity,
         p.total_sold,
 
-        COALESCE(ROUND(AVG(r.rating), 1), 0) AS avg_rating,
-        COUNT(r.id) AS review_count,
+        COALESCE(p.avg_rating, 0) AS avg_rating,
+        COALESCE(p.review_count, 0) AS review_count,
 
-        COALESCE(MAX(pr.discount_percent), 0) AS discount_percent,
-        CASE
-            WHEN MAX(pr.discount_percent) IS NOT NULL
-            THEN ROUND(p.original_price * (100 - MAX(pr.discount_percent)) / 100, 2)
-            ELSE NULL
-        END AS sale_price,
+        0 AS discount_percent,
+        NULL AS sale_price,
 
         c.category_name
 
     FROM products p
     LEFT JOIN categories c ON p.category_id = c.id
-    LEFT JOIN reviews r ON p.id = r.product_id
-    LEFT JOIN promotions pr
-        ON p.id = pr.product_id
-       AND (pr.start_date IS NULL OR pr.start_date <= NOW())
-       AND (pr.end_date IS NULL OR pr.end_date >= NOW())
 """
             ;
     private static final String BASE_SELECT = """
@@ -55,22 +46,13 @@ public class ProductDAO {
             p.image_url,
             p.stock_quantity,
             p.total_sold,
-            COALESCE(ROUND(AVG(r.rating), 1), 0) AS avg_rating,
-            COUNT(r.id) AS review_count,
+            COALESCE(p.avg_rating, 0) AS avg_rating,
+            COALESCE(p.review_count, 0) AS review_count,
         
-            COALESCE(MAX(pr.discount_percent), 0) AS discount_percent,
-            CASE
-                WHEN MAX(pr.discount_percent) IS NOT NULL
-                THEN ROUND(p.original_price * (100 - MAX(pr.discount_percent)) / 100, 2)
-                ELSE NULL
-            END AS sale_price
+            0 AS discount_percent,
+            NULL AS sale_price
         
         FROM products p
-        LEFT JOIN reviews r ON p.id = r.product_id
-        LEFT JOIN promotions pr
-            ON p.id = pr.product_id
-           AND (pr.start_date IS NULL OR pr.start_date <= NOW())
-           AND (pr.end_date IS NULL OR pr.end_date >= NOW())
         
         GROUP BY
             p.id,
@@ -80,7 +62,9 @@ public class ProductDAO {
             p.original_price,
             p.image_url,
             p.stock_quantity,
-            p.total_sold
+            p.total_sold,
+            p.avg_rating,
+            p.review_count
         
     """;
 
@@ -99,7 +83,7 @@ public class ProductDAO {
         return getProductsByLimit(sql, limit);
     }
 
-    public List<Product> getTopSellingByCategory(int categoryId, int limit) {
+    public List<Product> getTopSellingByCategory(Long categoryId, int limit) {
         String sql = """
             SELECT * FROM (
                 """ + BASE_SELECT + """
@@ -114,7 +98,7 @@ public class ProductDAO {
         try (Connection conn = DBContext.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
-            ps.setInt(1, categoryId);
+            ps.setLong(1, categoryId);
             ps.setInt(2, limit);
 
             ResultSet rs = ps.executeQuery();
@@ -129,7 +113,7 @@ public class ProductDAO {
     }
 
     public List<Product> getProductsByCategoryWithFilter(
-            int categoryId,
+            Long categoryId,
             Integer minPrice,
             Integer maxPrice,
             Integer rating,
@@ -168,7 +152,7 @@ public class ProductDAO {
              PreparedStatement ps = conn.prepareStatement(sql.toString())) {
 
             int idx = 1;
-            ps.setInt(idx++, categoryId);
+            ps.setLong(idx++, categoryId);
             if (minPrice != null) ps.setInt(idx++, minPrice);
             if (maxPrice != null) ps.setInt(idx++, maxPrice);
             if (rating != null)   ps.setInt(idx++, rating);
@@ -188,7 +172,7 @@ public class ProductDAO {
     }
 
     public int countProductsByCategoryWithFilter(
-            int categoryId,
+            Long categoryId,
             Integer minPrice,
             Integer maxPrice,
             Integer rating
@@ -198,7 +182,6 @@ public class ProductDAO {
             SELECT COUNT(*) FROM (
                 SELECT p.id
                 FROM products p
-                LEFT JOIN reviews r ON p.id = r.product_id
                 WHERE p.category_id = ?
         """);
 
@@ -207,7 +190,7 @@ public class ProductDAO {
 
         sql.append(" GROUP BY p.id ");
 
-        if (rating != null) sql.append(" HAVING AVG(r.rating) >= ? ");
+        if (rating != null) sql.append(" HAVING COALESCE(MAX(p.avg_rating), 0) >= ? ");
 
         sql.append(") t");
 
@@ -215,7 +198,7 @@ public class ProductDAO {
              PreparedStatement ps = conn.prepareStatement(sql.toString())) {
 
             int idx = 1;
-            ps.setInt(idx++, categoryId);
+            ps.setLong(idx++, categoryId);
             if (minPrice != null) ps.setInt(idx++, minPrice);
             if (maxPrice != null) ps.setInt(idx++, maxPrice);
             if (rating != null)   ps.setInt(idx, rating);
@@ -253,7 +236,7 @@ public class ProductDAO {
         return null;
     }
 
-    public List<Product> getRelatedProducts(int categoryId, int excludeId, int limit) {
+    public List<Product> getRelatedProducts(Long categoryId, int excludeId, int limit) {
 
         String sql = """
         SELECT * FROM (
@@ -270,7 +253,7 @@ public class ProductDAO {
         try (Connection conn = DBContext.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
-            ps.setInt(1, categoryId);
+            ps.setLong(1, categoryId);
             ps.setInt(2, excludeId);
             ps.setInt(3, limit);
 
@@ -323,7 +306,7 @@ public class ProductDAO {
                 Product p = new Product();
                 p.setId(rs.getInt("id"));
                 Category category = new Category();
-                category.setId(rs.getInt("category_id"));
+                category.setId(rs.getLong("category_id"));
                 p.setCategory(category);
                 p.setName(rs.getString("name"));
                 p.setDescription(rs.getString("description"));
@@ -346,7 +329,7 @@ public class ProductDAO {
     private Product mapProduct(ResultSet rs) throws Exception {
         Product p = new Product();
         p.setId(rs.getInt("id"));
-        Integer categoryId = (Integer) rs.getObject("category_id");
+        Long categoryId =  rs.getLong("category_id");
         if (categoryId != null) {
             Category category = new Category();
             category.setId(categoryId);
@@ -427,7 +410,11 @@ public class ProductDAO {
         return list;
     }
 
-    public boolean insertProduct(Product product,Category category) {
+    public boolean insertProduct(Product product) {
+        return insertProduct(product, product.getCategory());
+    }
+
+    public boolean insertProduct(Product product, Category category) {
         String sql = """
         INSERT INTO products (
             category_id, name, description, original_price,
@@ -439,7 +426,7 @@ public class ProductDAO {
         try (Connection conn = DBContext.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
-            ps.setObject(1, product.getCategory() != null ? product.getCategory().getId() : null);
+            ps.setObject(1, category != null ? category.getId() : null);
             ps.setString(2, product.getName());
             ps.setString(3, product.getDescription());
             ps.setDouble(4, product.getOriginalPrice());
@@ -536,4 +523,3 @@ public class ProductDAO {
     }
 
 }
-

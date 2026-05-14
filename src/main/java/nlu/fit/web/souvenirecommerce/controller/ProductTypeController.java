@@ -26,9 +26,9 @@ public class    ProductTypeController extends HttpServlet {
             throws ServletException, IOException {
 
         /* ===== 1. VALIDATE CATEGORY ID ===== */
-        int categoryId;
+        Long categoryId;
         try {
-            categoryId = Integer.parseInt(request.getParameter("id"));
+            categoryId = Long.parseLong(request.getParameter("id"));
         } catch (Exception e) {
             response.sendRedirect(request.getContextPath() + "/home");
             return;
@@ -66,7 +66,7 @@ public class    ProductTypeController extends HttpServlet {
         request.setAttribute("data", dto);
 
         /* ===== 6. LAYOUT CONFIG ===== */
-        request.setAttribute("pageTitle", dto.getCategory().getCategory_name());
+        request.setAttribute("pageTitle", dto.getCategory().getCategoryName());
         request.setAttribute("contentPage", "productType.jsp");
         request.setAttribute("pageCss", "PTypeMain.css");
         request.setAttribute("pageJs", "ProductType.js");

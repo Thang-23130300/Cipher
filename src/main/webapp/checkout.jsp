@@ -8,7 +8,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Thanh toán - INOLA</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/header-renew.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/layout/header.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/layout/footer.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/HomePage.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/HomePageFooter.css">
     <style>

@@ -29,7 +29,7 @@ public class HomeDAO {
     }
 
     public List<Category> getExtensionCategories(int limit) {
-        List<Integer> topIds = categoryDAO.getTopSellingCategoryIds(5);
+        List<Long> topIds = categoryDAO.getTopSellingCategoryIds(5);
         List<Category> remain = categoryDAO.getCategoriesNotIn(topIds);
         return remain.subList(0, Math.min(limit, remain.size()));
     }

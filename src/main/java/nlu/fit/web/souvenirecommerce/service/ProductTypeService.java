@@ -23,7 +23,7 @@ public class ProductTypeService {
 
 
     public ProductTypeDTO getProductType(
-            int categoryId,
+            Long categoryId,
             Integer minPrice,
             Integer maxPrice,
             Integer rating,
