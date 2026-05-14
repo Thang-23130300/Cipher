@@ -112,7 +112,7 @@ public class AdminProductController extends HttpServlet {
 
             } else if ("edit".equals(action)) {
                 Product product = new Product();
-                product.setId(Integer.parseInt(req.getParameter("id")));
+                product.setId(Long.parseLong(req.getParameter("id")));
                 Category category = new Category();
                 category.setId(Long.parseLong(req.getParameter("categoryId")));
                 product.setCategory(category);
@@ -142,7 +142,7 @@ public class AdminProductController extends HttpServlet {
                 }
 
             } else if ("delete".equals(action)) {
-                int id = Integer.parseInt(req.getParameter("id"));
+                Long id = Long.parseLong(req.getParameter("id"));
 
                 if (productDAO.deleteProduct(id)) {
                     req.setAttribute("message", "Xóa sản phẩm thành công!");

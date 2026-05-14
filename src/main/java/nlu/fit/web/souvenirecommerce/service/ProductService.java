@@ -20,7 +20,7 @@ public class ProductService {
     private final ProductSpecificationDAO specificationDAO = new ProductSpecificationDAO();
     private final ReviewDAO reviewDAO = new ReviewDAO();
 
-    public ProductDetailDTO getProductDetail(int productId) {
+    public ProductDetailDTO getProductDetail(Long productId) {
         Product product = productDAO.getProductById(productId);
         if (product == null) return null;
 

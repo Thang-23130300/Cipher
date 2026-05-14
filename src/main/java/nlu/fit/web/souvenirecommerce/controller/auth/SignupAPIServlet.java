@@ -6,15 +6,14 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-import nlu.fit.web.souvenirecommerce.dao.UserDAO;
-import nlu.fit.web.souvenirecommerce.model.User;
+import nlu.fit.web.souvenirecommerce.dao.impl.UserDAOImpl;
 import com.google.gson.JsonObject;
 import java.io.IOException;
 import java.io.PrintWriter;
 
 @WebServlet("/api/register")
 public class SignupAPIServlet extends HttpServlet {
-    private UserDAO userDAO = new UserDAO();
+    private UserDAOImpl userDAOImpl = new UserDAOImpl();
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
@@ -22,7 +21,7 @@ public class SignupAPIServlet extends HttpServlet {
         req.setCharacterEncoding("UTF-8");
 
         String fullName = req.getParameter("fullName");
-        String email = req.getParameter("email");
+        String email = normalizeEmail(req.getParameter("email"));
         String phone = req.getParameter("phone");
         String password = req.getParameter("password");
         String confirmPassword = req.getParameter("confirmPassword");
@@ -87,8 +86,17 @@ public class SignupAPIServlet extends HttpServlet {
             return;
         }
 
+        HttpSession session = req.getSession(false);
+        String verifiedEmail = session == null ? null : (String) session.getAttribute("signupVerifiedEmail");
+        if (!email.equals(verifiedEmail)) {
+            jsonResponse.addProperty("status", "error");
+            jsonResponse.addProperty("message", "Vui lòng xác thực email trước khi đăng ký");
+            out.print(jsonResponse.toString());
+            return;
+        }
+
         // Check if email already exists
-        if (userDAO.emailExists(email)) {
+        if (userDAOImpl.emailExists(email)) {
             jsonResponse.addProperty("status", "error");
             jsonResponse.addProperty("message", "Email này đã được đăng ký");
             out.print(jsonResponse.toString());
@@ -96,7 +104,9 @@ public class SignupAPIServlet extends HttpServlet {
         }
 
         // Register user
-        if (userDAO.register(email, password, fullName, phone)) {
+        if (userDAOImpl.register(email, password, fullName, phone)) {
+            session.removeAttribute("signupVerifiedEmail");
+            session.removeAttribute("signupEmail");
             jsonResponse.addProperty("status", "success");
             jsonResponse.addProperty("message", "Đăng ký thành công! Vui lòng đăng nhập");
             out.print(jsonResponse.toString());
@@ -105,5 +115,9 @@ public class SignupAPIServlet extends HttpServlet {
             jsonResponse.addProperty("message", "Có lỗi xảy ra khi đăng ký. Vui lòng thử lại");
             out.print(jsonResponse.toString());
         }
+    }
+
+    private String normalizeEmail(String email) {
+        return email == null ? null : email.trim().toLowerCase();
     }
 }

@@ -29,8 +29,8 @@ public class ReviewController extends HttpServlet {
 
         response.setContentType("text/html;charset=UTF-8");
 
-        int productId = parseInt(request.getParameter("productId"), -1);
-        if (productId == -1) {
+        Long productId = parseLong(request.getParameter("productId"), -1L);
+        if (productId == -1L) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             return;
         }
@@ -66,6 +66,14 @@ public class ReviewController extends HttpServlet {
             return def;
         }
     }
+
+    private Long parseLong(String val, Long def) {
+        try {
+            return val != null ? Long.parseLong(val) : def;
+        } catch (Exception e) {
+            return def;
+        }
+    }
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -80,7 +88,7 @@ public class ReviewController extends HttpServlet {
 
         int userId = ((User) session.getAttribute("user")).getId();
 
-        int productId = parseInt(request.getParameter("productId"), -1);
+        Long productId = parseLong(request.getParameter("productId"), -1L);
         int rating = parseInt(request.getParameter("rating"), 0);
         String comment = request.getParameter("comment");
 

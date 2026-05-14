@@ -22,13 +22,16 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "display_name", length = 100, nullable = false)
-    private String displayName;
+    @Column(name = "first_name", length = 50, nullable = false)
+    private String firstName;
+
+    @Column(name = "last_name", length = 50, nullable = false)
+    private String lastName;
 
     @Column(nullable = false, unique = true)
     private String email;
 
-    @Column(name = "avatar_url", length = 500)
+    @Column(name = "avatar_url", length = 255)
     private String avatarUrl;
 
     @Column(name = "is_active", nullable = false)
@@ -42,7 +45,7 @@ public class User {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
     private UserCredential credentials;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)

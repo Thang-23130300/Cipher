@@ -8,7 +8,7 @@ import lombok.*;
 @AllArgsConstructor
 @Builder
 public class ProductCardDTO {
-    private int id;
+    private Long id;
     private String name;
     private String image;
 

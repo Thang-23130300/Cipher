@@ -5,19 +5,19 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import nlu.fit.web.souvenirecommerce.dao.UserDAO;
+import nlu.fit.web.souvenirecommerce.dao.impl.UserDAOImpl;
 
 import java.io.IOException;
 
 @WebServlet("/admin/customers")
 public class AdminCustomerController extends HttpServlet {
 
-    private UserDAO userDAO;
+    private UserDAOImpl userDAOImpl;
 
     @Override
     public void init() {
 
-            userDAO = new UserDAO();
+            userDAOImpl = new UserDAOImpl();
 
     }
 
@@ -36,10 +36,10 @@ public class AdminCustomerController extends HttpServlet {
         }
 
         int offset = (page - 1) * pageSize;
-        int totalCustomers = userDAO.getTotalCustomers();
+        int totalCustomers = userDAOImpl.getTotalCustomers();
         int totalPages = (int) Math.ceil((double) totalCustomers / pageSize);
 
-        req.setAttribute("customers", userDAO.getCustomersWithPagination(offset, pageSize));
+        req.setAttribute("customers", userDAOImpl.getCustomersWithPagination(offset, pageSize));
         req.setAttribute("currentPage", page);
         req.setAttribute("totalPages", totalPages);
         req.setAttribute("totalCustomers", totalCustomers);
@@ -68,7 +68,7 @@ public class AdminCustomerController extends HttpServlet {
                 String password = req.getParameter("password");
                 String phone = req.getParameter("phone");
 
-                if (userDAO.insertUser(fullName, email, password, phone)) {
+                if (userDAOImpl.insertUser(fullName, email, password, phone)) {
                     req.getSession().setAttribute("message", "Thêm khách hàng thành công!");
                     req.getSession().setAttribute("messageType", "success");
                 } else {
@@ -82,7 +82,7 @@ public class AdminCustomerController extends HttpServlet {
                 String email = req.getParameter("email");
                 String phone = req.getParameter("phone");
 
-                if (userDAO.updateUser(userId, fullName, email, phone)) {
+                if (userDAOImpl.updateUser(userId, fullName, email, phone)) {
                     req.getSession().setAttribute("message", "Cập nhật khách hàng thành công!");
                     req.getSession().setAttribute("messageType", "success");
                 } else {
@@ -95,7 +95,7 @@ public class AdminCustomerController extends HttpServlet {
                 String currentStatus = req.getParameter("currentStatus");
                 String newStatus = "Active".equals(currentStatus) ? "Banned" : "Active";
 
-                if (userDAO.updateUserStatus(userId, newStatus)) {
+                if (userDAOImpl.updateUserStatus(userId, newStatus)) {
                     req.getSession().setAttribute("message", "Cập nhật trạng thái thành công!");
                     req.getSession().setAttribute("messageType", "success");
                 } else {
@@ -106,7 +106,7 @@ public class AdminCustomerController extends HttpServlet {
             } else if ("delete".equals(action)) {
                 int userId = Integer.parseInt(req.getParameter("id"));
 
-                if (userDAO.deleteUser(userId)) {
+                if (userDAOImpl.deleteUser(userId)) {
                     req.getSession().setAttribute("message", "Xóa khách hàng thành công!");
                     req.getSession().setAttribute("messageType", "success");
                 } else {

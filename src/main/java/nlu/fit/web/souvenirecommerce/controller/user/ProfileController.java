@@ -4,7 +4,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.MultipartConfig;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
-import nlu.fit.web.souvenirecommerce.dao.UserDAO;
+import nlu.fit.web.souvenirecommerce.dao.impl.UserDAOImpl;
 import nlu.fit.web.souvenirecommerce.model.User;
 
 import java.io.File;
@@ -20,7 +20,7 @@ import java.util.UUID;
 )
 public class ProfileController extends HttpServlet {
 
-    private final UserDAO dao = new UserDAO();
+    private final UserDAOImpl dao = new UserDAOImpl();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)

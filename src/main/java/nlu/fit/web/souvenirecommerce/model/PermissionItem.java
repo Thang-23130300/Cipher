@@ -12,7 +12,7 @@ import java.io.Serializable;
 @AllArgsConstructor
 @Builder
 public class PermissionItem implements Serializable {
-    private int id;
+    private Long id;
     private String resource;
     private String action;
     private String description;

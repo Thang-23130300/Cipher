@@ -8,7 +8,7 @@ import lombok.*;
 @AllArgsConstructor
 @Builder
 public class SearchSuggestionDTO {
-    private int id;
+    private Long id;
     private String name;
     private Double originalPrice;
     private Double salePrice;

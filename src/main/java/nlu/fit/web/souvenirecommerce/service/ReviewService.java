@@ -10,7 +10,7 @@ public class ReviewService {
     private final ReviewDAO reviewDAO = new ReviewDAO();
 
     public List<Review> getReviews(
-            int productId,
+            Long productId,
             Integer rating,
             String sort,
             int offset,
@@ -20,7 +20,7 @@ public class ReviewService {
                 productId, rating, sort, offset, limit
         );
     }
-    public boolean canReview(int userId, int productId) {
+    public boolean canReview(int userId, Long productId) {
         return reviewDAO.hasPurchased(userId, productId);
     }
 

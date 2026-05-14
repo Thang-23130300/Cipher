@@ -9,7 +9,7 @@ import lombok.*;
 @Builder
 public class ProductSpecification  {
     private int id;
-    private int productId;
+    private Long productId;
     private String specName;
     private String specValue;
 }

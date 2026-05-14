@@ -15,7 +15,7 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 public class PermissionGroup implements Serializable {
-    private int id;
+    private Long id;
     private String name;
     private String description;
     private boolean system;

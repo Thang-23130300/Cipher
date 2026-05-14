@@ -65,7 +65,7 @@ function addToCartAjax(productId, quantity, contextPath) {
         } else if (data.requireLogin) {
             showToast(data.message, 'warning');
             setTimeout(() => {
-                window.location.href = `${contextPath}/login.jsp`;
+                window.location.href = `../../WEB-INF/views/auth/login.jsp`;
             }, 1500);
         } else {
             showToast(data.message, 'error');

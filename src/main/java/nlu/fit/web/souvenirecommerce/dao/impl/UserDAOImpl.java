@@ -1,4 +1,4 @@
-package nlu.fit.web.souvenirecommerce.dao;
+package nlu.fit.web.souvenirecommerce.dao.impl;
 
 import nlu.fit.web.souvenirecommerce.model.Address;
 import nlu.fit.web.souvenirecommerce.model.User;
@@ -11,7 +11,7 @@ import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.List;
 
-public class UserDAO {
+public class UserDAOImpl {
 
     public User login(String loginDetail, String password) {
         String sql = "SELECT * FROM users WHERE (email = ? OR phone = ?) AND status = 'Active'";
@@ -561,7 +561,7 @@ public class UserDAO {
 
     // Kiểm tra email đã tồn tại chưa
     public boolean emailExists(String email) {
-        String sql = "SELECT COUNT(*) as count FROM users WHERE email = ?";
+        String sql = "SELECT COUNT(*) as count FROM users WHERE LOWER(email) = LOWER(?)";
 
         try (Connection conn = DBContext.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {

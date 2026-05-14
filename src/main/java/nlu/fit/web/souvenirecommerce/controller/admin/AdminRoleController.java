@@ -6,7 +6,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import nlu.fit.web.souvenirecommerce.dao.AuthorizationDAO;
-import nlu.fit.web.souvenirecommerce.dao.UserDAO;
+import nlu.fit.web.souvenirecommerce.dao.impl.UserDAOImpl;
 import nlu.fit.web.souvenirecommerce.model.PermissionGroup;
 
 import java.io.IOException;
@@ -16,24 +16,24 @@ import java.util.List;
 @WebServlet("/admin/roles")
 public class AdminRoleController extends HttpServlet {
     private AuthorizationDAO authorizationDAO;
-    private UserDAO userDAO;
+    private UserDAOImpl userDAOImpl;
 
     @Override
     public void init() {
         authorizationDAO = new AuthorizationDAO();
-        userDAO = new UserDAO();
+        userDAOImpl = new UserDAOImpl();
     }
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         req.setAttribute("roles", authorizationDAO.getAllRoleGroups());
         req.setAttribute("permissions", authorizationDAO.getAllPermissions());
-        req.setAttribute("users", userDAO.getAllUsers());
+        req.setAttribute("users", userDAOImpl.getAllUsers());
 
         String editId = req.getParameter("editId");
         if (editId != null && !editId.isBlank()) {
             try {
-                int roleId = Integer.parseInt(editId);
+                Long roleId = Long.parseLong(editId);
                 PermissionGroup role = authorizationDAO.getRoleById(roleId);
                 if (role != null) {
                     req.setAttribute("editRole", role);
@@ -67,7 +67,7 @@ public class AdminRoleController extends HttpServlet {
 
         try {
             if ("delete".equalsIgnoreCase(action)) {
-                int roleId = Integer.parseInt(req.getParameter("id"));
+                Long roleId = Long.parseLong(req.getParameter("id"));
                 if (authorizationDAO.deleteRole(roleId)) {
                     req.getSession().setAttribute("message", "Xóa nhóm quyền thành công!");
                     req.getSession().setAttribute("messageType", "success");
@@ -76,7 +76,7 @@ public class AdminRoleController extends HttpServlet {
                     req.getSession().setAttribute("messageType", "error");
                 }
             } else if ("assignUsers".equalsIgnoreCase(action)) {
-                int roleId = Integer.parseInt(req.getParameter("roleId"));
+                Long roleId = Long.parseLong(req.getParameter("roleId"));
                 List<Long> userIds = parseLongList(req.getParameterValues("userIds"));
                 if (authorizationDAO.assignUsersToRole(roleId, userIds)) {
                     req.getSession().setAttribute("message", "Cập nhật người dùng cho nhóm quyền thành công!");
@@ -86,15 +86,15 @@ public class AdminRoleController extends HttpServlet {
                     req.getSession().setAttribute("messageType", "error");
                 }
             } else {
-                Integer roleId = null;
+                Long roleId = null;
                 String idParam = req.getParameter("id");
                 if (idParam != null && !idParam.isBlank()) {
-                    roleId = Integer.parseInt(idParam);
+                    roleId = Long.parseLong(idParam);
                 }
 
                 String name = req.getParameter("name");
                 String description = req.getParameter("description");
-                List<Integer> permissionIds = parseIntegerList(req.getParameterValues("permissionIds"));
+                List<Long> permissionIds = parseLongList(req.getParameterValues("permissionIds"));
 
                 if (authorizationDAO.saveRole(roleId, name, description, permissionIds)) {
                     req.getSession().setAttribute("message", roleId == null
@@ -113,20 +113,6 @@ public class AdminRoleController extends HttpServlet {
         }
 
         resp.sendRedirect(req.getContextPath() + "/admin/roles");
-    }
-
-    private List<Integer> parseIntegerList(String[] values) {
-        List<Integer> list = new ArrayList<>();
-        if (values == null) {
-            return list;
-        }
-        for (String value : values) {
-            if (value == null || value.isBlank()) {
-                continue;
-            }
-            list.add(Integer.parseInt(value));
-        }
-        return list;
     }
 
     private List<Long> parseLongList(String[] values) {

@@ -11,11 +11,10 @@ import java.sql.Timestamp;
 @Builder
 public class Review {
     private int id;
-    private int productId;
+    private Long productId;
     private int userId;
     private String userName;
     private int rating;
     private String comment;
     private Timestamp createdAt;
 }
-

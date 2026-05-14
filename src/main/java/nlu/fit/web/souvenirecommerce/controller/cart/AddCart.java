@@ -43,11 +43,11 @@ public class AddCart extends HttpServlet {
             return;
         }
 
-        int productId;
+        Long productId;
         int quantity;
 
         try {
-            productId = Integer.parseInt(request.getParameter("productId"));
+            productId = Long.parseLong(request.getParameter("productId"));
             quantity = Integer.parseInt(request.getParameter("quantity"));
         } catch (Exception e) {
             response.sendRedirect(request.getContextPath() + "/home");

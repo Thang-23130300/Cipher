@@ -23,11 +23,11 @@ public class PromotionDAO {
         LIMIT 1
     """;
 
-    public Promotion getActivePromotionByProductId(int productId) {
+    public Promotion getActivePromotionByProductId(Long productId) {
         try (Connection conn = DBContext.getConnection();
              PreparedStatement ps = conn.prepareStatement(SELECT_ACTIVE_PROMOTION)) {
 
-            ps.setInt(1, productId);
+            ps.setLong(1, productId);
             ResultSet rs = ps.executeQuery();
 
             if (rs.next()) {
@@ -39,9 +39,9 @@ public class PromotionDAO {
         return null;
     }
 
-    public Map<Integer, Promotion> getActivePromotionsByProductIds(List<Integer> productIds) {
+    public Map<Long, Promotion> getActivePromotionsByProductIds(List<Long> productIds) {
 
-        Map<Integer, Promotion> map = new HashMap<>();
+        Map<Long, Promotion> map = new HashMap<>();
         if (productIds == null || productIds.isEmpty()) return map;
 
         StringBuilder sql = new StringBuilder("""
@@ -66,12 +66,12 @@ public class PromotionDAO {
              PreparedStatement ps = conn.prepareStatement(sql.toString())) {
 
             for (int i = 0; i < productIds.size(); i++) {
-                ps.setInt(i + 1, productIds.get(i));
+                ps.setLong(i + 1, productIds.get(i));
             }
 
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
-                int productId = rs.getInt("product_id");
+                Long productId = rs.getLong("product_id");
                 // Lấy promotion có discount cao nhất cho mỗi product
                 map.putIfAbsent(productId, mapPromotion(rs));
             }
@@ -89,7 +89,7 @@ public class PromotionDAO {
 
         return new Promotion(
                 rs.getInt("id"),
-                rs.getInt("product_id"),
+                rs.getLong("product_id"),
                 rs.getInt("discount_percent"),
                 start != null ? start.toLocalDateTime() : null,
                 end != null ? end.toLocalDateTime() : null

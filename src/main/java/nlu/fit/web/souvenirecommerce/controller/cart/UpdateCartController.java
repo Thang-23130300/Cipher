@@ -20,7 +20,7 @@ public class UpdateCartController extends HttpServlet {
         response.setCharacterEncoding("UTF-8");
         
         try {
-            int productId = Integer.parseInt(request.getParameter("productId"));
+            Long productId = Long.parseLong(request.getParameter("productId"));
             int quantity  = Integer.parseInt(request.getParameter("quantity"));
 
             HttpSession session = request.getSession();
