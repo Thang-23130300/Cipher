@@ -5,7 +5,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-import nlu.fit.web.souvenirecommerce.dao.UserDAO;
+import nlu.fit.web.souvenirecommerce.dao.impl.UserDAOImpl;
 import nlu.fit.web.souvenirecommerce.model.User;
 
 import java.io.IOException;
@@ -13,7 +13,7 @@ import java.io.IOException;
 @WebServlet("/user/address/*")
 public class UserAddressController extends HttpServlet {
 
-    private final UserDAO dao = new UserDAO();
+    private final UserDAOImpl dao = new UserDAOImpl();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)

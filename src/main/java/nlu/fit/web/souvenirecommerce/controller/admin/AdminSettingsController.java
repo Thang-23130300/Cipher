@@ -7,7 +7,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import nlu.fit.web.souvenirecommerce.dao.SettingsDAO;
-import nlu.fit.web.souvenirecommerce.dao.UserDAO;
+import nlu.fit.web.souvenirecommerce.dao.impl.UserDAOImpl;
 import nlu.fit.web.souvenirecommerce.model.User;
 
 import java.io.IOException;
@@ -17,12 +17,12 @@ import java.util.Map;
 @WebServlet("/admin/settings")
 public class AdminSettingsController extends HttpServlet {
 
-    private UserDAO userDAO;
+    private UserDAOImpl userDAOImpl;
     private SettingsDAO settingsDAO;
 
     @Override
     public void init() {
-        userDAO = new UserDAO();
+        userDAOImpl = new UserDAOImpl();
         settingsDAO = new SettingsDAO();
     }
 
@@ -67,7 +67,7 @@ public class AdminSettingsController extends HttpServlet {
                 String email = req.getParameter("email");
                 String phone = req.getParameter("phone");
 
-                if (userDAO.updateUser(currentUser.getId(), fullName, email, phone)) {
+                if (userDAOImpl.updateUser(currentUser.getId(), fullName, email, phone)) {
                     // Update session user
                     currentUser.setFullName(fullName);
                     currentUser.setEmail(email);
@@ -90,10 +90,10 @@ public class AdminSettingsController extends HttpServlet {
                 if (!newPassword.equals(confirmPassword)) {
                     session.setAttribute("message", "Mật khẩu mới không khớp!");
                     session.setAttribute("messageType", "error");
-                } else if (!userDAO.checkPassword(currentUser.getId(), currentPassword)) {
+                } else if (!userDAOImpl.checkPassword(currentUser.getId(), currentPassword)) {
                     session.setAttribute("message", "Mật khẩu hiện tại không đúng!");
                     session.setAttribute("messageType", "error");
-                } else if (userDAO.updatePasswordByUserId(currentUser.getId(), newPassword)) {
+                } else if (userDAOImpl.updatePasswordByUserId(currentUser.getId(), newPassword)) {
                     session.setAttribute("message", "Đổi mật khẩu thành công!");
                     session.setAttribute("messageType", "success");
                 } else {

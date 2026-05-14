@@ -5,7 +5,7 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import nlu.fit.web.souvenirecommerce.Enums.ProductSort;
+import nlu.fit.web.souvenirecommerce.enums.ProductSort;
 import nlu.fit.web.souvenirecommerce.dto.ProductTypeDTO;
 import nlu.fit.web.souvenirecommerce.service.ProductTypeService;
 

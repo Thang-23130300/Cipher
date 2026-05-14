@@ -27,7 +27,7 @@ public class AuthorizationDAO {
              ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
                 list.add(PermissionItem.builder()
-                        .id(rs.getInt("id"))
+                        .id(rs.getLong("id"))
                         .resource(rs.getString("resource"))
                         .action(rs.getString("action"))
                         .description(rs.getString("description"))
@@ -57,7 +57,7 @@ public class AuthorizationDAO {
              PreparedStatement ps = conn.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
-                int roleId = rs.getInt("id");
+                Long roleId = rs.getLong("id");
                 PermissionGroup group = PermissionGroup.builder()
                         .id(roleId)
                         .name(rs.getString("name"))
@@ -75,15 +75,15 @@ public class AuthorizationDAO {
         return groups;
     }
 
-    public PermissionGroup getRoleById(int roleId) {
+    public PermissionGroup getRoleById(Long roleId) {
         String sql = "SELECT id, name, description, is_system FROM roles WHERE id = ?";
         try (Connection conn = DBContext.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, roleId);
+            ps.setLong(1, roleId);
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
                 return PermissionGroup.builder()
-                        .id(rs.getInt("id"))
+                        .id(rs.getLong("id"))
                         .name(rs.getString("name"))
                         .description(rs.getString("description"))
                         .system(rs.getBoolean("is_system"))
@@ -97,16 +97,16 @@ public class AuthorizationDAO {
         return null;
     }
 
-    public List<Integer> getPermissionIdsByRoleId(int roleId) {
-        List<Integer> ids = new ArrayList<>();
+    public List<Long> getPermissionIdsByRoleId(Long roleId) {
+        List<Long> ids = new ArrayList<>();
         String sql = "SELECT permission_id FROM role_permissions WHERE role_id = ? ORDER BY permission_id";
 
         try (Connection conn = DBContext.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, roleId);
+            ps.setLong(1, roleId);
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
-                ids.add(rs.getInt("permission_id"));
+                ids.add(rs.getLong("permission_id"));
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -114,13 +114,13 @@ public class AuthorizationDAO {
         return ids;
     }
 
-    public List<Long> getUserIdsByRoleId(int roleId) {
+    public List<Long> getUserIdsByRoleId(Long roleId) {
         List<Long> ids = new ArrayList<>();
         String sql = "SELECT user_id FROM user_roles WHERE role_id = ? ORDER BY user_id";
 
         try (Connection conn = DBContext.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, roleId);
+            ps.setLong(1, roleId);
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
                 ids.add(rs.getLong("user_id"));
@@ -131,7 +131,7 @@ public class AuthorizationDAO {
         return ids;
     }
 
-    public List<PermissionItem> getPermissionsByRoleId(int roleId) {
+    public List<PermissionItem> getPermissionsByRoleId(Long roleId) {
         List<PermissionItem> list = new ArrayList<>();
         String sql = """
                 SELECT p.id, p.resource, p.action, p.description
@@ -143,11 +143,11 @@ public class AuthorizationDAO {
 
         try (Connection conn = DBContext.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, roleId);
+            ps.setLong(1, roleId);
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
                 list.add(PermissionItem.builder()
-                        .id(rs.getInt("id"))
+                        .id(rs.getLong("id"))
                         .resource(rs.getString("resource"))
                         .action(rs.getString("action"))
                         .description(rs.getString("description"))
@@ -159,7 +159,7 @@ public class AuthorizationDAO {
         return list;
     }
 
-    public List<User> getUsersByRoleId(int roleId) {
+    public List<User> getUsersByRoleId(Long roleId) {
         List<User> list = new ArrayList<>();
         String sql = """
                 SELECT u.id, u.full_name, u.email, u.phone, u.avatar, u.status, u.role, u.created_at
@@ -171,7 +171,7 @@ public class AuthorizationDAO {
 
         try (Connection conn = DBContext.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, roleId);
+            ps.setLong(1, roleId);
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
                 User user = new User();
@@ -191,11 +191,11 @@ public class AuthorizationDAO {
         return list;
     }
 
-    public boolean saveRole(Integer roleId, String name, String description, List<Integer> permissionIds) {
+    public boolean saveRole(Long roleId, String name, String description, List<Long> permissionIds) {
         try (Connection conn = DBContext.getConnection()) {
             conn.setAutoCommit(false);
 
-            int savedRoleId = roleId != null ? roleId : insertRole(conn, name, description);
+            Long savedRoleId = roleId != null ? roleId : insertRole(conn, name, description);
             if (savedRoleId <= 0) {
                 conn.rollback();
                 return false;
@@ -221,7 +221,7 @@ public class AuthorizationDAO {
         return false;
     }
 
-    public boolean deleteRole(int roleId) {
+    public boolean deleteRole(Long roleId) {
         String checkSql = "SELECT is_system FROM roles WHERE id = ?";
         String deleteSql = "DELETE FROM roles WHERE id = ?";
 
@@ -230,7 +230,7 @@ public class AuthorizationDAO {
 
             boolean isSystem;
             try (PreparedStatement checkPs = conn.prepareStatement(checkSql)) {
-                checkPs.setInt(1, roleId);
+                checkPs.setLong(1, roleId);
                 ResultSet rs = checkPs.executeQuery();
                 if (!rs.next()) {
                     conn.rollback();
@@ -245,7 +245,7 @@ public class AuthorizationDAO {
             }
 
             try (PreparedStatement ps = conn.prepareStatement(deleteSql)) {
-                ps.setInt(1, roleId);
+                ps.setLong(1, roleId);
                 if (ps.executeUpdate() == 0) {
                     conn.rollback();
                     return false;
@@ -260,7 +260,7 @@ public class AuthorizationDAO {
         return false;
     }
 
-    public boolean assignUsersToRole(int roleId, List<Long> userIds) {
+    public boolean assignUsersToRole(Long roleId, List<Long> userIds) {
         String deleteSql = "DELETE FROM user_roles WHERE role_id = ?";
         String insertSql = "INSERT INTO user_roles (user_id, role_id, assigned_by) VALUES (?, ?, ?)";
 
@@ -268,7 +268,7 @@ public class AuthorizationDAO {
             conn.setAutoCommit(false);
 
             try (PreparedStatement deletePs = conn.prepareStatement(deleteSql)) {
-                deletePs.setInt(1, roleId);
+                deletePs.setLong(1, roleId);
                 deletePs.executeUpdate();
             }
 
@@ -279,7 +279,7 @@ public class AuthorizationDAO {
                             continue;
                         }
                         insertPs.setLong(1, userId);
-                        insertPs.setInt(2, roleId);
+                        insertPs.setLong(2, roleId);
                         insertPs.setObject(3, null);
                         insertPs.addBatch();
                     }
@@ -318,37 +318,37 @@ public class AuthorizationDAO {
         return false;
     }
 
-    private int insertRole(Connection conn, String name, String description) throws Exception {
+    private Long insertRole(Connection conn, String name, String description) throws Exception {
         String sql = "INSERT INTO roles (name, description, is_system) VALUES (?, ?, false)";
         try (PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setString(1, name);
             ps.setString(2, description);
             int affected = ps.executeUpdate();
             if (affected == 0) {
-                return -1;
+                return -1L;
             }
             try (ResultSet rs = ps.getGeneratedKeys()) {
                 if (rs.next()) {
-                    return rs.getInt(1);
+                    return rs.getLong(1);
                 }
             }
         }
-        return -1;
+        return -1L;
     }
 
-    private boolean updateRoleMeta(Connection conn, int roleId, String name, String description) throws Exception {
+    private boolean updateRoleMeta(Connection conn, Long roleId, String name, String description) throws Exception {
         String sql = "UPDATE roles SET name = ?, description = ? WHERE id = ?";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, name);
             ps.setString(2, description);
-            ps.setInt(3, roleId);
+            ps.setLong(3, roleId);
             return ps.executeUpdate() > 0;
         }
     }
 
-    private boolean replaceRolePermissions(Connection conn, int roleId, List<Integer> permissionIds) throws Exception {
+    private boolean replaceRolePermissions(Connection conn, Long roleId, List<Long> permissionIds) throws Exception {
         try (PreparedStatement deletePs = conn.prepareStatement("DELETE FROM role_permissions WHERE role_id = ?")) {
-            deletePs.setInt(1, roleId);
+            deletePs.setLong(1, roleId);
             deletePs.executeUpdate();
         }
 
@@ -358,13 +358,13 @@ public class AuthorizationDAO {
 
         try (PreparedStatement insertPs = conn.prepareStatement(
                 "INSERT INTO role_permissions (role_id, permission_id) VALUES (?, ?)")) {
-            Set<Integer> distinctIds = new HashSet<>(permissionIds);
-            for (Integer permissionId : distinctIds) {
+            Set<Long> distinctIds = new HashSet<>(permissionIds);
+            for (Long permissionId : distinctIds) {
                 if (permissionId == null) {
                     continue;
                 }
-                insertPs.setInt(1, roleId);
-                insertPs.setInt(2, permissionId);
+                insertPs.setLong(1, roleId);
+                insertPs.setLong(2, permissionId);
                 insertPs.addBatch();
             }
             insertPs.executeBatch();
@@ -372,9 +372,9 @@ public class AuthorizationDAO {
         return true;
     }
 
-    public Map<Integer, List<Long>> getUserIdsByRoleIds(List<Integer> roleIds) {
-        Map<Integer, List<Long>> result = new LinkedHashMap<>();
-        for (Integer roleId : roleIds) {
+    public Map<Long, List<Long>> getUserIdsByRoleIds(List<Long> roleIds) {
+        Map<Long, List<Long>> result = new LinkedHashMap<>();
+        for (Long roleId : roleIds) {
             result.put(roleId, getUserIdsByRoleId(roleId));
         }
         return result;

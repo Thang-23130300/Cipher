@@ -15,7 +15,7 @@ import java.util.Map;
 public class ReviewDAO {
 
     public List<Review> getReviewsByProductWithFilter(
-            int productId,
+            Long productId,
             Integer rating,
             String sort,
             int offset,
@@ -52,7 +52,7 @@ public class ReviewDAO {
              PreparedStatement ps = conn.prepareStatement(sql.toString())) {
 
             int idx = 1;
-            ps.setInt(idx++, productId);
+            ps.setLong(idx++, productId);
 
             if (rating != null) {
                 ps.setInt(idx++, rating);
@@ -72,7 +72,7 @@ public class ReviewDAO {
         return list;
     }
 
-    public ReviewSummary getReviewSummaryByProductId(int productId) {
+    public ReviewSummary getReviewSummaryByProductId(Long productId) {
         String sql = """
         SELECT COUNT(*) AS total_reviews,
                AVG(rating) AS avg_rating
@@ -83,7 +83,7 @@ public class ReviewDAO {
         try (Connection conn = DBContext.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
-            ps.setInt(1, productId);
+            ps.setLong(1, productId);
             ResultSet rs = ps.executeQuery();
 
             if (rs.next()) {
@@ -105,7 +105,7 @@ public class ReviewDAO {
 
         return new ReviewSummary(0, 0.0);
     }
-    public boolean hasPurchased(int userId, int productId) {
+    public boolean hasPurchased(int userId, Long productId) {
         String sql = """
         SELECT 1
         FROM orders o
@@ -119,7 +119,7 @@ public class ReviewDAO {
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setInt(1, userId);
-            ps.setInt(2, productId);
+            ps.setLong(2, productId);
 
             ResultSet rs = ps.executeQuery();
             return rs.next();
@@ -130,7 +130,7 @@ public class ReviewDAO {
         }
     }
 
-    public Map<Integer, Integer> countReviewsByRating(int productId) {
+    public Map<Integer, Integer> countReviewsByRating(Long productId) {
         Map<Integer, Integer> map = new HashMap<>();
         for (int i = 1; i <= 5; i++) map.put(i, 0);
 
@@ -144,7 +144,7 @@ public class ReviewDAO {
         try (Connection conn = DBContext.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
-            ps.setInt(1, productId);
+            ps.setLong(1, productId);
             ResultSet rs = ps.executeQuery();
 
             while (rs.next()) {
@@ -166,7 +166,7 @@ public class ReviewDAO {
         try (Connection conn = DBContext.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
-            ps.setInt(1, r.getProductId());
+            ps.setLong(1, r.getProductId());
             ps.setInt(2, r.getUserId());
             ps.setInt(3, r.getRating());
             ps.setString(4, r.getComment());
@@ -182,7 +182,7 @@ public class ReviewDAO {
     private Review mapReview(ResultSet rs) throws Exception {
         Review r = new Review();
         r.setId(rs.getInt("id"));
-        r.setProductId(rs.getInt("product_id"));
+        r.setProductId(rs.getLong("product_id"));
         r.setUserId(rs.getInt("user_id"));
         r.setUserName(rs.getString("user_name"));
         r.setRating(rs.getInt("rating"));

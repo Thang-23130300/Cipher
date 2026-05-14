@@ -17,13 +17,13 @@ public class ProductSpecificationDAO {
         WHERE product_id = ?
     """;
 
-    public List<ProductSpecification> getByProductId(int productId) {
+    public List<ProductSpecification> getByProductId(Long productId) {
         List<ProductSpecification> list = new ArrayList<>();
 
         try (Connection conn = DBContext.getConnection();
              PreparedStatement ps = conn.prepareStatement(SELECT_BY_PRODUCT_ID)) {
 
-            ps.setInt(1, productId);
+            ps.setLong(1, productId);
             ResultSet rs = ps.executeQuery();
 
             while (rs.next()) {
@@ -39,7 +39,7 @@ public class ProductSpecificationDAO {
     private ProductSpecification mapSpecification(ResultSet rs) throws Exception {
         return new ProductSpecification(
                 rs.getInt("id"),
-                rs.getInt("product_id"),
+                rs.getLong("product_id"),
                 rs.getString("spec_name"),
                 rs.getString("spec_value")
         );

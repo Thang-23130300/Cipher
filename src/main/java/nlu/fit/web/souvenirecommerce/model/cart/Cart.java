@@ -13,7 +13,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 public class Cart implements Serializable {
 
-    private Map<Integer, CartItem> data = new HashMap<>();
+    private Map<Long, CartItem> data = new HashMap<>();
     private User user;
 
     public Cart() {
@@ -31,14 +31,14 @@ public class Cart implements Serializable {
 
         }
 
-    public boolean  updateItem(int productId , int quantity) {
+    public boolean  updateItem(Long productId , int quantity) {
         if (data.get(productId) == null) return false;
         if (quantity <= 0) {quantity = 1;}
         data.get(productId).setQuantity(quantity);
         return true;
     }
 
-    public CartItem removeItem(int productId) {
+    public CartItem removeItem(Long productId) {
         if (data.get(productId) == null) return null;
         return data.remove(productId);
 
@@ -54,7 +54,7 @@ public class Cart implements Serializable {
         return new ArrayList<>(data.values());
     }
 
-    public CartItem getItem(int productId) {
+    public CartItem getItem(Long productId) {
         return data.get(productId);
     }
 
@@ -84,4 +84,3 @@ public class Cart implements Serializable {
 
     }
     }
-

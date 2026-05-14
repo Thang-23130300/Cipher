@@ -1,6 +1,6 @@
 package nlu.fit.web.souvenirecommerce.dao;
 
-import nlu.fit.web.souvenirecommerce.Enums.ProductSort;
+import nlu.fit.web.souvenirecommerce.enums.ProductSort;
 import nlu.fit.web.souvenirecommerce.model.entity.Product;
 import nlu.fit.web.souvenirecommerce.model.entity.Category;
 import nlu.fit.web.souvenirecommerce.util.DBContext;
@@ -213,7 +213,7 @@ public class ProductDAO {
         return 0;
     }
 
-    public Product getProductById(int id) {
+    public Product getProductById(Long id) {
         String sql = """
             SELECT * FROM (
                 """ + BASE_SELECT + """
@@ -224,7 +224,7 @@ public class ProductDAO {
         try (Connection conn = DBContext.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
-            ps.setInt(1, id);
+            ps.setLong(1, id);
             ResultSet rs = ps.executeQuery();
 
             if (rs.next()) return mapProduct(rs);
@@ -236,7 +236,7 @@ public class ProductDAO {
         return null;
     }
 
-    public List<Product> getRelatedProducts(Long categoryId, int excludeId, int limit) {
+    public List<Product> getRelatedProducts(Long categoryId, Long excludeId, int limit) {
 
         String sql = """
         SELECT * FROM (
@@ -254,7 +254,7 @@ public class ProductDAO {
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setLong(1, categoryId);
-            ps.setInt(2, excludeId);
+            ps.setLong(2, excludeId);
             ps.setInt(3, limit);
 
             ResultSet rs = ps.executeQuery();
@@ -304,7 +304,7 @@ public class ProductDAO {
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
                 Product p = new Product();
-                p.setId(rs.getInt("id"));
+                p.setId(rs.getLong("id"));
                 Category category = new Category();
                 category.setId(rs.getLong("category_id"));
                 p.setCategory(category);
@@ -328,7 +328,7 @@ public class ProductDAO {
 
     private Product mapProduct(ResultSet rs) throws Exception {
         Product p = new Product();
-        p.setId(rs.getInt("id"));
+        p.setId(rs.getLong("id"));
         Long categoryId =  rs.getLong("category_id");
         if (categoryId != null) {
             Category category = new Category();
@@ -457,7 +457,7 @@ public class ProductDAO {
             ps.setDouble(4, product.getOriginalPrice());
             ps.setString(5, product.getImage());
             ps.setInt(6, product.getStockQuantity());
-            ps.setInt(7, product.getId());
+            ps.setLong(7, product.getId());
 
             return ps.executeUpdate() > 0;
         } catch (Exception e) {
@@ -466,13 +466,13 @@ public class ProductDAO {
         return false;
     }
 
-    public boolean deleteProduct(int id) {
+    public boolean deleteProduct(Long id) {
         String sql = "DELETE FROM products WHERE id = ?";
 
         try (Connection conn = DBContext.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
-            ps.setInt(1, id);
+            ps.setLong(1, id);
             return ps.executeUpdate() > 0;
         } catch (Exception e) {
             e.printStackTrace();

@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 public class Promotion {
 
     private int id;
-    private int productId;
+    private Long productId;
     private int discountPercent;
     private LocalDateTime startDate;
     private LocalDateTime endDate;

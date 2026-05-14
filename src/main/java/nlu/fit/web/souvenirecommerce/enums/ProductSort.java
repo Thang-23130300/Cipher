@@ -1,4 +1,4 @@
-package nlu.fit.web.souvenirecommerce.Enums;
+package nlu.fit.web.souvenirecommerce.enums;
 
 public enum ProductSort {
     POPULAR,

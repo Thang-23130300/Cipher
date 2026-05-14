@@ -3,25 +3,19 @@ package nlu.fit.web.souvenirecommerce.util;
 import jakarta.mail.*;
 import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeMessage;
-
 import java.util.Properties;
 
-public class EmailUtils {
-    private String username;
-    private String password;
+public class EmailUtil {
+    private static String username;
+    private static String password;
 
-    public EmailUtils(String username, String password) {
-        this.username = username;
-        this.password = password;
-    }
-
-    public EmailUtils() {
+    static {
         Properties props = ApplicationLoader.getProperties();
-        this.username = props.getProperty("app_mail");
-        this.password = props.getProperty("app_password");
+        username = props.getProperty("mail.username");
+        password = props.getProperty("mail.password");
     }
 
-    private Session getSession() {
+    private static Session getSession() {
         Properties prop = new Properties();
         prop.put("mail.smtp.host", "smtp.gmail.com");
         prop.put("mail.smtp.port", "587");
@@ -35,13 +29,12 @@ public class EmailUtils {
         });
     }
 
-    public void sendHtmlEmail(String to, String subject, String htmlContent) throws MessagingException {
+    public static void send(String to, String subject, String content, String type) throws MessagingException {
         Message message = new MimeMessage(getSession());
         message.setFrom(new InternetAddress(username));
         message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(to));
         message.setSubject(subject);
-        message.setContent(htmlContent, "text/html; charset=utf-8");
-
+        message.setContent(content, type);
         Transport.send(message);
     }
 }

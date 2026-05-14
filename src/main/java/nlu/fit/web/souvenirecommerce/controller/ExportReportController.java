@@ -7,7 +7,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import nlu.fit.web.souvenirecommerce.dao.OrderDAO;
 import nlu.fit.web.souvenirecommerce.dao.ProductDAO;
-import nlu.fit.web.souvenirecommerce.dao.UserDAO;
+import nlu.fit.web.souvenirecommerce.dao.impl.UserDAOImpl;
 import nlu.fit.web.souvenirecommerce.model.Order;
 import nlu.fit.web.souvenirecommerce.model.entity.Product;
 import nlu.fit.web.souvenirecommerce.model.User;
@@ -22,7 +22,7 @@ import java.util.List;
 public class ExportReportController extends HttpServlet {
     private final OrderDAO orderDAO = new OrderDAO();
     private final ProductDAO productDAO = new ProductDAO();
-    private final UserDAO userDAO = new UserDAO();
+    private final UserDAOImpl userDAOImpl = new UserDAOImpl();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -70,7 +70,7 @@ public class ExportReportController extends HttpServlet {
         double totalRevenue = orderDAO.getTotalRevenue();
         int totalOrders = orderDAO.getTotalOrders();
         int totalProducts = productDAO.getTotalProducts();
-        int totalCustomers = userDAO.getTotalCustomers();
+        int totalCustomers = userDAOImpl.getTotalCustomers();
 
         writer.println("CHỈ SỐ TỔNG QUAN");
         writer.println("Chỉ số,Giá trị");
@@ -176,7 +176,7 @@ public class ExportReportController extends HttpServlet {
         writer.println();
         writer.println("ID,Họ tên,Email,Số điện thoại,Vai trò,Trạng thái,Ngày tạo");
 
-        List<User> customers = userDAO.getAllUsers();
+        List<User> customers = userDAOImpl.getAllUsers();
 
         for (User u : customers) {
             writer.println(String.format("%d,\"%s\",\"%s\",\"%s\",%s,%s,%s",

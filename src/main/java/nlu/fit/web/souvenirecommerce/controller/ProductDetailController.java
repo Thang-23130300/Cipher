@@ -23,9 +23,9 @@ public class ProductDetailController extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        int productId;
+        Long productId;
         try {
-            productId = Integer.parseInt(request.getParameter("id"));
+            productId = Long.parseLong(request.getParameter("id"));
         } catch (Exception e) {
             response.sendRedirect(request.getContextPath() + "/home");
             return;

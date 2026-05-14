@@ -32,7 +32,7 @@ public class RemoveCartController extends HttpServlet {
         }
 
         try {
-            int productId = Integer.parseInt(request.getParameter("productId"));
+            Long productId = Long.parseLong(request.getParameter("productId"));
             CartItem removedItem = cart.removeItem(productId);
             session.setAttribute("cart", cart);
 

@@ -1,4 +1,4 @@
-@import url("theme.css");
+@import url("../theme.css");
 
 :root {
     --auth-bg: var(--surface-page);
@@ -26,7 +26,7 @@ body.auth-page {
     min-height: 100vh;
     background:
         linear-gradient(rgba(244, 246, 241, 0.94), rgba(244, 246, 241, 0.94)),
-        url("../images/Banner/lang-nghe-thu-cong.png") center/cover fixed;
+        url("../../images/Banner/lang-nghe-thu-cong.png") center/cover fixed;
     color: var(--auth-text);
     font-family: Arial, "Helvetica Neue", sans-serif;
 }
@@ -91,7 +91,7 @@ body.auth-page {
 
 .step-indicator {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 12px;
     margin-bottom: 18px;
 }
@@ -154,6 +154,12 @@ body.auth-page {
     gap: 8px;
     font-size: 14px;
     font-weight: 700;
+}
+
+.name-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 12px;
 }
 
 .input-wrap {
@@ -251,6 +257,42 @@ body.auth-page {
     display: grid;
     grid-template-columns: 0.84fr 1.16fr;
     gap: 12px;
+}
+
+.otp-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 132px;
+    gap: 10px;
+}
+
+.otp-row .input-wrap {
+    min-width: 0;
+}
+
+.inline-button {
+    min-height: 50px;
+    white-space: nowrap;
+}
+
+.verified-email-card {
+    display: grid;
+    gap: 4px;
+    padding: 12px 14px;
+    border: 1px solid var(--auth-border);
+    background: var(--surface-subtle);
+}
+
+.verified-email-card span {
+    color: var(--auth-muted);
+    font-size: 12px;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.verified-email-card strong {
+    color: var(--auth-text);
+    font-size: 15px;
+    overflow-wrap: anywhere;
 }
 
 .switch-link {
@@ -405,13 +447,29 @@ body.auth-page {
 }
 
 @media (max-width: 520px) {
+    .step-indicator {
+        gap: 8px;
+    }
+
     .step {
         min-height: 54px;
         gap: 8px;
         padding: 8px;
     }
 
+    .step small {
+        font-size: 12px;
+    }
+
+    .otp-row {
+        grid-template-columns: 1fr;
+    }
+
     .button-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .name-grid {
         grid-template-columns: 1fr;
     }
 

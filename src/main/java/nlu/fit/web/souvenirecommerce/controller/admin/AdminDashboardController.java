@@ -7,7 +7,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import nlu.fit.web.souvenirecommerce.dao.OrderDAO;
 import nlu.fit.web.souvenirecommerce.dao.ProductDAO;
-import nlu.fit.web.souvenirecommerce.dao.UserDAO;
+import nlu.fit.web.souvenirecommerce.dao.impl.UserDAOImpl;
 import nlu.fit.web.souvenirecommerce.model.entity.Product;
 
 import java.io.IOException;
@@ -17,13 +17,13 @@ import java.util.List;
 public class AdminDashboardController extends HttpServlet {
 
     private ProductDAO productDAO;
-    private UserDAO userDAO;
+    private UserDAOImpl userDAOImpl;
     private OrderDAO orderDAO;
 
     @Override
     public void init() {
         productDAO = new ProductDAO();
-        userDAO = new UserDAO();
+        userDAOImpl = new UserDAOImpl();
         orderDAO = new OrderDAO();
     }
 
@@ -34,7 +34,7 @@ public class AdminDashboardController extends HttpServlet {
         try {
             // Get statistics from database
             int totalProducts = productDAO.getTotalProducts();
-            int totalCustomers = userDAO.getTotalCustomers();
+            int totalCustomers = userDAOImpl.getTotalCustomers();
             double totalRevenue = orderDAO.getMonthlyRevenue();
             int totalOrders = orderDAO.getMonthlyOrders();
 

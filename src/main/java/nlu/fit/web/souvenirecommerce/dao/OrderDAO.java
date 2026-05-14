@@ -171,12 +171,12 @@ public class OrderDAO {
         return -1;
     }
 
-    public boolean createOrderDetail(int orderId, int productId, int quantity, double price) {
+    public boolean createOrderDetail(int orderId, Long productId, int quantity, double price) {
         String sql = "INSERT INTO order_details (order_id, product_id, quantity, price_at_purchase) VALUES (?, ?, ?, ?)";
         try (Connection conn = DBContext.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, orderId);
-            ps.setInt(2, productId);
+            ps.setLong(2, productId);
             ps.setInt(3, quantity);
             ps.setDouble(4, price);
             return ps.executeUpdate() > 0;
@@ -362,7 +362,7 @@ public class OrderDAO {
                 while (rs.next()) {
                     OrderItem item = new OrderItem();
                     item.setOrderId(orderId);
-                    item.setProductId(rs.getInt("product_id"));
+                    item.setProductId(rs.getLong("product_id"));
                     item.setProductName(rs.getString("product_name"));
                     item.setProductImage(rs.getString("image_url"));
                     item.setQuantity(rs.getInt("quantity"));

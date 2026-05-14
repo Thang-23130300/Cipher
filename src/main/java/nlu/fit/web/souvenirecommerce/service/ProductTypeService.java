@@ -1,6 +1,6 @@
 package nlu.fit.web.souvenirecommerce.service;
 
-import nlu.fit.web.souvenirecommerce.Enums.ProductSort;
+import nlu.fit.web.souvenirecommerce.enums.ProductSort;
 import nlu.fit.web.souvenirecommerce.dao.*;
 import nlu.fit.web.souvenirecommerce.dao.ProductDAO;
 import nlu.fit.web.souvenirecommerce.dto.ProductCardDTO;

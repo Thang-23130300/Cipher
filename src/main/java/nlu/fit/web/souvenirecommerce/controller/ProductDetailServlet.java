@@ -40,9 +40,9 @@ public class ProductDetailServlet extends HttpServlet {
             return;
         }
 
-        int productId;
+        Long productId;
         try {
-            productId = Integer.parseInt(idParam);
+            productId = Long.parseLong(idParam);
         } catch (NumberFormatException e) {
             response.sendRedirect("home");
             return;
@@ -82,14 +82,13 @@ public class ProductDetailServlet extends HttpServlet {
     }
     /* ================= HELPER ================= */
 
-    private int parseProductId(HttpServletRequest request, HttpServletResponse response)
+    private Long parseProductId(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
         try {
-            return Integer.parseInt(request.getParameter("id"));
+            return Long.parseLong(request.getParameter("id"));
         } catch (Exception e) {
             response.sendRedirect("home");
-            return -1;
+            return -1L;
         }
     }
 }
-

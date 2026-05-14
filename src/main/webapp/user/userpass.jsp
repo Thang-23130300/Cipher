@@ -6,7 +6,7 @@
     <meta charset="UTF-8">
     <title>Khôi phục mật khẩu - INOLA</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/login.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/auth/login.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/layout/footer.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/forgot_password.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/HomePageFooter.css">
