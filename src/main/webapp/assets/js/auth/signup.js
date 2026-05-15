@@ -267,7 +267,7 @@ $('#submitBtn').click(function() {
     const firstName = $('#first_name').val().trim();
     const fullName = `${lastName} ${firstName}`.trim();
     const phone = $('#phone').val().trim();
-    const password = $('#matkhau').val();
+    const password = $('#password').val();
     const confirmPassword = $('#confirm_password').val();
 
     if (!verifiedEmail || verifiedEmail !== email) {
@@ -309,6 +309,8 @@ $('#submitBtn').click(function() {
         type: 'POST',
         data: {
             email: email,
+            firstName: firstName,
+            lastName: lastName,
             fullName: fullName,
             phone: phone,
             password: password,
@@ -337,7 +339,7 @@ $('#submitBtn').click(function() {
     });
 });
 
-$('#matkhau').on('keyup', function() {
+$('#password').on('keyup', function() {
     checkPasswordStrength($(this).val());
 });
 

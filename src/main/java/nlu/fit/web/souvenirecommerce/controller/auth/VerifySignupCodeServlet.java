@@ -7,14 +7,15 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-import nlu.fit.web.souvenirecommerce.dao.impl.UserDAOImpl;
+import nlu.fit.web.souvenirecommerce.dao.IUserDAO;
+import nlu.fit.web.souvenirecommerce.dao.impl.UserDAOImpl2;
 
 import java.io.IOException;
 import java.io.PrintWriter;
 
 @WebServlet("/api/signup/verify-code")
 public class VerifySignupCodeServlet extends HttpServlet {
-    private final UserDAOImpl userDAOImpl = new UserDAOImpl();
+    private final IUserDAO userDAO = new UserDAOImpl2();
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
@@ -35,7 +36,7 @@ public class VerifySignupCodeServlet extends HttpServlet {
             return;
         }
 
-        if (userDAOImpl.emailExists(email)) {
+        if (userDAO.hasEmailExist(email)) {
             writeJson(resp, jsonResponse, "error", "Email này đã được đăng ký");
             return;
         }

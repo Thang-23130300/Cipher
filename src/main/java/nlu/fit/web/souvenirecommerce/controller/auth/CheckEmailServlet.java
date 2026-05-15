@@ -5,14 +5,20 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import nlu.fit.web.souvenirecommerce.dao.impl.UserDAOImpl;
+import nlu.fit.web.souvenirecommerce.dao.IUserDAO;
+import nlu.fit.web.souvenirecommerce.dao.impl.UserDAOImpl2;
 import com.google.gson.JsonObject;
 import java.io.IOException;
 import java.io.PrintWriter;
 
-@WebServlet("/api/check-email")
+@WebServlet(urlPatterns = {"/api/check-email", "/api/signup/check-email", "/api/login/check-email"})
 public class CheckEmailServlet extends HttpServlet {
-    private UserDAOImpl userDAOImpl = new UserDAOImpl();
+    private IUserDAO userDAO;
+
+    @Override
+    public void init() throws ServletException {
+        userDAO = new UserDAOImpl2();
+    }
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
@@ -39,7 +45,7 @@ public class CheckEmailServlet extends HttpServlet {
         }
 
         // Check if email exists
-        boolean exists = userDAOImpl.emailExists(email);
+        boolean exists = userDAO.hasEmailExist(email);
 
         if (exists) {
             jsonResponse.addProperty("status", "error");
