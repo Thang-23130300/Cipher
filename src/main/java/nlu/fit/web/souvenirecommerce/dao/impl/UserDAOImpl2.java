@@ -1,17 +1,21 @@
 package nlu.fit.web.souvenirecommerce.dao.impl;
 
-import nlu.fit.web.souvenirecommerce.dao.IIUserIDAO;
+import nlu.fit.web.souvenirecommerce.dao.IUserDAO;
+import nlu.fit.web.souvenirecommerce.model.entity.Role;
 import nlu.fit.web.souvenirecommerce.model.entity.User;
+import nlu.fit.web.souvenirecommerce.model.entity.UserCredential;
 import nlu.fit.web.souvenirecommerce.util.HibernateUtil;
 import nlu.fit.web.souvenirecommerce.util.PasswordUtil;
+import org.hibernate.Transaction;
 import org.hibernate.query.Query;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 
-public class IIUserIDAOImpl2 extends AbstractHibernateIDAO<Long, User> implements IIUserIDAO {
+public class UserDAOImpl2 extends AbstractHibernateIDAO<Long, User> implements IUserDAO {
 
-    public IIUserIDAOImpl2() {
+    public UserDAOImpl2() {
         super(User.class);
     }
 
@@ -103,6 +107,67 @@ public class IIUserIDAOImpl2 extends AbstractHibernateIDAO<Long, User> implement
             return session.createQuery(hql, User.class)
                     .setParameter("email", userEmail.trim())
                     .uniqueResultOptional();
+        }
+    }
+
+    @Override
+    public Optional<User> createUser(String email, String password, String firstName, String lastName, String phone) {
+        if (email == null || email.isBlank()
+                || password == null || password.isBlank()
+                || firstName == null || firstName.isBlank()
+                || lastName == null || lastName.isBlank()
+                || phone == null || phone.isBlank()) {
+            return Optional.empty();
+        }
+
+        Transaction transaction = null;
+
+        try (var session = HibernateUtil.getSessionFactory().openSession()) {
+            transaction = session.beginTransaction();
+
+            Long existingUsers = session.createQuery("""
+                            select count(u.id) from User u
+                            where lower(u.email) = lower(:email)
+                            """, Long.class)
+                    .setParameter("email", email.trim())
+                    .uniqueResult();
+
+            if (existingUsers != null && existingUsers > 0) {
+                transaction.rollback();
+                return Optional.empty();
+            }
+
+            User user = User.builder()
+                    .email(email.trim().toLowerCase())
+                    .firstName(firstName.trim())
+                    .lastName(lastName.trim())
+                    .phone(phone.trim())
+                    .avatarUrl("default-avatar.png")
+                    .isActive(true)
+                    .roles(new HashSet<>())
+                    .build();
+
+            UserCredential credential = UserCredential.builder()
+                    .user(user)
+                    .passwordHash(PasswordUtil.hashPassword(password))
+                    .emailVerified(true)
+                    .build();
+            user.setCredentials(credential);
+
+            session.createQuery("""
+                            select r from Role r
+                            where lower(r.name) = lower(:name)
+                            """, Role.class)
+                    .setParameter("name", "User")
+                    .uniqueResultOptional()
+                    .ifPresent(role -> user.getRoles().add(role));
+
+            session.persist(user);
+            transaction.commit();
+            return Optional.of(user);
+        } catch (RuntimeException e) {
+            rollback(transaction);
+            throw e;
         }
     }
 }

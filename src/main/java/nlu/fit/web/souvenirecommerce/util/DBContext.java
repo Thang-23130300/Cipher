@@ -13,9 +13,9 @@ public class DBContext {
         Properties props = ApplicationLoader.getProperties();
         HikariConfig config = new HikariConfig();
 
-        config.setJdbcUrl(props.getProperty("db_url"));
-        config.setUsername(props.getProperty("db_username"));
-        config.setPassword(props.getProperty("db_password"));
+        config.setJdbcUrl(props.getProperty("db.url"));
+        config.setUsername(props.getProperty("db.username"));
+        config.setPassword(props.getProperty("db.password"));
         config.setDriverClassName("com.mysql.cj.jdbc.Driver");
 
         config.setMaximumPoolSize(10);

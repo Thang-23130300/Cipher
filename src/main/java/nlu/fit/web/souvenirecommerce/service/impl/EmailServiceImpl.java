@@ -2,10 +2,10 @@ package nlu.fit.web.souvenirecommerce.service.impl;
 
 import jakarta.mail.MessagingException;
 import nlu.fit.web.souvenirecommerce.enums.EmailType;
-import nlu.fit.web.souvenirecommerce.service.EmailService;
+import nlu.fit.web.souvenirecommerce.service.IEmailService;
 import nlu.fit.web.souvenirecommerce.util.EmailUtil;
 
-public class EmailServiceImpl implements EmailService {
+public class EmailServiceImpl implements IEmailService {
 
     public void sendSignupVerificationCode(String userEmail, String otp) throws MessagingException {
         String htmlContent = "<h1>Mã xác thực đăng ký INOLA</h1>" +

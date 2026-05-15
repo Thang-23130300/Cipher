@@ -143,11 +143,12 @@
                     <span>Mật khẩu</span>
                     <span class="input-wrap password-wrap">
                         <i class="fa fa-lock"></i>
-                        <input type="password" name="password" id="matkhau" minlength="8" autocomplete="new-password" required>
-                        <button type="button" class="eye-button" onclick="togglePassword('matkhau', this)" aria-label="Hiện hoặc ẩn mật khẩu">
+                        <input type="password" name="password" id="password" minlength="8" autocomplete="new-password" required>
+                        <button type="button" class="eye-button" onclick="togglePassword('password', this)" aria-label="Hiện hoặc ẩn mật khẩu">
                             <i class="fa fa-eye"></i>
                         </button>
                     </span>
+                    <%--Hiển thị password mạnh, yếu--%>
                     <span class="password-strength" id="passwordStrength"></span>
                 </label>
 

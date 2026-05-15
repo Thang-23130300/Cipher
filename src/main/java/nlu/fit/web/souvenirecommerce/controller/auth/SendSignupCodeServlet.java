@@ -8,8 +8,11 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-import nlu.fit.web.souvenirecommerce.dao.impl.UserDAOImpl;
+import nlu.fit.web.souvenirecommerce.dao.IUserDAO;
+import nlu.fit.web.souvenirecommerce.dao.impl.UserDAOImpl2;
+import nlu.fit.web.souvenirecommerce.service.IEmailService;
 import nlu.fit.web.souvenirecommerce.service.impl.EmailServiceImpl;
+import nlu.fit.web.souvenirecommerce.util.EmailUtil;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -20,15 +23,21 @@ public class SendSignupCodeServlet extends HttpServlet {
     private static final long OTP_TTL_MILLIS = 10 * 60 * 1000L;
     private static final SecureRandom RANDOM = new SecureRandom();
 
-    private final UserDAOImpl userDAOImpl = new UserDAOImpl();
-    private final EmailServiceImpl emailService = new EmailServiceImpl();
+    private IUserDAO userDAO;
+    private EmailServiceImpl emailService;
+
+    @Override
+    public void init() throws ServletException {
+        userDAO = new UserDAOImpl2();
+        emailService = new EmailServiceImpl();
+    }
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         resp.setContentType("application/json;charset=UTF-8");
         req.setCharacterEncoding("UTF-8");
 
-        String email = normalizeEmail(req.getParameter("email"));
+        String email = EmailUtil.normalizeEmail(req.getParameter("email"));
         JsonObject jsonResponse = new JsonObject();
 
         if (email == null || email.isEmpty()) {
@@ -41,7 +50,7 @@ public class SendSignupCodeServlet extends HttpServlet {
             return;
         }
 
-        if (userDAOImpl.emailExists(email)) {
+        if (userDAO.hasEmailExist(email)) {
             writeJson(resp, jsonResponse, "error", "Email này đã được đăng ký");
             return;
         }
@@ -63,10 +72,6 @@ public class SendSignupCodeServlet extends HttpServlet {
         session.removeAttribute("signupVerifiedEmail");
 
         writeJson(resp, jsonResponse, "success", "Mã xác thực đã được gửi tới email của bạn");
-    }
-
-    private String normalizeEmail(String email) {
-        return email == null ? null : email.trim().toLowerCase();
     }
 
     private void writeJson(HttpServletResponse resp, JsonObject jsonResponse, String status, String message) throws IOException {
