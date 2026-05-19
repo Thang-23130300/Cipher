@@ -1,5 +1,35 @@
 SET FOREIGN_KEY_CHECKS = 0;
 
+SET @ddl = IF(
+    (SELECT COUNT(*) FROM information_schema.COLUMNS
+     WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'users' AND COLUMN_NAME = 'gender') = 0,
+    'ALTER TABLE users ADD COLUMN gender VARCHAR(10) NULL AFTER role',
+    'SELECT 1'
+);
+PREPARE stmt FROM @ddl;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @ddl = IF(
+    (SELECT COUNT(*) FROM information_schema.COLUMNS
+     WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'users' AND COLUMN_NAME = 'dob') = 0,
+    'ALTER TABLE users ADD COLUMN dob DATE NULL AFTER gender',
+    'SELECT 1'
+);
+PREPARE stmt FROM @ddl;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @ddl = IF(
+    (SELECT COUNT(*) FROM information_schema.COLUMNS
+     WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'addresses' AND COLUMN_NAME = 'is_default') = 0,
+    'ALTER TABLE addresses ADD COLUMN is_default TINYINT NOT NULL DEFAULT 0',
+    'SELECT 1'
+);
+PREPARE stmt FROM @ddl;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
 CREATE TABLE IF NOT EXISTS roles
 (
     id          INT AUTO_INCREMENT PRIMARY KEY,

@@ -6,7 +6,6 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
 import nlu.fit.web.souvenirecommerce.dao.impl.UserDAOImpl;
 import nlu.fit.web.souvenirecommerce.model.User;
-import nlu.fit.web.souvenirecommerce.service.impl.UserServiceImpl;
 
 import java.io.File;
 import java.io.IOException;
@@ -15,19 +14,13 @@ import java.util.UUID;
 
 @WebServlet(name = "ProfileController", value = "/user/profile")
 @MultipartConfig(
-        fileSizeThreshold = 1024 * 1024,      // 1MB
-        maxFileSize = 5 * 1024 * 1024,         // 5MB
-        maxRequestSize = 10 * 1024 * 1024      // 10MB
+        fileSizeThreshold = 1024 * 1024,
+        maxFileSize = 5 * 1024 * 1024,
+        maxRequestSize = 10 * 1024 * 1024
 )
 public class ProfileController extends HttpServlet {
 
     private final UserDAOImpl dao = new UserDAOImpl();
-    private UserServiceImpl userService;
-
-    @Override
-    public void init() throws ServletException {
-        userService = new UserServiceImpl();
-    }
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -44,14 +37,19 @@ public class ProfileController extends HttpServlet {
         // Chỉ load danh sách địa chỉ để HIỂN THỊ
         request.setAttribute("listAddr", dao.getAddressesByUserId(user.getId()));
 
-        request.getRequestDispatcher("/user/userprofile.jsp")
-                .forward(request, response);
+        request.setAttribute("pageTitle", "Hồ sơ");
+        request.setAttribute("pageCss", "user/profile.css");
+        request.setAttribute("pageJs", "user/profile.js");
+        request.setAttribute("contentPage", "/WEB-INF/views/user/profile.jsp");
+
+        request.getRequestDispatcher("/WEB-INF/layout/base.jsp").forward(request, response);
     }
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
+        request.setCharacterEncoding("UTF-8");
         HttpSession session = request.getSession(false);
         User user = (session != null) ? (User) session.getAttribute("userInSession") : null;
 
@@ -81,6 +79,12 @@ public class ProfileController extends HttpServlet {
                     user.setGender(gender);
                     user.setDob(dob);
                     session.setAttribute("userInSession", user);
+                    session.setAttribute("user", user);
+                    session.setAttribute("profileMessage", "Cập nhật thông tin thành công.");
+                    session.setAttribute("profileMessageType", "success");
+                } else {
+                    session.setAttribute("profileMessage", "Không thể cập nhật thông tin. Vui lòng kiểm tra lại dữ liệu.");
+                    session.setAttribute("profileMessageType", "error");
                 }
             }
 
@@ -96,17 +100,23 @@ public class ProfileController extends HttpServlet {
                     String newFileName = UUID.randomUUID() + "_" + fileName;
 
                     String uploadDir = request.getServletContext()
-                            .getRealPath("/assets/image/Avatar");
+                            .getRealPath("/assets/images/Avatar");
 
                     File dir = new File(uploadDir);
                     if (!dir.exists()) dir.mkdirs();
 
                     avatarPart.write(uploadDir + File.separator + newFileName);
 
-                    dao.updateAvatar(user.getId(), newFileName);
-
-                    user.setAvatar(newFileName);
-                    session.setAttribute("userInSession", user);
+                    if (dao.updateAvatar(user.getId(), newFileName)) {
+                        user.setAvatar(newFileName);
+                        session.setAttribute("userInSession", user);
+                        session.setAttribute("user", user);
+                        session.setAttribute("profileMessage", "Cập nhật ảnh đại diện thành công.");
+                        session.setAttribute("profileMessageType", "success");
+                    } else {
+                        session.setAttribute("profileMessage", "Không thể cập nhật ảnh đại diện.");
+                        session.setAttribute("profileMessageType", "error");
+                    }
                 }
             }
             default -> {}

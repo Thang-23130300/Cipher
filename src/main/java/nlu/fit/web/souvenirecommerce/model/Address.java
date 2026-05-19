@@ -14,5 +14,5 @@ public class Address {
     private String ward;
     private String district;
     private String city;
-    private int isDefault; // 0 hoặc 1
+    private int isDefault;
 }
