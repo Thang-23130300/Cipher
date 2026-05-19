@@ -1,11 +1,11 @@
 package nlu.fit.web.souvenirecommerce.dao;
 
-import nlu.fit.web.souvenirecommerce.model.entity.Session;
+import nlu.fit.web.souvenirecommerce.model.entity.UserSession;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
-public interface ISessionEntityIDAO extends IDAO<String, Session> {
+public interface ISessionEntityIDAO extends IDAO<String, UserSession> {
 
-    List<Session> findExpired(LocalDateTime now);
+    List<UserSession> findExpired(LocalDateTime now);
 }

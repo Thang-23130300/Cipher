@@ -8,7 +8,8 @@ CREATE TABLE users
     avatar_url   VARCHAR(500),
     is_active    BOOLEAN      NOT NULL DEFAULT TRUE,
     created_at   TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at   TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    updated_at   TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    deleted_at   TIMESTAMP    NULL
 );
 
 CREATE TABLE user_credentials
@@ -20,6 +21,9 @@ CREATE TABLE user_credentials
     verification_token VARCHAR(64),
     reset_token        VARCHAR(64),
     reset_expires_at   TIMESTAMP,
+    created_at         TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at         TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    deleted_at         TIMESTAMP    NULL,
     CONSTRAINT fk_cred_user FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
 );
 
@@ -31,11 +35,14 @@ CREATE TABLE oauth_accounts
     provider_user_id VARCHAR(128) NOT NULL,
     provider_email   VARCHAR(255),
     token_expires_at TIMESTAMP,
+    created_at       TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at       TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    deleted_at       TIMESTAMP    NULL,
     CONSTRAINT fk_oauth_user FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
     CONSTRAINT uq_provider_account UNIQUE (provider, provider_user_id)
 );
 
--- Session-based auth
+-- UserSession-based auth
 CREATE TABLE sessions
 (
     session_id VARCHAR(128) PRIMARY KEY,
@@ -44,6 +51,8 @@ CREATE TABLE sessions
     user_agent TEXT,
     expires_at TIMESTAMP NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP NULL,
     CONSTRAINT fk_sess_user FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
     INDEX      idx_sess_user (user_id),
     INDEX      idx_sess_expires (expires_at)
@@ -54,7 +63,10 @@ CREATE TABLE roles
     id          INT AUTO_INCREMENT PRIMARY KEY,
     name        VARCHAR(50) NOT NULL UNIQUE,
     description VARCHAR(255),
-    is_system   BOOLEAN     NOT NULL DEFAULT FALSE
+    is_system   BOOLEAN     NOT NULL DEFAULT FALSE,
+    created_at  TIMESTAMP   NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at  TIMESTAMP   NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    deleted_at  TIMESTAMP   NULL
 );
 
 CREATE TABLE permissions
@@ -63,6 +75,9 @@ CREATE TABLE permissions
     resource    VARCHAR(50) NOT NULL,
     action      VARCHAR(30) NOT NULL,
     description VARCHAR(255),
+    created_at  TIMESTAMP   NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at  TIMESTAMP   NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    deleted_at  TIMESTAMP   NULL,
     CONSTRAINT uq_perm UNIQUE (resource, action)
 );
 

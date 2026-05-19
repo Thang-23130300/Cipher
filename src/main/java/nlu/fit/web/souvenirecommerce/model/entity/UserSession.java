@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
 @Table(name = "sessions")
 @SQLDelete(sql = "UPDATE sessions SET deleted_at = CURRENT_TIMESTAMP WHERE session_id = ?")
 @SQLRestriction("deleted_at IS NULL")
-public class Session extends BaseEntity {
+public class UserSession extends BaseEntity {
     @Id
     @Column(name = "session_id", length = 128)
     private String sessionId;
