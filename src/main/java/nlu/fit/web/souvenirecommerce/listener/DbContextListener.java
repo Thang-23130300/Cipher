@@ -3,6 +3,7 @@ package nlu.fit.web.souvenirecommerce.listener;
 import jakarta.servlet.ServletContextEvent;
 import jakarta.servlet.ServletContextListener;
 import jakarta.servlet.annotation.WebListener;
+import nlu.fit.web.souvenirecommerce.util.DBContext;
 import nlu.fit.web.souvenirecommerce.util.HibernateUtil;
 
 @WebListener
@@ -20,5 +21,7 @@ public class DbContextListener implements ServletContextListener {
             HibernateUtil.shutdown();
             System.out.println("Hibernate SessionFactory destroyed.");
         }
+        DBContext.shutdown();
+        System.out.println("JDBC HikariDataSource destroyed.");
     }
 }

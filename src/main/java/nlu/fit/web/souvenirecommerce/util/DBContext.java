@@ -2,32 +2,43 @@ package nlu.fit.web.souvenirecommerce.util;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+
+import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Properties;
 
-public class DBContext {
-    private static HikariDataSource dataSource;
+public final class DBContext {
+    private static final HikariDataSource dataSource;
 
     static {
         Properties props = ApplicationLoader.getProperties();
         HikariConfig config = new HikariConfig();
 
-        config.setJdbcUrl(props.getProperty("db.url"));
-        config.setUsername(props.getProperty("db.username"));
-        config.setPassword(props.getProperty("db.password"));
-        config.setDriverClassName("com.mysql.cj.jdbc.Driver");
+        config.setPoolName(props.getProperty("hikari.poolName", "SouvenirJdbcPool"));
+        config.setJdbcUrl(required(props, "db.url"));
+        config.setUsername(required(props, "db.username"));
+        config.setPassword(props.getProperty("db.password", ""));
+        config.setDriverClassName(props.getProperty("db.driver", "com.mysql.cj.jdbc.Driver"));
 
-        config.setMaximumPoolSize(10);
-        config.setMinimumIdle(2);
-        config.setIdleTimeout(30000);
-        config.setConnectionTimeout(20000);
+        config.setMaximumPoolSize(intProperty(props, "hikari.maximumPoolSize", 10));
+        config.setMinimumIdle(intProperty(props, "hikari.minimumIdle", 2));
+        config.setIdleTimeout(longProperty(props, "hikari.idleTimeout", 30000));
+        config.setConnectionTimeout(longProperty(props, "hikari.connectionTimeout", 20000));
+        config.setMaxLifetime(longProperty(props, "hikari.maxLifetime", 1800000));
 
         dataSource = new HikariDataSource(config);
     }
 
+    public DBContext() {
+    }
+
     public static Connection getConnection() throws SQLException {
         return dataSource.getConnection();
+    }
+
+    public static DataSource getDataSource() {
+        return dataSource;
     }
 
     public static void shutdown() {
@@ -42,5 +53,21 @@ public class DBContext {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+    }
+
+    private static String required(Properties props, String key) {
+        String value = props.getProperty(key);
+        if (value == null || value.isBlank()) {
+            throw new IllegalStateException("Missing required property: " + key);
+        }
+        return value;
+    }
+
+    private static int intProperty(Properties props, String key, int defaultValue) {
+        return Integer.parseInt(props.getProperty(key, String.valueOf(defaultValue)));
+    }
+
+    private static long longProperty(Properties props, String key, long defaultValue) {
+        return Long.parseLong(props.getProperty(key, String.valueOf(defaultValue)));
     }
 }
