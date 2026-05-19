@@ -3,61 +3,52 @@
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 
 <c:if test="${not empty p}">
-    <div class="product-card">
-        <a href="${pageContext.request.contextPath}/product?id=${p.id}">
+    <article class="product-card">
+        <a class="product-card__link" href="${pageContext.request.contextPath}/product?id=${p.id}"
+           aria-label="Xem chi tiết ${p.name}">
 
-            <div class="img-box">
-                <img src="${p.image}" alt="${p.name}"/>
+            <div class="product-card__media img-box">
+                <c:url var="productImage" value="${p.image}"/>
+                <img src="${productImage}" alt="${p.name}" loading="lazy" decoding="async"/>
 
-                <c:if test="${p.discountPercent != null}">
-                    <span class="badge-sale">-${p.discountPercent}%</span> 
+                <c:if test="${p.discountPercent != null && p.discountPercent > 0}">
+                    <span class="product-card__badge badge-sale">-${p.discountPercent}%</span>
                 </c:if>
             </div>
 
-            <p class="product-name">${p.name}</p>
+            <div class="product-card__body">
+                <h3 class="product-card__name product-name">${p.name}</h3>
 
-            <div class="product-sold">
-                Đã bán ${p.totalSold}
-                <span class="rating">
-                    <c:set var="fullStars" value="${Math.floor(p.avgRating)}" />
-                    <c:set var="hasHalf" value="${p.avgRating - fullStars >= 0.5}" />
-                
-                    <c:forEach begin="1" end="${fullStars}">
-                        <i class="fa-solid fa-star"></i>
-                    </c:forEach>
-                
-                    <c:if test="${hasHalf}">
-                        <i class="fa-solid fa-star-half-stroke"></i>
-                    </c:if>
-                
-                    <c:forEach begin="1" end="${5 - fullStars - (hasHalf ? 1 : 0)}">
-                        <i class="fa-regular fa-star"></i>
-                    </c:forEach>
-                
-                    <c:if test="${p.reviewCount > 0}">
-                        <span class="review-count">(${p.reviewCount})</span>
-                    </c:if>
+                <div class="product-card__meta product-sold">
+                    <span>Đã bán ${p.totalSold}</span>
+                    <span class="rating" aria-label="Đánh giá trung bình ${p.avgRating}">
+                        <i class="fa-solid fa-star" aria-hidden="true"></i>
+                        <fmt:formatNumber value="${p.avgRating}" minFractionDigits="1" maxFractionDigits="1"/>
+                        <c:if test="${p.reviewCount > 0}">
+                            <span class="review-count">(${p.reviewCount})</span>
+                        </c:if>
                 </span>
-            </div>
+                </div>
 
-            <div class="price-container">
-                <c:choose>
-                    <c:when test="${p.discountPercent != null}">
+                <div class="product-card__price price-container">
+                    <c:choose>
+                        <c:when test="${p.discountPercent != null && p.discountPercent > 0}">
                         <span class="old-price">
                             <fmt:formatNumber value="${p.originalPrice}" groupingUsed="true"/> ₫
                         </span>
-                        <span class="current-price">
+                            <span class="current-price">
                             <fmt:formatNumber value="${p.discountedPrice}" groupingUsed="true"/> ₫
                         </span>
-                    </c:when>
+                        </c:when>
 
-                    <c:otherwise>
+                        <c:otherwise>
                         <span class="current-price">
                             <fmt:formatNumber value="${p.originalPrice}" groupingUsed="true"/> ₫
                         </span>
-                    </c:otherwise>
-                </c:choose>
+                        </c:otherwise>
+                    </c:choose>
+                </div>
             </div>
         </a>
-    </div>
+    </article>
 </c:if>

@@ -93,7 +93,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (!slider || !prevBtn || !nextBtn) return;
 
-        const cards = slider.querySelectorAll(".product-card");
+        const cards = slider.querySelectorAll(".category-card");
         if (cards.length <= 1) {
             prevBtn.style.display = "none";
             nextBtn.style.display = "none";
