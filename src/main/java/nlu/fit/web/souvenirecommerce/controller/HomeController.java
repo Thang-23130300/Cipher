@@ -42,8 +42,7 @@ public class HomeController extends HttpServlet {
         request.setAttribute("contentPage", "/home.jsp");
 
         /* ===== FORWARD TO LAYOUT ===== */
-        request.getRequestDispatcher("/layoutMain.jsp")
-                .forward(request, response);
+        request.getRequestDispatcher("WEB-INF/layout/base.jsp").forward(request, response);
     }
 
 }

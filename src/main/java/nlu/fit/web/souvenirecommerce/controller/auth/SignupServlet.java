@@ -75,7 +75,7 @@ public class SignupServlet extends HttpServlet {
 
         writeJson(resp, jsonResponse, "success", "Tạo tài khoản thành công");
 
-        // Create Session and setAttributes
+        // Create UserSession and setAttributes
     }
 
     private String validate(String email, String firstName, String lastName, String phone,

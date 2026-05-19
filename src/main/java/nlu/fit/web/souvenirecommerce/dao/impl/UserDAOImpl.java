@@ -6,8 +6,10 @@ import nlu.fit.web.souvenirecommerce.util.DBContext;
 import nlu.fit.web.souvenirecommerce.util.PasswordUtil;
 
 import java.sql.Connection;
+import java.sql.DatabaseMetaData;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,16 +26,7 @@ public class UserDAOImpl {
             ResultSet rs = ps.executeQuery();
 
             if (rs.next() && PasswordUtil.checkPassword(password, rs.getString("password"))) {
-                User user = new User();
-                user.setId(rs.getInt("id"));
-                user.setFullName(rs.getString("full_name"));
-                user.setEmail(rs.getString("email"));
-                user.setPhone(rs.getString("phone"));
-                user.setAvatar(rs.getString("avatar"));
-                user.setRole(rs.getString("role"));
-                user.setStatus(rs.getString("status"));
-                user.setCreatedAt(rs.getString("created_at"));
-                return user;
+                return mapUser(rs);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -147,17 +140,31 @@ public class UserDAOImpl {
     }
 
     public boolean updateProfile(int userId, String fullName, String phone, String gender, String dob) {
-        String sql = "UPDATE users SET full_name = ?, phone = ?, gender = ?, dob = ? WHERE id = ?";
+        try (Connection conn = new DBContext().getConnection()) {
+            boolean hasGender = hasColumn(conn, "users", "gender");
+            boolean hasDob = hasColumn(conn, "users", "dob");
+            StringBuilder sql = new StringBuilder("UPDATE users SET full_name = ?, phone = ?");
+            if (hasGender) {
+                sql.append(", gender = ?");
+            }
+            if (hasDob) {
+                sql.append(", dob = ?");
+            }
+            sql.append(" WHERE id = ?");
 
-        try (Connection conn = new DBContext().getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setString(1, fullName);
-            ps.setString(2, phone);
-            ps.setString(3, gender);
-            ps.setString(4, dob);
-            ps.setInt(5, userId);
-            return ps.executeUpdate() > 0;
+            try (PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+                int index = 1;
+                ps.setString(index++, normalize(fullName));
+                ps.setString(index++, normalize(phone));
+                if (hasGender) {
+                    ps.setString(index++, normalize(gender));
+                }
+                if (hasDob) {
+                    ps.setString(index++, normalize(dob));
+                }
+                ps.setInt(index, userId);
+                return ps.executeUpdate() > 0;
+            }
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -169,11 +176,12 @@ public class UserDAOImpl {
 
         if (detail == null || detail.isBlank()) return false;
 
-        String checkSql = "SELECT COUNT(*) FROM addresses WHERE user_id = ?";
-        String insertSql = "INSERT INTO addresses (user_id, address_detail, city, district, ward, is_default) " +
-                "VALUES (?, ?, ?, ?, ?, ?)";
-
         try (Connection conn = new DBContext().getConnection()) {
+            boolean hasDefault = hasColumn(conn, "addresses", "is_default");
+            String checkSql = "SELECT COUNT(*) FROM addresses WHERE user_id = ?";
+            String insertSql = hasDefault
+                    ? "INSERT INTO addresses (user_id, address_detail, city, district, ward, is_default) VALUES (?, ?, ?, ?, ?, ?)"
+                    : "INSERT INTO addresses (user_id, address_detail, city, district, ward) VALUES (?, ?, ?, ?, ?)";
 
             boolean isFirst = false;
             try (PreparedStatement checkPs = conn.prepareStatement(checkSql)) {
@@ -190,7 +198,9 @@ public class UserDAOImpl {
                 ps.setString(3, city);
                 ps.setString(4, district);
                 ps.setString(5, ward);
-                ps.setInt(6, isFirst ? 1 : 0);
+                if (hasDefault) {
+                    ps.setInt(6, isFirst ? 1 : 0);
+                }
                 return ps.executeUpdate() > 0;
             }
 
@@ -216,7 +226,7 @@ public class UserDAOImpl {
                 addr.setWard(rs.getString("ward"));
                 addr.setDistrict(rs.getString("district"));
                 addr.setCity(rs.getString("city"));
-                addr.setIsDefault(rs.getInt("is_default"));
+                addr.setIsDefault(hasColumn(rs, "is_default") ? rs.getInt("is_default") : 0);
                 return addr;
             }
         } catch (Exception e) {
@@ -259,7 +269,7 @@ public class UserDAOImpl {
                 a.setWard(rs.getString("ward"));
                 a.setDistrict(rs.getString("district"));
                 a.setCity(rs.getString("city"));
-                a.setIsDefault(rs.getInt("is_default"));
+                a.setIsDefault(hasColumn(rs, "is_default") ? rs.getInt("is_default") : 0);
                 list.add(a);
             }
 
@@ -321,6 +331,9 @@ public class UserDAOImpl {
         String setSql   = "UPDATE addresses SET is_default = 1 WHERE id = ? AND user_id = ?";
 
         try (Connection conn = new DBContext().getConnection()) {
+            if (!hasColumn(conn, "addresses", "is_default")) {
+                return;
+            }
             conn.setAutoCommit(false);
 
             try (PreparedStatement ps1 = conn.prepareStatement(resetSql);
@@ -541,6 +554,58 @@ public class UserDAOImpl {
             e.printStackTrace();
         }
         return false;
+    }
+
+    private User mapUser(ResultSet rs) throws Exception {
+        User user = new User();
+        user.setId(rs.getInt("id"));
+        user.setFullName(rs.getString("full_name"));
+        user.setEmail(rs.getString("email"));
+        user.setPhone(rs.getString("phone"));
+        user.setAvatar(rs.getString("avatar"));
+        user.setRole(rs.getString("role"));
+        user.setStatus(rs.getString("status"));
+        user.setCreatedAt(rs.getString("created_at"));
+        if (hasColumn(rs, "gender")) {
+            user.setGender(rs.getString("gender"));
+        }
+        if (hasColumn(rs, "dob")) {
+            user.setDob(rs.getString("dob"));
+        }
+        return user;
+    }
+
+    private boolean hasColumn(Connection conn, String tableName, String columnName) {
+        try {
+            DatabaseMetaData metaData = conn.getMetaData();
+            try (ResultSet rs = metaData.getColumns(conn.getCatalog(), null, tableName, columnName)) {
+                if (rs.next()) {
+                    return true;
+                }
+            }
+            try (ResultSet rs = metaData.getColumns(conn.getCatalog(), null, tableName.toUpperCase(), columnName)) {
+                return rs.next();
+            }
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    private boolean hasColumn(ResultSet rs, String columnName) {
+        try {
+            ResultSetMetaData metaData = rs.getMetaData();
+            for (int i = 1; i <= metaData.getColumnCount(); i++) {
+                if (columnName.equalsIgnoreCase(metaData.getColumnLabel(i))) {
+                    return true;
+                }
+            }
+        } catch (Exception ignored) {
+        }
+        return false;
+    }
+
+    private String normalize(String value) {
+        return value == null || value.isBlank() ? null : value.trim();
     }
 
     //check

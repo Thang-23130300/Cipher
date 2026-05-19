@@ -1,21 +1,22 @@
 package nlu.fit.web.souvenirecommerce.model.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.hibernate.annotations.CreationTimestamp;
+import lombok.*;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 
 import java.time.LocalDateTime;
 
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 @Entity
 @Table(name = "sessions")
-public class Session {
+@SQLDelete(sql = "UPDATE sessions SET deleted_at = CURRENT_TIMESTAMP WHERE session_id = ?")
+@SQLRestriction("deleted_at IS NULL")
+public class UserSession extends BaseEntity {
     @Id
     @Column(name = "session_id", length = 128)
     private String sessionId;
@@ -33,7 +34,4 @@ public class Session {
     @Column(name = "expires_at", nullable = false)
     private LocalDateTime expiresAt;
 
-    @CreationTimestamp
-    @Column(name = "created_at", nullable = false)
-    private LocalDateTime createdAt;
 }
