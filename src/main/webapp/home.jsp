@@ -2,37 +2,49 @@
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 
-<div class="page-container">
+<div class="page-container home-page">
 
-    <div class="slideshow-container" id="headerSlideshow">
+    <section class="home-hero" aria-label="Danh mục nổi bật">
+        <div class="slideshow-container" id="headerSlideshow">
 
-        <c:forEach var="item" items="${data.bannerCategories}" varStatus="status">
-            <div class="slide">
-                <a href="${pageContext.request.contextPath}/category?id=${item.category.id}">
-                    <img src="${pageContext.request.contextPath}/assets/images/Banner/${item.category.image}"
-                         alt="${item.category.category_name}">
-                </a>
-            </div>
-        </c:forEach>
-
-        <button class="prev">&#10094;</button>
-        <button class="next">&#10095;</button>
-
-        <div class="dots">
             <c:forEach var="item" items="${data.bannerCategories}" varStatus="status">
-                <span class="dot" data-slide="${status.index}"></span>
+                <div class="slide">
+                    <a href="${pageContext.request.contextPath}/category?id=${item.category.id}">
+                        <img src="${pageContext.request.contextPath}/assets/images/Banner/${item.category.image}"
+                             alt="${item.category.category_name}"
+                             loading="${status.first ? 'eager' : 'lazy'}"
+                             decoding="async">
+                    </a>
+                </div>
             </c:forEach>
+
+            <button class="prev" type="button" aria-label="Banner trước">&#10094;</button>
+            <button class="next" type="button" aria-label="Banner kế tiếp">&#10095;</button>
+
+            <div class="dots" aria-label="Chọn banner">
+                <c:forEach var="item" items="${data.bannerCategories}" varStatus="status">
+                    <button class="dot" type="button" data-slide="${status.index}"
+                            aria-label="Chuyển đến banner ${status.count}"></button>
+                </c:forEach>
+            </div>
         </div>
-    </div>
+    </section>
 
     <c:forEach var="section" items="${data.topCategorySections}">
-        <section id="Loai${section.category.id}" class="product-section">
+        <section id="Loai${section.category.id}" class="product-section home-section">
 
-            <h2>
-                <a href="${pageContext.request.contextPath}/category?id=${section.category.id}">
-                        ${section.category.category_name}
+            <div class="home-section__header">
+                <h2>
+                    <a href="${pageContext.request.contextPath}/category?id=${section.category.id}">
+                            ${section.category.category_name}
+                    </a>
+                </h2>
+
+                <a class="see-more-btn"
+                   href="${pageContext.request.contextPath}/category?id=${section.category.id}">
+                    Xem thêm
                 </a>
-            </h2>
+            </div>
 
             <div class="product-list">
                 <c:forEach var="p" items="${section.productCards}">
@@ -45,19 +57,13 @@
                 </c:if>
             </div>
 
-            <a class="see-more-btn"
-               href="${pageContext.request.contextPath}/category?id=${section.category.id}">
-                Xem thêm
-            </a>
-
         </section>
     </c:forEach>
 
-    <section id="extension" class="product-section horizontal-section">
+    <section id="extension" class="product-section home-section home-category-strip">
 
-        <!-- LEFT -->
-        <div class="left-content">
-            <h2>DANH MỤC KHÁC</h2>
+        <div class="left-content home-category-strip__intro">
+            <h2>Danh mục khác</h2>
             <a class="see-more-btn"
                href="${pageContext.request.contextPath}/category">
                 Xem thêm
@@ -65,55 +71,55 @@
         </div>
 
         <!-- RIGHT -->
-        <div class="right-content">
+        <div class="right-content home-category-strip__content">
 
-            <button class="slider-btn prev" id="extPrev">‹</button>
+            <button class="slider-btn prev" id="extPrev" type="button" aria-label="Danh mục trước">‹</button>
 
             <div class="product-slider-wrapper">
                 <div class="product-slider" id="extSlider">
 
                     <c:forEach var="section" items="${data.extensionSections}">
-                        <div class="product-card category-card">
+                        <article class="category-card">
                             <a href="${pageContext.request.contextPath}/category?id=${section.category.id}">
                                 <img src="${pageContext.request.contextPath}/assets/images/Banner/${section.category.image}"
-                                     alt="${section.category.category_name}">
-                                <p>${section.category.category_name}</p>
+                                     alt="${section.category.category_name}" loading="lazy" decoding="async">
+                                <h3>${section.category.category_name}</h3>
                             </a>
-                        </div>
+                        </article>
                     </c:forEach>
 
                 </div>
             </div>
 
-            <button class="slider-btn next" id="extNext">›</button>
+            <button class="slider-btn next" id="extNext" type="button" aria-label="Danh mục kế tiếp">›</button>
         </div>
     </section>
 
-    <section class="section related-products">
-        <div class="main-container">
+    <section class="section related-products home-section">
+        <div class="home-section__header">
 
             <h2 class="related-title">Sản phẩm đánh giá cao</h2>
+        </div>
 
-            <div class="related-grid">
-                <c:forEach var="p" items="${data.topRatedProductCards}">
-                    <c:set var="p" value="${p}" scope="request"/>
-                    <jsp:include page="product-card.jsp"/>
-                </c:forEach>
-
-            </div>
+        <div class="related-grid product-list">
+            <c:forEach var="p" items="${data.topRatedProductCards}">
+                <c:set var="p" value="${p}" scope="request"/>
+                <jsp:include page="product-card.jsp"/>
+            </c:forEach>
 
         </div>
     </section>
 
-    <section class="section related-products">
-        <div class="main-container">
+    <section class="section related-products home-section">
+        <div class="home-section__header">
             <h2 class="related-title">Sản phẩm mới</h2>
-            <div class="related-grid">
-                <c:forEach var="p" items="${data.newestProductCards}">
-                    <c:set var="p" value="${p}" scope="request"/>
-                    <jsp:include page="product-card.jsp"/>
-                </c:forEach>
-            </div>
+        </div>
+
+        <div class="related-grid product-list">
+            <c:forEach var="p" items="${data.newestProductCards}">
+                <c:set var="p" value="${p}" scope="request"/>
+                <jsp:include page="product-card.jsp"/>
+            </c:forEach>
         </div>
     </section>
 </div>

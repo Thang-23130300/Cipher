@@ -254,9 +254,7 @@
 }
 
 .related-grid {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 20px;
+    --product-min-width: 210px;
 }
 
 /* Review modal */
@@ -296,6 +294,6 @@
 
 @media (max-width: 600px) {
     .related-grid {
-        grid-template-columns: repeat(2, 1fr);
+        --product-min-width: 150px;
     }
 }
