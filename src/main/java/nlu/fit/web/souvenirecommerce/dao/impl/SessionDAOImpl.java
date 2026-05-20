@@ -8,9 +8,9 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-public class SessionIDAOImpl extends AbstractHibernateIDAO<String, UserSession> implements ISessionEntityIDAO {
+public class SessionDAOImpl extends AbstractHibernateIDAO<String, UserSession> implements ISessionEntityIDAO {
 
-    public SessionIDAOImpl() {
+    public SessionDAOImpl() {
         super(UserSession.class);
     }
 
