@@ -10,7 +10,7 @@ import nlu.fit.web.souvenirecommerce.model.entity.Category;
 import java.io.IOException;
 import java.util.List;
 
-@WebFilter("/*")
+//@WebFilter("/*")
 public class HeaderFilter implements Filter {
 
     private CategoryDAO categoryDAO;

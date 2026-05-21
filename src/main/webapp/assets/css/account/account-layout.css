@@ -1,0 +1,176 @@
+.account-page {
+    padding: 32px 0 48px;
+}
+
+.account-page > .layout-shell {
+    width: min(1200px, calc(100% - 32px));
+    margin: 0 auto;
+}
+
+.account-shell {
+    display: grid;
+    grid-template-columns: 280px minmax(0, 1fr);
+    gap: 24px;
+    align-items: start;
+}
+
+.account-sidebar {
+    overflow: hidden;
+    position: sticky;
+    top: 16px;
+    background: var(--surface-default);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+}
+
+.account-user {
+    display: grid;
+    justify-items: center;
+    gap: 12px;
+    padding: 24px 18px;
+    border-bottom: 1px solid var(--border-subtle);
+    text-align: center;
+}
+
+.account-avatarUrl {
+    width: 88px;
+    height: 88px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 3px solid var(--brand-primary-soft);
+    background: var(--surface-muted);
+    display: grid;
+    place-items: center;
+    color: var(--brand-primary);
+    font-size: 36px;
+}
+
+.account-avatarUrl img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.account-user__text {
+    min-width: 0;
+}
+
+.account-user__text strong,
+.account-user__text span {
+    display: block;
+    max-width: 220px;
+    overflow-wrap: anywhere;
+}
+
+.account-user__text strong {
+    color: var(--text-strong);
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.account-user__text span {
+    margin-top: 4px;
+    color: var(--text-soft);
+    font-size: 13px;
+}
+
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+.avatarUrl-button {
+    min-height: 38px;
+    border-radius: var(--radius-sm);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 0 12px;
+    border: 1px solid var(--border-default);
+    color: var(--text-default);
+    background: var(--surface-default);
+    font-weight: 700;
+    line-height: 1;
+    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.avatarUrl-button:hover {
+    border-color: var(--brand-primary);
+    color: var(--brand-primary);
+    box-shadow: var(--focus-ring);
+}
+
+.account-nav {
+    display: grid;
+    padding: 10px;
+}
+
+.account-nav a {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 44px;
+    padding: 0 12px;
+    border-radius: var(--radius-sm);
+    color: var(--text-default);
+    font-weight: 650;
+}
+
+.account-nav a i {
+    width: 18px;
+    color: var(--text-subtle);
+    text-align: center;
+}
+
+.account-nav a:hover,
+.account-nav a.is-active {
+    background: var(--brand-primary-soft);
+    color: var(--brand-primary);
+}
+
+.account-nav a:hover i,
+.account-nav a.is-active i {
+    color: var(--brand-primary);
+}
+
+.account-content {
+    display: grid;
+    gap: 18px;
+}
+
+@media (max-width: 900px) {
+    .account-shell {
+        grid-template-columns: 1fr;
+    }
+
+    .account-sidebar {
+        position: static;
+    }
+
+    .account-nav {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 640px) {
+    .account-page {
+        padding-top: 20px;
+    }
+
+    .account-page > .layout-shell {
+        width: min(100% - 20px, 1180px);
+    }
+
+    .account-nav {
+        grid-template-columns: 1fr;
+    }
+}

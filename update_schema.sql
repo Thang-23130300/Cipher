@@ -374,4 +374,14 @@ JOIN roles r ON r.name = 'Customer'
 LEFT JOIN user_roles ur ON ur.user_id = u.id AND ur.role_id = r.id  
 WHERE (u.role IS NULL OR u.role <> 'Admin') AND ur.user_id IS NULL;
 
-SET FOREIGN_KEY_CHECKS = 1; 
+SET @ddl = IF(
+    (SELECT COUNT(*) FROM information_schema.COLUMNS
+     WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'users' AND COLUMN_NAME = 'avatar_public_id') = 0,
+    'ALTER TABLE users ADD COLUMN avatar_public_id VARCHAR(255) NULL AFTER avatar_url',
+    'SELECT 1'
+);
+PREPARE stmt FROM @ddl;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET FOREIGN_KEY_CHECKS = 1;
