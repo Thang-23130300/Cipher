@@ -1,5 +1,6 @@
 package nlu.fit.web.souvenirecommerce.controller.auth;
 
+import jakarta.servlet.ServletConfig;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -11,6 +12,8 @@ import nlu.fit.web.souvenirecommerce.dao.impl.UserDAOImpl;
 import nlu.fit.web.souvenirecommerce.dao.impl.UserDAOImpl2;
 import nlu.fit.web.souvenirecommerce.model.User;
 import nlu.fit.web.souvenirecommerce.model.entity.Role;
+import nlu.fit.web.souvenirecommerce.service.UserService;
+import nlu.fit.web.souvenirecommerce.service.impl.UserServiceImpl;
 
 import java.io.IOException;
 import java.util.Optional;
@@ -21,9 +24,23 @@ public class LoginServlet extends HttpServlet {
     private UserDAOImpl userDAOImpl;
     private IUserDAO userEntityDAO;
 
+    private UserService userService;
+
+
+    @Override
+    public void init() throws ServletException {
+        userDAOImpl = new UserDAOImpl();
+        userEntityDAO = new UserDAOImpl2();
+        userService = new UserServiceImpl();
+    }
+
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        String path = req.getServletPath();
+        HttpSession session = req.getSession(false);
+        if (session != null && session.getAttribute("currentUser") != null) {
+            resp.sendRedirect(req.getContextPath() + "/home");
+            return;
+        }
 
         req.getRequestDispatcher("/WEB-INF/views/auth/login.jsp").forward(req, resp);
     }
@@ -47,6 +64,7 @@ public class LoginServlet extends HttpServlet {
 
         HttpSession session = req.getSession(true);
         session.setAttribute("userInSession", user);
+        session.setAttribute("currentUser", user);
         session.setAttribute("user", user);
         session.setAttribute("authUser", user);
 
@@ -58,12 +76,6 @@ public class LoginServlet extends HttpServlet {
         }
 
         resp.sendRedirect(req.getContextPath() + "/home");
-    }
-
-    @Override
-    public void init() throws ServletException {
-        userDAOImpl = new UserDAOImpl();
-        userEntityDAO = new UserDAOImpl2();
     }
 
     private User loginWithUserCredential(String loginDetail, String password) {

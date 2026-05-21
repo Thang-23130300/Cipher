@@ -1,5 +1,6 @@
 package nlu.fit.web.souvenirecommerce.util;
 
+import jakarta.persistence.EntityManager;
 import nlu.fit.web.souvenirecommerce.model.entity.*;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -81,5 +82,9 @@ public class HibernateUtil {
             throw new IllegalStateException("Missing required property: " + key);
         }
         return value;
+    }
+
+    public static EntityManager getEntityManager() {
+        return getSessionFactory().createEntityManager();
     }
 }

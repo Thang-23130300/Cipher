@@ -1,4 +1,4 @@
-package nlu.fit.web.souvenirecommerce.controller.user;
+package nlu.fit.web.souvenirecommerce.account.servlet;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.MultipartConfig;
@@ -12,7 +12,7 @@ import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.UUID;
 
-@WebServlet(name = "ProfileController", value = "/user/profile")
+@WebServlet(name = "ProfileController", value = "/user/profile" )
 @MultipartConfig(
         fileSizeThreshold = 1024 * 1024,
         maxFileSize = 5 * 1024 * 1024,

@@ -73,4 +73,12 @@ public class User extends BaseEntity {
                 .anyMatch(p -> p.getResource().equals(resource)
                         && p.getAction().equals(action));
     }
+
+    public String getFullName() {
+        return (firstName + " " + lastName).trim();
+    }
+
+    public String getGender(){
+        return this.gender.name().toUpperCase();
+    }
 }
