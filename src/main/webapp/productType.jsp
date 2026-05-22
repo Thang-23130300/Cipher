@@ -52,11 +52,11 @@
 
                 <div class="category-banner">
                     <img src="${pageContext.request.contextPath}/assets/images/Banner/${data.category.image}"
-                         alt="${data.category.category_name}">
+                         alt="${data.category.categoryName}">
                 </div>
 
                 <div class="category-header">
-                    <h2>${data.category.category_name}</h2>
+                    <h2>${data.category.categoryName}</h2>
                     <span>${data.totalProducts} sản phẩm</span>
                 </div>
 
