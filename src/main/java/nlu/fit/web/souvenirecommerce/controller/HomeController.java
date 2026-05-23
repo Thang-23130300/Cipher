@@ -21,28 +21,17 @@ public class HomeController extends HttpServlet {
     }
 
     @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
         HomePageDTO dto = homeService.getHomePageData();
 
-        /* ===== PAGE DATA ===== */
         request.setAttribute("data", dto);
-
-        /* ===== HEADER MODE ===== */
-        request.setAttribute("headerMode", "MENU");
-
-        /* ===== HEADER OVERLAY ===== */
-        request.setAttribute("enableHeaderOverlay", false);
-
-        /* ===== LAYOUT CONFIG ===== */
+        request.setAttribute("headerMode", "MENU_BAR");
         request.setAttribute("pageTitle", "Trang chủ");
         request.setAttribute("pageCss", "HomePageMain.css");
         request.setAttribute("pageJs", "HomePage.js");
         request.setAttribute("contentPage", "/home.jsp");
 
-        /* ===== FORWARD TO LAYOUT ===== */
         request.getRequestDispatcher("WEB-INF/layout/base.jsp").forward(request, response);
     }
-
 }
