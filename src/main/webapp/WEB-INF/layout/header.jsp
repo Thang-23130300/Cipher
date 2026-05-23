@@ -12,14 +12,9 @@
 
             <div class="header-account">
                 <c:choose>
-                    <c:when test="${not empty sessionScope.userInSession}">
-                        <span>Xin chào, ${sessionScope.userInSession.fullName}</span>
-                        <a href="${pageContext.request.contextPath}/user/profile">Tài khoản</a>
-                        <a href="${pageContext.request.contextPath}/logout">Đăng xuất</a>
-                    </c:when>
-                    <c:when test="${not empty sessionScope.user}">
-                        <span>Xin chào, ${sessionScope.user.fullName}</span>
-                        <a href="${pageContext.request.contextPath}/user/profile">Tài khoản</a>
+                    <c:when test="${not empty sessionScope.currentUser}">
+                        <span>Xin chào, ${sessionScope.currentUser.fullName}</span>
+                        <a href="${pageContext.request.contextPath}/user/account/profile">Tài khoản</a>
                         <a href="${pageContext.request.contextPath}/logout">Đăng xuất</a>
                     </c:when>
                     <c:otherwise>

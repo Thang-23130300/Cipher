@@ -15,6 +15,9 @@
     <c:if test="${not empty pageCss}">
         <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/${pageCss}">
     </c:if>
+    <c:if test="${not empty contentCss}">
+        <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/${contentCss}">
+    </c:if>
 </head>
 <body>
 <jsp:include page="/WEB-INF/layout/header.jsp"/>
