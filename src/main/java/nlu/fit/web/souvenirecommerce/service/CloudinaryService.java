@@ -8,7 +8,7 @@ import nlu.fit.web.souvenirecommerce.util.ApplicationLoader;
 import java.util.*;
 
 public class CloudinaryService {
-    private static Cloudinary cloudinary;
+    private static final Cloudinary cloudinary;
 
     static {
         Map<String, String> config = new HashMap<>();
@@ -18,12 +18,12 @@ public class CloudinaryService {
         cloudinary = new Cloudinary(config);
     }
 
+    // Tối ưu hóa Generics để tránh cảnh báo (warning) compile-time
     public static ApiResponse getImages(String cursor) throws Exception {
-        Map options = ObjectUtils.asMap(
-                "max_results", 20
-        );
+        Map<String, Object> options = new HashMap<>();
+        options.put("max_results", 20);
 
-        if (cursor != null && !cursor.isEmpty()) {
+        if (cursor != null && !cursor.trim().isEmpty()) {
             options.put("next_cursor", cursor);
         }
 
@@ -31,11 +31,30 @@ public class CloudinaryService {
     }
 
     public static void deleteImage(String publicId) throws Exception {
+        if (publicId == null || publicId.trim().isEmpty()) return;
         cloudinary.uploader().destroy(publicId, ObjectUtils.emptyMap());
     }
 
-    public static String uploadImage(byte[] fileBytes) throws Exception {
-        Map uploadResult = cloudinary.uploader().upload(fileBytes, ObjectUtils.emptyMap());
-        return (String) uploadResult.get("secure_url");
+    /**
+     * Upload hình ảnh và trả về Map chứa cả URL lẫn Public ID
+     * (Cực kỳ quan trọng để lưu vào Database phục vụ cho việc XÓA hoặc SỬA ảnh sau này)
+     */
+    public static Map<String, String> uploadImage(byte[] fileBytes, String folderName) throws Exception {
+        if (fileBytes == null || fileBytes.length == 0) {
+            throw new IllegalArgumentException("Dữ liệu file không được để trống.");
+        }
+
+        Map<String, Object> options = new HashMap<>();
+        if (folderName != null && !folderName.trim().isEmpty()) {
+            options.put("folder", folderName);
+        }
+
+        Map<?, ?> uploadResult = cloudinary.uploader().upload(fileBytes, options);
+
+        Map<String, String> result = new HashMap<>();
+        result.put("url", (String) uploadResult.get("secure_url"));
+        result.put("public_id", (String) uploadResult.get("public_id"));
+
+        return result;
     }
 }

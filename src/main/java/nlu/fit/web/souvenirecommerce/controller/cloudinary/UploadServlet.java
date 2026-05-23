@@ -19,7 +19,7 @@ public class UploadServlet extends HttpServlet {
             Part filePart = request.getPart("file");
             byte[] fileBytes = filePart.getInputStream().readAllBytes();
 
-            CloudinaryService.uploadImage(fileBytes);
+            CloudinaryService.uploadImage(fileBytes, "avatar");
 
         } catch (Exception e) {
             e.printStackTrace();

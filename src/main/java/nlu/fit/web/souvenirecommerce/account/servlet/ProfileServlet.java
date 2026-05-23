@@ -1,14 +1,21 @@
 package nlu.fit.web.souvenirecommerce.account.servlet;
 
 import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.MultipartConfig;
 import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.http.HttpServlet;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
+import jakarta.servlet.http.*;
+import nlu.fit.web.souvenirecommerce.model.User;
 
+import java.io.File;
 import java.io.IOException;
+import java.nio.file.Paths;
+import java.util.UUID;
 
+@MultipartConfig(
+        fileSizeThreshold = 1024 * 1024,
+        maxFileSize = 5 * 1024 * 1024,
+        maxRequestSize = 10 * 1024 * 1024
+)
 @WebServlet(urlPatterns = "/user/account/profile")
 public class ProfileServlet extends HttpServlet {
 
@@ -27,10 +34,19 @@ public class ProfileServlet extends HttpServlet {
         }
 
         req.setAttribute("pageTitle", "Hồ sơ");
-        req.setAttribute("pageCss", "user/profile.css");
-        req.setAttribute("pageJs", "user/profile.js");
-        req.setAttribute("contentPage", "/WEB-INF/views/user/account_layout.jsp");
+        req.setAttribute("pageCss", "account/account-layout.css");
+        req.setAttribute("contentCss", "account/profile.css");
+        req.setAttribute("pageJs", "account/profile.js");
+        req.setAttribute("contentPage", "/WEB-INF/views/account/account_layout.jsp");
 
         req.getRequestDispatcher("/WEB-INF/layout/base.jsp").forward(req, resp);
     }
+
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+
+
+    }
+
 }

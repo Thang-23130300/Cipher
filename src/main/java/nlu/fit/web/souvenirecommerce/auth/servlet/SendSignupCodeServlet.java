@@ -1,4 +1,4 @@
-package nlu.fit.web.souvenirecommerce.controller.auth;
+package nlu.fit.web.souvenirecommerce.auth.servlet;
 
 import com.google.gson.JsonObject;
 import jakarta.mail.MessagingException;
@@ -9,8 +9,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import nlu.fit.web.souvenirecommerce.dao.IUserDAO;
-import nlu.fit.web.souvenirecommerce.dao.impl.UserDAOImpl2;
-import nlu.fit.web.souvenirecommerce.service.IEmailService;
+import nlu.fit.web.souvenirecommerce.auth.dao.AuthDAO;
 import nlu.fit.web.souvenirecommerce.service.impl.EmailServiceImpl;
 import nlu.fit.web.souvenirecommerce.util.EmailUtil;
 
@@ -28,7 +27,7 @@ public class SendSignupCodeServlet extends HttpServlet {
 
     @Override
     public void init() throws ServletException {
-        userDAO = new UserDAOImpl2();
+        userDAO = new AuthDAO();
         emailService = new EmailServiceImpl();
     }
 
