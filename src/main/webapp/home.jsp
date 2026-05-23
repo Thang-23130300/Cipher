@@ -11,12 +11,12 @@
                 <div class="slide">
                     <a href="${pageContext.request.contextPath}/category?id=${item.category.id}">
                         <img src="${pageContext.request.contextPath}/assets/images/Banner/${item.category.image}"
-                             alt="${item.category.category_name}"
+                             alt="${item.category.categoryName}"
                              loading="${status.first ? 'eager' : 'lazy'}"
                              decoding="async">
                     </a>
                 </div>
-            </c:forEach>
+            </c:forEach> 
 
             <button class="prev" type="button" aria-label="Banner trước">&#10094;</button>
             <button class="next" type="button" aria-label="Banner kế tiếp">&#10095;</button>
@@ -36,12 +36,7 @@
             <div class="home-section__header">
                 <h2>
                     <a href="${pageContext.request.contextPath}/category?id=${section.category.id}">
-                            ${section.category.category_name}
-                    </a>
-                </h2>
-
-                <a class="see-more-btn"
-                   href="${pageContext.request.contextPath}/category?id=${section.category.id}">
+                            ${section.category.categoryName}
                     Xem thêm
                 </a>
             </div>
@@ -82,8 +77,8 @@
                         <article class="category-card">
                             <a href="${pageContext.request.contextPath}/category?id=${section.category.id}">
                                 <img src="${pageContext.request.contextPath}/assets/images/Banner/${section.category.image}"
-                                     alt="${section.category.category_name}" loading="lazy" decoding="async">
-                                <h3>${section.category.category_name}</h3>
+                                     alt="${section.category.categoryName}" loading="lazy" decoding="async">
+                                <h3>${section.category.categoryName}</h3>
                             </a>
                         </article>
                     </c:forEach>
