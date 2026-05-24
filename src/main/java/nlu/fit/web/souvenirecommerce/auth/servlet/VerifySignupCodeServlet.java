@@ -1,4 +1,4 @@
-package nlu.fit.web.souvenirecommerce.controller.auth;
+package nlu.fit.web.souvenirecommerce.auth.servlet;
 
 import com.google.gson.JsonObject;
 import jakarta.servlet.ServletException;
@@ -8,14 +8,14 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import nlu.fit.web.souvenirecommerce.dao.IUserDAO;
-import nlu.fit.web.souvenirecommerce.dao.impl.UserDAOImpl2;
+import nlu.fit.web.souvenirecommerce.auth.dao.AuthDAO;
 
 import java.io.IOException;
 import java.io.PrintWriter;
 
 @WebServlet("/api/signup/verify-code")
 public class VerifySignupCodeServlet extends HttpServlet {
-    private final IUserDAO userDAO = new UserDAOImpl2();
+    private final IUserDAO userDAO = new AuthDAO();
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {

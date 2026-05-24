@@ -28,45 +28,59 @@
     <form class="profile-form" action="${pageContext.request.contextPath}/user/account/profile" method="post">
         <input type="hidden" name="action" value="update_profile">
 
-        <div class="form-grid">
-            <label class="field">
-                <span>Họ và tên</span>
-                <input type="text" name="fullName" value="${fn:escapeXml(currentUser.fullName)}" required
-                       maxlength="100">
-            </label>
-
-            <label class="field">
-                <span>Email</span>
-                <input type="email" value="${fn:escapeXml(currentUser.email)}" disabled>
-            </label>
-
-            <label class="field">
-                <span>Số điện thoại</span>
-                <input type="tel" name="phone" value="${fn:escapeXml(currentUser.phone)}" required maxlength="20">
-            </label>
-
-            <label class="field">
-                <span>Ngày sinh</span>
-                <input type="date" name="dob" value="${fn:escapeXml(currentUser.dob)}">
-            </label>
-        </div>
-
-        <fieldset class="gender-field">
-            <legend>Giới tính</legend>
-            <label>
-                <input type="radio" name="gender" value="Nam" ${currentUser.gender == "MALE" ? 'checked' : ''}>
-                <span>Nam</span>
-            </label>
-            <label>
-                <input type="radio" name="gender" value="Nữ" ${currentUser.gender == "FEMALE" ? 'checked' : ''}>
-                <span>Nữ</span>
-            </label>
-            <label>
-                <input type="radio" name="gender" value="Khác" ${currentUser.gender == "OTHER" ? 'checked' : ''}>
-                <span>Khác</span>
-            </label>
-        </fieldset>
-
+        <table class="form-table">
+            <tbody>
+            <tr>
+                <th><label for="lastName">Họ và tên đệm</label></th>
+                <td>
+                    <input type="text" id="lastName" name="lastName" value="${currentUser.lastName}" required maxlength="50">
+                </td>
+            </tr>
+            <tr>
+                <th><label for="firstName">Tên</label></th>
+                <td>
+                    <input type="text" id="firstName" name="firstName" value="${currentUser.firstName}" required maxlength="50">
+                </td>
+            </tr>
+            <tr>
+                <th><label id="email-label">Email</label></th>
+                <td>
+                    <input type="email" aria-labelledby="email-label" value="${currentUser.email}" disabled>
+                </td>
+            </tr>
+            <tr>
+                <th><label for="phone">Số điện thoại</label></th>
+                <td>
+                    <input type="tel" id="phone" name="phone" value="${fn:escapeXml(currentUser.phone)}" required maxlength="20">
+                </td>
+            </tr>
+            <tr>
+                <th><label for="dob">Ngày sinh</label></th>
+                <td>
+                    <input type="date" id="dob" name="dob" value="${currentUser.dateOfBirth}">
+                </td>
+            </tr>
+            <tr>
+                <th><span>Giới tính</span></th>
+                <td>
+                    <div class="gender-options">
+                        <label>
+                            <input type="radio" name="gender" value="Nam" ${currentUser.gender == "MALE" ? 'checked' : ''}>
+                            <span>Nam</span>
+                        </label>
+                        <label>
+                            <input type="radio" name="gender" value="Nữ" ${currentUser.gender == "FEMALE" ? 'checked' : ''}>
+                            <span>Nữ</span>
+                        </label>
+                        <label>
+                            <input type="radio" name="gender" value="Khác" ${currentUser.gender == "OTHER" ? 'checked' : ''}>
+                            <span>Khác</span>
+                        </label>
+                    </div>
+                </td>
+            </tr>
+            </tbody>
+        </table>
 
         <div class="form-actions">
             <button class="primary-button" type="submit">
