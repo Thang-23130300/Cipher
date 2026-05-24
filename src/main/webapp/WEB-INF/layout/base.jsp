@@ -19,7 +19,7 @@
 
     <link rel="icon"
           type="image/png"
-          href="${pageContext.request.contextPath}/assets/images/Logo/Logo-removebg-preview.png">
+          href="${pageContext.request.contextPath}/assets/images/logo.png">
 
     <!-- ================= GLOBAL CSS ================= -->
 
