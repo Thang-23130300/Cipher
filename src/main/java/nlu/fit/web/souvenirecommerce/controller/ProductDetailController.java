@@ -12,6 +12,7 @@ import java.io.IOException;
 
 @WebServlet("/product")
 public class ProductDetailController extends HttpServlet {
+
     private ProductService productService;
 
     @Override
@@ -20,10 +21,13 @@ public class ProductDetailController extends HttpServlet {
     }
 
     @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+    protected void doGet(
+            HttpServletRequest request,
+            HttpServletResponse response
+    ) throws ServletException, IOException {
 
         Long productId;
+
         try {
             productId = Long.parseLong(request.getParameter("id"));
         } catch (Exception e) {
@@ -32,20 +36,24 @@ public class ProductDetailController extends HttpServlet {
         }
 
         ProductDetailDTO dto = productService.getProductDetail(productId);
+
         if (dto == null) {
             response.sendRedirect(request.getContextPath() + "/home");
             return;
         }
 
+        request.setAttribute("data", dto);
+
         request.setAttribute("headerMode", "BREADCRUMB");
         request.setAttribute("breadcrumbCategory", dto.getCategory());
         request.setAttribute("breadcrumbProduct", dto.getProduct());
-        request.setAttribute("enableHeaderOverlay", true);
-        request.setAttribute("data", dto);
+
         request.setAttribute("pageTitle", dto.getProduct().getName());
-        request.setAttribute("contentPage", "product.jsp");
+        request.setAttribute("contentPage", "/product.jsp");
         request.setAttribute("pageCss", "ProductDetail.css");
         request.setAttribute("pageJs", "ProductDetail.js");
-        request.getRequestDispatcher("layoutMain.jsp").forward(request, response);
+
+        request.getRequestDispatcher("WEB-INF/layout/base.jsp")
+                .forward(request, response);
     }
 }

@@ -1,4 +1,4 @@
-package nlu.fit.web.souvenirecommerce.controller.auth;
+package nlu.fit.web.souvenirecommerce.auth.servlet;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;

@@ -116,6 +116,12 @@
             color: #991b1b;
         }
 
+        .content-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
         .inline-actions {
             display: flex;
             gap: 8px;
@@ -144,6 +150,12 @@
         <main class="admin-content">
             <div class="content-header">
                 <h1 class="content-title">Phân quyền</h1>
+                <div class="content-actions">
+                    <a href="${ctx}/admin/roles" class="btn btn-secondary" style="text-decoration:none; display:inline-flex; align-items:center; gap:8px;">
+                        <i class="fas fa-plus"></i>
+                        Tạo nhóm mới
+                    </a>
+                </div>
             </div>
 
             <c:if test="${not empty message}">

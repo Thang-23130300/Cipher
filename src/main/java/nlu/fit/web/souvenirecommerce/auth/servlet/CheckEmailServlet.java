@@ -1,4 +1,4 @@
-package nlu.fit.web.souvenirecommerce.controller.auth;
+package nlu.fit.web.souvenirecommerce.auth.servlet;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -6,7 +6,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import nlu.fit.web.souvenirecommerce.dao.IUserDAO;
-import nlu.fit.web.souvenirecommerce.dao.impl.UserDAOImpl2;
+import nlu.fit.web.souvenirecommerce.auth.dao.AuthDAO;
 import com.google.gson.JsonObject;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -17,7 +17,7 @@ public class CheckEmailServlet extends HttpServlet {
 
     @Override
     public void init() throws ServletException {
-        userDAO = new UserDAOImpl2();
+        userDAO = new AuthDAO();
     }
 
     @Override

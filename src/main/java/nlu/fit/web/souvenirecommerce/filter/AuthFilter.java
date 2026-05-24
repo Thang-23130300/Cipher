@@ -10,7 +10,7 @@ import nlu.fit.web.souvenirecommerce.model.User;
 import nlu.fit.web.souvenirecommerce.util.AuthorizationPolicy;
 import java.io.IOException;
 
-@WebFilter(urlPatterns = {"/admin/*", "/user/*"})
+//@WebFilter(urlPatterns = {"/admin/*", "/user/*"})
 public class AuthFilter implements Filter {
     private final AuthorizationDAO authorizationDAO = new AuthorizationDAO();
 
@@ -25,6 +25,9 @@ public class AuthFilter implements Filter {
         Object sessionUser = session != null ? session.getAttribute("userInSession") : null;
         if (sessionUser == null && session != null) {
             sessionUser = session.getAttribute("user");
+        }
+        if (sessionUser == null && session != null) {
+            sessionUser = session.getAttribute("currentUser");
         }
         boolean loggedIn = sessionUser != null;
 
@@ -42,17 +45,29 @@ public class AuthFilter implements Filter {
         }
 
         if (req.getServletPath() != null && req.getServletPath().startsWith("/admin")) {
-            User user = (User) sessionUser;
-            if (user == null) {
+            long userId;
+            String role;
+
+            if (sessionUser instanceof User user) {
+                userId = user.getId();
+                role = user.getRole();
+            } else if (sessionUser instanceof nlu.fit.web.souvenirecommerce.model.entity.User user) {
+                userId = user.getId() == null ? 0 : user.getId();
+                role = user.getRoles() == null ? null : user.getRoles().stream()
+                        .map(nlu.fit.web.souvenirecommerce.model.entity.Role::getName)
+                        .filter("Admin"::equalsIgnoreCase)
+                        .findFirst()
+                        .orElse(null);
+            } else {
                 res.sendRedirect(req.getContextPath() + "/login");
                 return;
             }
 
             AuthorizationPolicy.RequiredPermission requiredPermission = AuthorizationPolicy.resolve(req);
-            boolean legacyAdmin = "Admin".equalsIgnoreCase(user.getRole());
+            boolean legacyAdmin = "Admin".equalsIgnoreCase(role);
             boolean allowed = !requiredPermission.protectedRoute()
                     || legacyAdmin
-                    || authorizationDAO.hasPermission(user.getId(), requiredPermission.resource(), requiredPermission.action());
+                    || authorizationDAO.hasPermission(userId, requiredPermission.resource(), requiredPermission.action());
 
             if (!allowed) {
                 res.sendError(HttpServletResponse.SC_FORBIDDEN, "Bạn không có quyền truy cập chức năng này.");
@@ -65,4 +80,3 @@ public class AuthFilter implements Filter {
         }
     }
 }
-

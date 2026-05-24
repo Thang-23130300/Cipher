@@ -1,6 +1,7 @@
-package nlu.fit.web.souvenirecommerce.dao.impl;
+package nlu.fit.web.souvenirecommerce.auth.dao;
 
 import nlu.fit.web.souvenirecommerce.dao.IUserDAO;
+import nlu.fit.web.souvenirecommerce.dao.impl.AbstractHibernateIDAO;
 import nlu.fit.web.souvenirecommerce.model.entity.Role;
 import nlu.fit.web.souvenirecommerce.model.entity.User;
 import nlu.fit.web.souvenirecommerce.model.entity.UserCredential;
@@ -13,9 +14,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 
-public class UserDAOImpl2 extends AbstractHibernateIDAO<Long, User> implements IUserDAO {
+public class AuthDAO extends AbstractHibernateIDAO<Long, User> implements IUserDAO {
 
-    public UserDAOImpl2() {
+    public AuthDAO() {
         super(User.class);
     }
 

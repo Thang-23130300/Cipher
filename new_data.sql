@@ -5,13 +5,16 @@
  Source Server Type    : MySQL
  Source Server Version : 80407 (8.4.7)
  Source Host           : localhost:3306
- Source Schema         : inola_db
+ Source Schema         : souvenirDB
 
  Target Server Type    : MySQL
  File Encoding         : 65001
 
  Date: 03/03/2026 13:45:04
 */
+
+-- create database souvenirDB;
+use souvenirDB;
 
 SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;
@@ -80,20 +83,33 @@ CREATE TABLE `categories`  (
                                `id` int UNSIGNED NOT NULL AUTO_INCREMENT,
                                `category_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
                                `image` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+                               `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                               `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                               `deleted_at` datetime NULL,
                                PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = MyISAM AUTO_INCREMENT = 9 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of categories
 -- ----------------------------
-INSERT INTO `categories` VALUES (1, 'Đặc sản Nem - Chả - Tré', 'nem-cha-tre.png');
-INSERT INTO `categories` VALUES (2, 'Bánh kẹo đặc sản', 'banh-keo-dac-san.png');
-INSERT INTO `categories` VALUES (3, 'Danh tửu Bầu Đá', 'danh-tuu-bau-da.png');
-INSERT INTO `categories` VALUES (4, 'Hải sản khô & Chế biến sẵn', 'hai-san-kho-va-che-bien.png');
-INSERT INTO `categories` VALUES (5, 'Làng nghề Thủ công mỹ nghệ', 'lang-nghe-thu-cong.png');
-INSERT INTO `categories` VALUES (6, 'Quà lưu niệm Văn hóa & Võ thuật', 'van-hoa-va-vo-thuat.png');
-INSERT INTO `categories` VALUES (7, 'Đặc sản Xứ Dừa', 'dac-san-xu-dua.png');
-INSERT INTO `categories` VALUES (8, 'Nông sản & Trà thảo mộc', 'nong-san-va-tra.png');
+INSERT INTO `categories`
+(`id`, `category_name`, `image`, `created_at`, `updated_at`, `deleted_at`)
+VALUES
+(1, 'Đặc sản Nem - Chả - Tré', 'nem-cha-tre.png', NOW(), NOW(), NULL),
+
+(2, 'Bánh kẹo đặc sản', 'banh-keo-dac-san.png', NOW(), NOW(), NULL),
+
+(3, 'Danh tửu Bầu Đá', 'danh-tuu-bau-da.png', NOW(), NOW(), NULL),
+
+(4, 'Hải sản khô & Chế biến sẵn', 'hai-san-kho-va-che-bien.png', NOW(), NOW(), NULL),
+
+(5, 'Làng nghề Thủ công mỹ nghệ', 'lang-nghe-thu-cong.png', NOW(), NOW(), NULL),
+
+(6, 'Quà lưu niệm Văn hóa & Võ thuật', 'van-hoa-va-vo-thuat.png', NOW(), NOW(), NULL),
+
+(7, 'Đặc sản Xứ Dừa', 'dac-san-xu-dua.png', NOW(), NOW(), NULL),
+
+(8, 'Nông sản & Trà thảo mộc', 'nong-san-va-tra.png', NOW(), NOW(), NULL);
 
 -- ----------------------------
 -- Table structure for order_details
@@ -1118,7 +1134,7 @@ INSERT INTO `products` VALUES (52, 2, 'Bánh Tét Bình Định (1.6kg)', 'Bánh
 INSERT INTO `products` VALUES (53, 3, 'Rượu Bàu Đá Long Phụng Màu Xanh Ngọc', 'Rượu Bàu Đá Long Phụng màu xanh ngọc là dòng danh tửu truyền thống Bình Định, nấu từ gạo và men cổ truyền, hương thơm nồng, vị êm sâu, chai sứ họa tiết long phụng sang trọng, thích hợp làm quà biếu.', 650000.00, '/assets/images/products/danh-tuu-bau-da/ruou-bau-da-long-phung-mau-xanh-ngoc.jpg', 50, 67, 0.0, 0);
 INSERT INTO `products` VALUES (54, 3, 'Rượu Bàu Đá Rồng Nhỏ Màu Xanh Rêu', 'Rượu Bàu Đá rồng nhỏ màu xanh rêu là dòng danh tửu Bình Định nấu theo phương pháp truyền thống từ gạo và men cổ truyền, hương thơm nồng, vị rượu êm sâu, chai sứ tạo hình rồng nhỏ sang trọng, thích hợp làm quà biếu.', 520000.00, '/assets/images/products/danh-tuu-bau-da/ruou-bau-da-rong-nho-mau-xanh-reu.jpg', 50, 24, 0.0, 0);
 INSERT INTO `products` VALUES (55, 3, 'Rượu Bàu Đá 2.5 Lít Màu Xanh Bút Bi', 'Rượu Bàu Đá dung tích 2.5 lít màu xanh bút bi là dòng rượu truyền thống Bình Định, nấu từ gạo và men cổ truyền, hương thơm nồng, vị rượu mạnh nhưng êm sâu, thích hợp sử dụng lâu dài hoặc làm quà biếu giá trị.', 1800000.00, '/assets/images/products/danh-tuu-bau-da/ruou-bau-da-2-5lit-mau-xanh-but-bi.jpg', 20, 400, 0.0, 0);
-INSERT INTO `products` VALUES (56, 3, 'Rượu Bàu Đá 2.5 Lít Màu Đen', 'Rượu Bàu Đá dung tích 2.5 lít màu đen là dòng danh tửu truyền thống Bình Định, nấu từ gạo và men cổ truyền, hương thơm nồng đặc trưng, vị rượu mạnh nhưng êm, phù hợp sử dụng lâu dài hoặc làm quà biếu sang trọng.', 1800000.00, '/assets/images/products/danh-tuu-bau-da/placeholder-4.jpg/assets/images/products/danh-tuu-bau-da/ruou-bau-da-2-5lit-mau-den.jpg', 20, 446, 0.0, 0);
+INSERT INTO `products` VALUES (56, 3, 'Rượu Bàu Đá 2.5 Lít Màu Đen', 'Rượu Bàu Đá dung tích 2.5 lít màu đen là dòng danh tửu truyền thống Bình Định, nấu từ gạo và men cổ truyền, hương thơm nồng đặc trưng, vị rượu mạnh nhưng êm, phù hợp sử dụng lâu dài hoặc làm quà biếu sang trọng.', 1800000.00, '/assets/images/products/danh-tuu-bau-da/ruou-bau-da-2-5lit-mau-den.jpg', 20, 446, 0.0, 0);
 INSERT INTO `products` VALUES (57, 3, 'Rượu Bàu Đá Rồng Nhỏ Màu Xanh Ngọc', 'Rượu Bàu Đá rồng nhỏ màu xanh ngọc là dòng danh tửu truyền thống Bình Định, nấu từ gạo và men cổ truyền, hương thơm nồng, vị rượu êm sâu. Bình sứ tạo hình rồng nhỏ màu xanh ngọc sang trọng, phù hợp làm quà biếu.', 520000.00, '/assets/images/products/danh-tuu-bau-da/ruou-bau-da-rong-nho-mau-xanh-ngoc.jpg', 50, 43, 0.0, 0);
 INSERT INTO `products` VALUES (58, 3, 'Rượu Bàu Đá Long Phụng 650ml Màu Hồng', 'Rượu Bàu Đá Long Phụng dung tích 650ml màu hồng là dòng danh tửu Bình Định nấu từ gạo và men cổ truyền, hương thơm nồng, vị rượu êm sâu. Chai sứ họa tiết long phụng màu hồng sang trọng, thích hợp làm quà biếu.', 780000.00, '/assets/images/products/danh-tuu-bau-da/ruou-bau-da-long-phung-650ml-mau-hong.jpg', 40, 338, 0.0, 0);
 INSERT INTO `products` VALUES (59, 3, 'Rượu Bàu Đá Rồng Nhỏ Màu Xanh Bút Bi', 'Rượu Bàu Đá rồng nhỏ màu xanh bút bi là danh tửu truyền thống Bình Định, nấu từ gạo và men cổ truyền, hương thơm nồng đặc trưng, vị rượu mạnh nhưng êm. Bình sứ tạo hình rồng nhỏ màu xanh bút bi, phù hợp làm quà biếu.', 520000.00, '/assets/images/products/danh-tuu-bau-da/ruou-bau-da-rong-nho-mau-xanh-but-bi.jpg', 50, 78, 0.0, 0);
@@ -1139,7 +1155,7 @@ INSERT INTO `products` VALUES (73, 3, 'Rượu Bàu Đá Thuyền Lớn Màu Đe
 INSERT INTO `products` VALUES (74, 3, 'Rượu Bàu Đá Thuyền Lớn Màu Xanh Ngọc', 'Rượu Bàu Đá thuyền lớn màu xanh ngọc là dòng danh tửu truyền thống Bình Định, nấu từ gạo và men cổ truyền. Rượu có hương thơm nồng đậm, vị mạnh nhưng êm sâu. Bình sứ dáng thuyền lớn màu xanh ngọc sang trọng, thích hợp trưng bày hoặc làm quà biếu cao cấp.', 1500000.00, '/assets/images/products/danh-tuu-bau-da/ruou-bau-da-thuyen-lon-mau-xanh-ngoc.jpg', 20, 344, 0.0, 0);
 INSERT INTO `products` VALUES (75, 3, 'Rượu Bàu Đá Ba Bầu Màu Đen', 'Rượu Bàu Đá ba bầu màu đen là dòng danh tửu truyền thống Bình Định, nấu từ gạo và men cổ truyền, hương rượu nồng đậm, vị mạnh nhưng êm sâu. Bình sứ tạo hình ba bầu màu đen sang trọng, phù hợp trưng bày hoặc làm quà biếu cao cấp.', 680000.00, '/assets/images/products/danh-tuu-bau-da/ruou-bau-da-ba-bau-mau-den.jpg', 40, 237, 0.0, 0);
 INSERT INTO `products` VALUES (76, 3, 'Rượu Bàu Đá Ba Bầu Màu Xanh Rêu', 'Rượu Bàu Đá ba bầu màu xanh rêu là dòng danh tửu truyền thống Bình Định, nấu từ gạo và men cổ truyền, hương rượu nồng đậm, vị mạnh nhưng êm sâu. Bình sứ tạo hình ba bầu màu xanh rêu cổ điển, thích hợp trưng bày hoặc làm quà biếu cao cấp.', 680000.00, '/assets/images/products/danh-tuu-bau-da/ruou-bau-da-ba-bau-mau-xanh-reu.jpg', 40, 142, 0.0, 0);
-INSERT INTO `products` VALUES (77, 3, 'Rượu Bàu Đá Long Phụng Màu Đen', 'Rượu Bàu Đá Long Phụng màu đen là dòng danh tửu truyền thống Bình Định, nấu từ gạo và men cổ truyền, hương rượu nồng đậm, vị mạnh nhưng êm sâu. Chai sứ họa tiết long phụng màu đen sang trọng, thích hợp làm quà biếu cao cấp.', 750000.00, '\r\n/assets/images/products/danh-tuu-bau-da/ruou-bau-da-long-phung-mau-den.jpg', 40, 479, 0.0, 0);
+INSERT INTO `products` VALUES (77, 3, 'Rượu Bàu Đá Long Phụng Màu Đen', 'Rượu Bàu Đá Long Phụng màu đen là dòng danh tửu truyền thống Bình Định, nấu từ gạo và men cổ truyền, hương rượu nồng đậm, vị mạnh nhưng êm sâu. Chai sứ họa tiết long phụng màu đen sang trọng, thích hợp làm quà biếu cao cấp.', 750000.00, '/assets/images/products/danh-tuu-bau-da/ruou-bau-da-long-phung-mau-den.jpg', 40, 479, 0.0, 0);
 INSERT INTO `products` VALUES (78, 3, 'Rượu Bàu Đá Ba Bầu Màu Xanh Bút Bi', 'Rượu Bàu Đá ba bầu màu xanh bút bi là dòng danh tửu truyền thống Bình Định, nấu từ gạo và men cổ truyền, hương rượu nồng đậm, vị mạnh nhưng êm sâu. Bình sứ tạo hình ba bầu màu xanh bút bi độc đáo, thích hợp trưng bày hoặc làm quà biếu cao cấp.', 680000.00, '/assets/images/products/danh-tuu-bau-da/ruou-bau-da-ba-bau-mau-xanh-but-bi.jpg', 40, 493, 0.0, 0);
 INSERT INTO `products` VALUES (79, 3, 'Rượu Bàu Đá Chum 650ml Màu Xanh Bút Bi', 'Rượu Bàu Đá chum 650ml màu xanh bút bi là danh tửu truyền thống Bình Định, nấu từ gạo và men cổ truyền, hương rượu nồng đậm, vị mạnh nhưng êm sâu. Bình sứ dáng chum màu xanh bút bi nổi bật, thích hợp trưng bày hoặc làm quà biếu.', 750000.00, '/assets/images/products/danh-tuu-bau-da/ruou-bau-da-chum-650ml-mau-xanh-but-bi.jpg', 40, 35, 0.0, 0);
 INSERT INTO `products` VALUES (80, 3, 'Rượu Bàu Đá Long Phụng Màu Xanh Rêu', 'Rượu Bàu Đá Long Phụng màu xanh rêu là dòng danh tửu truyền thống Bình Định, nấu từ gạo và men cổ truyền, hương rượu nồng đậm, vị mạnh nhưng êm sâu. Chai sứ họa tiết long phụng màu xanh rêu cổ điển, sang trọng, thích hợp làm quà biếu cao cấp.', 750000.00, '/assets/images/products/danh-tuu-bau-da/ruou-bau-da-long-phung-mau-xanh-reu.jpg', 40, 159, 0.0, 0);
@@ -1156,46 +1172,46 @@ INSERT INTO `products` VALUES (90, 3, 'Rượu Bàu Đá Hồ Lô 350ml Màu Da 
 INSERT INTO `products` VALUES (91, 3, 'Rượu Bàu Đá Hồ Lô 350ml Màu Đen', 'Rượu Bàu Đá hồ lô 350ml màu đen là danh tửu truyền thống Bình Định, nấu từ gạo và men cổ truyền. Rượu có hương thơm nồng đậm, vị mạnh nhưng êm sâu. Chai sứ dáng hồ lô màu đen sang trọng, thích hợp làm quà biếu hoặc dùng thử.', 380000.00, '/assets/images/products/danh-tuu-bau-da/ruou-bau-da-ho-lo-350ml-mau-den.jpg', 60, 366, 0.0, 0);
 INSERT INTO `products` VALUES (92, 3, 'Rượu Bàu Đá Chum 650ml Màu Trắng', 'Rượu Bàu Đá chum 650ml màu trắng là danh tửu truyền thống Bình Định, nấu từ gạo và men cổ truyền. Rượu có hương thơm nồng đậm, vị mạnh nhưng êm sâu. Bình sứ dáng chum màu trắng trang nhã, thích hợp trưng bày hoặc làm quà biếu.', 750000.00, '/assets/images/products/danh-tuu-bau-da/ruou-bau-da-chum-650ml-mau-trang.jpg', 40, 148, 0.0, 0);
 INSERT INTO `products` VALUES (93, 3, 'Rượu Bàu Đá Long Phụng 650ml Màu Xanh Bút Bi', 'Rượu Bàu Đá Long Phụng 650ml màu xanh bút bi là dòng danh tửu truyền thống Bình Định, nấu từ gạo và men cổ truyền. Rượu có hương thơm nồng đậm, vị mạnh nhưng êm sâu. Chai sứ họa tiết long phụng màu xanh bút bi sang trọng, thích hợp làm quà biếu cao cấp.', 780000.00, '/assets/images/products/danh-tuu-bau-da/ruou-bau-da-long-phung-650ml-mau-xanh-but-bi.jpg', 40, 124, 0.0, 0);
-INSERT INTO `products` VALUES (94, 4, 'Tôm xẻ tẩm Song Phương 150g (Hộp)', 'Tôm xẻ tẩm Song Phương – được làm từ tôm tươi xẻ dọc sống lưng, tẩm ướp gia vị và sấy khô theo công nghệ hiện đại, giữ vị ngọt tự nhiên và phù hợp dùng ăn ngay hoặc chế biến nhanh.', 299000.00, '/assets/images/products/hai-san-kho/tom-xe-tam-song-phuong-150g-hop', 30, 166, 0.0, 0);
-INSERT INTO `products` VALUES (95, 4, 'Cá thu 1 nắng Song Phương 500 g', 'Cá thu một nắng Song Phương 500 g là sản phẩm hải sản đặc sản được làm từ cá thu tươi phơi một nắng theo phương pháp truyền thống, giữ vị ngọt tự nhiên và thơm bùi của thịt cá.', 189000.00, '/assets/images/products/hai-san-kho/ca-thu-mot-nang-song-phuong-500g', 40, 448, 0.0, 0);
-INSERT INTO `products` VALUES (96, 4, 'Mực thước đại dương thượng hạng (size 5-7 con)', 'Mực thước đại dương thượng hạng được tuyển chọn từ những con mực to, phơi khô theo phương pháp truyền thống, giữ hương vị thơm ngon và giàu dinh dưỡng, phù hợp dùng làm món nhậu hoặc chế biến đa dạng.', 1420000.00, '/assets/images/products/hai-san-kho/muc-thuoc-dai-duong-thuong-hang-size-5-7-con', 20, 263, 0.0, 0);
-INSERT INTO `products` VALUES (97, 4, 'Tôm thẻ khô thiên nhiên cao cấp', 'Tôm thẻ khô thiên nhiên cao cấp được làm từ tôm tươi tuyển chọn, phơi khô theo quy trình chuẩn, giữ vị ngọt tự nhiên và thơm ngon, phù hợp dùng ăn ngay hoặc chế biến nhiều món đặc sản.', 1320000.00, '/assets/images/products/hai-san-kho/tom-the-thien-nhien', 30, 452, 0.0, 0);
-INSERT INTO `products` VALUES (98, 4, 'Khô ức mỡ cá dứa loại ngon', 'Khô ức mỡ cá dứa loại ngon – được làm từ phần ức nhiều mỡ của cá dứa, phơi nắng đúng chuẩn 3 nắng, vị lạt vừa ăn, giòn béo thơm ngon, giàu dinh dưỡng và không chất bảo quản.', 80000.00, '/assets/images/products/hai-san-kho/kho-uc-mo-ca-dua-loai-ngon', 40, 481, 0.0, 0);
-INSERT INTO `products` VALUES (99, 4, 'Khô ruột vịt loại ngon', 'Khô ruột vịt loại ngon được làm từ ruột vịt tươi, phơi khô theo phương pháp truyền thống, giòn thơm, phù hợp ăn nướng hoặc chiên.', 140000.00, '/assets/images/products/hai-san-kho/kho-ruot-vit-loai-ngon', 30, 60, 0.0, 0);
-INSERT INTO `products` VALUES (100, 4, 'Khô Cá Khoai đặc sản Cà Mau', 'Khô Cá Khoai đặc sản Cà Mau – loại cá khô giòn, thịt ngọt thơm, dễ chế biến thành nhiều món ngon như chiên, rim hoặc nướng.', 260000.00, '/assets/images/products/hai-san-kho/kho-ca-khoai-ca-mau', 30, 315, 0.0, 0);
-INSERT INTO `products` VALUES (101, 4, 'Khô Cá Sặc Bướm', 'Khô Cá Sặc Bướm được làm từ cá sặc đồng loại ngon, ướp gia vị vừa ăn, giữ vị ngọt đậm đà và giòn thơm phù hợp ăn ngay hoặc chế biến món ngon.', 140000.00, '/assets/images/products/hai-san-kho/kho-ca-sac-buom', 40, 407, 0.0, 0);
-INSERT INTO `products` VALUES (102, 4, 'Khô Cá Bò Da Tẩm Vị', 'Khô cá bò da tẩm vị – cá được tẩm ướp gia vị và phơi khô, thịt mềm, thơm, thích hợp chiên hoặc nướng.', 160000.00, '/assets/images/products/hai-san-kho/kho-ca-bo-da-tam-vi', 30, 100, 0.0, 0);
-INSERT INTO `products` VALUES (103, 4, 'Tôm Đất Ba Tri Hàng loại 1', 'Tôm Đất Ba Tri loại 1 – tôm khô thơm ngọt, hảo hạng với hương vị đặc trưng, dùng nấu canh, rim, nước dùng hay ăn trực tiếp.', 900000.00, '/assets/images/products/hai-san-kho/tom-dat-ba-tri', 30, 250, 0.0, 0);
-INSERT INTO `products` VALUES (104, 4, 'Còi Sò Điệp Khô – Gói 500g', 'Còi sò điệp khô – gói 500g, hải sản khô giàu dinh dưỡng, dùng trực tiếp hoặc chế biến món ăn.', 375000.00, '/assets/images/products/hai-san-kho/coi-so-diep-kho-goi-500g', 40, 450, 0.0, 0);
-INSERT INTO `products` VALUES (105, 4, 'Khô cá bò – Gói 500g', 'Khô cá bò da – gói 500g, sản phẩm hải sản khô thơm ngon, có thể nướng hoặc chiên.', 140000.00, '/assets/images/products/hai-san-kho/kho-ca-bo-goi-500g', 20, 21, 0.0, 0);
-INSERT INTO `products` VALUES (106, 4, 'Khô cá bóng lá trầu – Gói 500g', 'Khô cá bóng lá trầu – gói 500g, hải sản khô Phan Thiết thơm ngon, nướng hoặc chiên ăn kèm tương ớt.', 175000.00, '/assets/images/products/hai-san-kho/kho-ca-bong-la-trau-goi-500g', 40, 216, 0.0, 0);
-INSERT INTO `products` VALUES (107, 4, 'Khô cá chỉ vàng – Gói 500g', 'Khô cá chỉ vàng – gói 500g, sản phẩm hải sản khô Phan Thiết dễ chế biến: nướng, chiên hoặc xé trộn gỏi.', 105000.00, '/assets/images/products/hai-san-kho/kho-ca-chi-vang-phan-thiet-goi-500g', 43, 28, 0.0, 0);
-INSERT INTO `products` VALUES (108, 4, 'Khô cá đù – Gói 500g', 'Khô cá đù – gói 500g, hải sản khô Phan Thiết thơm ngon, dùng nướng, chiên hoặc làm món gỏi.', 105000.00, '/assets/images/products/hai-san-kho/kho-ca-du-goi-500g', 30, 460, 0.0, 0);
-INSERT INTO `products` VALUES (109, 4, 'Khô cá Sặc – Khay 500g', 'Khô cá Sặc bổi (không mặn) – khay 500g, hải sản khô đa công dụng: chiên, kho, nướng, hấp, nấu canh.', 125000.00, '/assets/images/products/hai-san-kho/kho-ca-sac-khay-500g', 50, 249, 0.0, 0);
-INSERT INTO `products` VALUES (110, 4, 'Khô cá lãi trứng – Gói 500g', 'Khô cá lãi trứng – gói 500g, hải sản khô vị bùi đặc trưng, dùng chế biến nhiều món thơm ngon.', 105000.00, '/assets/images/products/hai-san-kho/kho-ca-lai-trung-goi-500g', 10, 345, 0.0, 0);
-INSERT INTO `products` VALUES (111, 4, 'Khô cá cơm – Gói 500g', 'Khô cá cơm – gói 500g, hải sản khô dân dã, dễ chế biến thành nhiều món như nướng, chiên.', 75000.00, '/assets/images/products/hai-san-kho/kho-ca-com-goi-500g', 60, 479, 0.0, 0);
-INSERT INTO `products` VALUES (112, 4, 'Khô mực câu size 12-14con – Gói 500g', 'Khô mực câu Phan Thiết size 12-14con – gói 500g, thích hợp nướng, chiên mắm hoặc xào.', 675000.00, '/assets/images/products/hai-san-kho/kho-muc-cau-size-12-14con-goi-500g', 49, 370, 0.0, 0);
-INSERT INTO `products` VALUES (113, 4, 'Khô cá đuối – Gói 1kg', 'Khô cá đuối – gói 1kg, hải sản khô Phan Thiết thơm ngon, dùng nướng và chiên trứng.', 750000.00, '/assets/images/products/hai-san-kho/kho-ca-duoi-phan-thiet-goi-1kg', 50, 403, 0.0, 0);
-INSERT INTO `products` VALUES (114, 4, 'Khô cá đường – Gói 1kg', 'Khô cá đường – gói 1kg, hải sản khô Phan Thiết, ngon khi nướng và chấm mắm me.', 320000.00, '/assets/images/products/hai-san-kho/kho-ca-duong-goi-1kg', 50, 404, 0.0, 0);
-INSERT INTO `products` VALUES (115, 4, 'Khô mực câu Phan Thiết – Gói 500g', 'Khô mực câu Phan Thiết – gói 500g, hải sản khô dai và ngọt, dễ chế biến món nướng và chiên.', 675000.00, '/assets/images/products/hai-san-kho/kho-muc-cau-phan-thiet-goi-500g', 45, 313, 0.0, 0);
-INSERT INTO `products` VALUES (116, 4, 'Tôm biển khô – Gói 500g', 'Tôm biển khô – gói 500g, hải sản khô Phan Thiết thơm ngon, dùng để nấu canh, xào hoặc ăn kèm củ kiệu.', 340000.00, '/assets/images/products/hai-san-kho/tom-bien-kho-goi-500g', 40, 341, 0.0, 0);
-INSERT INTO `products` VALUES (117, 4, 'Tôm khô nhỏ (Tôm canh) – Gói 500g', 'Tôm khô nhỏ (Tôm canh) – gói 500g, hải sản khô Phan Thiết thơm ngon, dùng nấu canh, xào hoặc ăn kèm củ kiệu.', 275000.00, '/assets/images/products/hai-san-kho/tom-kho-nho-tom-canh-goi-500g', 30, 270, 0.0, 0);
-INSERT INTO `products` VALUES (118, 4, 'Tép khô – Gói 500g', 'Tép khô – gói 500g, hải sản khô Phan Thiết thơm ngon, dùng để xào bắp, xào khế chua hoặc rang tép.', 75000.00, '/assets/images/products/hai-san-kho/tep-kho-goi-500g', 28, 314, 0.0, 0);
-INSERT INTO `products` VALUES (119, 5, 'Thác Khói Trầm Hương Chảy Ngược Bàn Tay Phật Có Đèn Led và Đế Sen Trắng', 'Thác khói trầm hương thủ công mô phỏng bàn tay Phật cầm hoa sen, tạo khói trầm chảy ngược đẹp mắt; có vòng đèn LED chiếu sáng và đế sen trắng.', 1550000.00, '/assets/images/products/lang-nghe-thu-cong/thac-khoi-tram-huong-ban-tay-phat-led-de-sen', 30, 262, 0.0, 0);
-INSERT INTO `products` VALUES (120, 5, 'Bộ Ấm Trà Du Lịch Zisha Cầm Tay 1 Ấm 4 Chén Kèm Hủ Chứa Trà', 'Bộ ấm trà du lịch Zisha bằng gốm sứ cao cấp gồm 1 ấm, 4 chén và hủ chứa trà; thiết kế nhỏ gọn, tiện lợi khi di chuyển.', 450000.00, '/assets/images/products/lang-nghe-thu-cong/bo-am-tra-du-lich-zisha-cam-tay', 25, 360, 0.0, 0);
-INSERT INTO `products` VALUES (121, 5, 'Bộ Ấm Trà Du Lịch Ngoài Trời Gốm Sứ Màu 1 Ấm 4 Chén Xanh Ngọc', 'Bộ ấm trà du lịch ngoài trời bằng gốm sứ màu xanh ngọc gồm 1 ấm và 4 chén, thích hợp cho picnic và dã ngoại.', 520000.00, '/assets/images/products/lang-nghe-thu-cong/bo-am-tra-du-lich-ngoai-troi-xanh-ngoc', 25, 23, 0.0, 0);
-INSERT INTO `products` VALUES (122, 5, 'Thác Khói Trầm Hương Tượng Phật Ngồi Đế Gỗ Có Đèn LED', 'Thác khói trầm hương thủ công với tượng Phật ngồi trên đế gỗ, kết hợp hiệu ứng khói chảy ngược và đèn LED.', 1350000.00, '/assets/images/products/lang-nghe-thu-cong/thac-khoi-tram-huong-tuong-phat-de-go-led', 20, 497, 0.0, 0);
-INSERT INTO `products` VALUES (123, 5, 'Kệ Trang Trí Đèn LED Tháp Trầm Hương Vòng Tròn Hào Quang Kèm Tượng Di Lặc', 'Kệ trang trí thủ công kết hợp tháp trầm hương và tượng Di Lặc, tích hợp đèn LED mang ý nghĩa phong thuỷ.', 1680000.00, '/assets/images/products/lang-nghe-thu-cong/ke-trang-tri-thap-tram-huong-di-lac-led', 15, 447, 0.0, 0);
-INSERT INTO `products` VALUES (124, 5, 'Bộ 3 Bình Gốm sứ Phong Thuỷ Trang Trí Phòng Khách', 'Bộ 3 bình gốm sứ phong thuỷ trang trí phòng khách, men sứ cao cấp, họa tiết nghệ thuật mang ý nghĩa phong thuỷ tốt lành cho gia chủ.', 1200000.00, '/assets/images/products/lang-nghe-thu-cong/bo-3-binh-gom-su-phong-thuy-trang-tri-phong-khach', 20, 242, 0.0, 0);
-INSERT INTO `products` VALUES (125, 5, 'Bộ Ấm Chén Trà Gốm Sứ Có Túi Sách Màu Trắng 1 Ấm 4 Chén Kèm Khay', 'Bộ ấm chén trà gốm sứ màu trắng gồm 1 ấm, 4 chén và khay, kèm túi sách thời trang; phù hợp dùng uống trà và làm quà tặng.', 550000.00, '/assets/images/products/lang-nghe-thu-cong/bo-am-chen-tra-gom-su-co-tui-sach-mau-trang', 30, 350, 0.0, 0);
-INSERT INTO `products` VALUES (126, 5, 'Bộ Ấm Chén Trà Gốm Sứ Có Túi Sách Màu Đen 1 Ấm 4 Chén Kèm Khay', 'Bộ ấm chén trà gốm sứ màu đen gồm 1 ấm, 4 chén và khay, đi kèm túi sách tiện lợi; phù hợp dùng uống trà, làm quà tặng.', 550000.00, '/assets/images/products/lang-nghe-thu-cong/bo-am-chen-tra-gom-su-co-tui-sach-mau-den', 30, 35, 0.0, 0);
-INSERT INTO `products` VALUES (127, 5, 'Thác Khói Trầm Hương Chảy Ngược Kèm Đế Sen', 'Thác khói trầm hương chảy ngược kèm đế sen; thủ công mỹ nghệ, tạo dòng khói trầm đẹp mắt khi dùng nụ trầm.', 400000.00, '/assets/images/products/lang-nghe-thu-cong/thac-khoi-tram-huong-chay-nguoc-kem-de-sen', 20, 94, 0.0, 0);
-INSERT INTO `products` VALUES (128, 5, 'Thác Khói Trầm Hương Chảy Ngược Trên Bàn Tay Phật', 'Thác khói trầm hương chảy ngược đặt trên bàn tay Phật bằng thủ công cát tím; mang phong thuỷ và tạo khói trầm đẹp mắt khi dùng trầm.', 550000.00, '/assets/images/products/lang-nghe-thu-cong/thac-khoi-tram-huong-chay-nguoc-tren-ban-tay-phat', 25, 357, 0.0, 0);
-INSERT INTO `products` VALUES (129, 5, 'Tranh Slogan Hãy Là Số 1 Trong Lĩnh Vực Của Mình', 'Tranh slogan tạo động lực, họa tiết chữ “Hãy là số 1 trong lĩnh vực của mình” trên nền vân gỗ, dùng trang trí góc học tập hoặc văn phòng.', 400000.00, '/assets/images/products/lang-nghe-thu-cong/tranh-slogan-hay-la-so-1-trong-linh-vuc-cua-minh', 0, 22, 0.0, 0);
-INSERT INTO `products` VALUES (130, 5, 'Bộ Ấm Chén Pha Trà Gốm Sứ Hình Cối Xay 2 Ấm 6 Chén', 'Bộ ấm chén pha trà bằng gốm sứ nghệ thuật hình cối xay gồm 2 ấm và 6 chén; thiết kế độc đáo, phù hợp dùng uống trà hoặc làm quà tặng.', 550000.00, '/assets/images/products/lang-nghe-thu-cong/bo-am-chen-pha-tra-gom-su-hinh-coi-xay-bao-gom-2-am-6-chen', 45, 499, 0.0, 0);
-INSERT INTO `products` VALUES (131, 5, 'Bộ 3 Bình Đĩa Gốm Sứ Hoa Sen', 'Bộ 3 bình đĩa gốm sứ họa tiết hoa sen; đồ trang trí phòng khách phong thuỷ với họa tiết hoa sen tinh xảo.', 950000.00, '/assets/images/products/lang-nghe-thu-cong/bo-3-binh-dia-gom-su-hoa-sen', 15, 462, 0.0, 0);
-INSERT INTO `products` VALUES (132, 5, 'Bộ Ấm Chén Bạch Ngọc Hoa Sen Quà Tặng Cao Cấp', 'Bộ ấm chén bạch ngọc gốm sứ họa tiết hoa sen; sản phẩm cao cấp phù hợp làm quà tặng sang trọng.', 5000000.00, '/assets/images/products/lang-nghe-thu-cong/bo-am-chen-bach-ngoc-hoa-sen-qua-tang-cao-cap', 10, 314, 0.0, 0);
-INSERT INTO `products` VALUES (133, 5, 'Bình Gốm Sứ Phong Thuỷ Bộ 3 Món 2 Bình 2 Đĩa Trang Trí Phòng Khách', 'Bình gốm sứ phong thuỷ bộ 3 món gồm 2 bình và 2 đĩa; trang trí phòng khách với họa tiết nghệ thuật mang phong thuỷ tốt lành.', 1200000.00, '/assets/images/products/lang-nghe-thu-cong/binh-gom-su-phong-thuy-bo-3-mon-gom-2-binh-2-dia-trang-tri-phong-khach', 20, 174, 0.0, 0);
+INSERT INTO `products` VALUES (94, 4, 'Tôm xẻ tẩm Song Phương 150g (Hộp)', 'Tôm xẻ tẩm Song Phương – được làm từ tôm tươi xẻ dọc sống lưng, tẩm ướp gia vị và sấy khô theo công nghệ hiện đại, giữ vị ngọt tự nhiên và phù hợp dùng ăn ngay hoặc chế biến nhanh.', 299000.00, '/assets/images/products/hai-san-kho/tom-xe-tam-song-phuong-150g-hop.jpg', 30, 166, 0.0, 0);
+INSERT INTO `products` VALUES (95, 4, 'Cá thu 1 nắng Song Phương 500 g', 'Cá thu một nắng Song Phương 500 g là sản phẩm hải sản đặc sản được làm từ cá thu tươi phơi một nắng theo phương pháp truyền thống, giữ vị ngọt tự nhiên và thơm bùi của thịt cá.', 189000.00, '/assets/images/products/hai-san-kho/ca-thu-mot-nang-song-phuong-500g.jpg', 40, 448, 0.0, 0);
+INSERT INTO `products` VALUES (96, 4, 'Mực thước đại dương thượng hạng (size 5-7 con)', 'Mực thước đại dương thượng hạng được tuyển chọn từ những con mực to, phơi khô theo phương pháp truyền thống, giữ hương vị thơm ngon và giàu dinh dưỡng, phù hợp dùng làm món nhậu hoặc chế biến đa dạng.', 1420000.00, '/assets/images/products/hai-san-kho/muc-thuoc-dai-duong-thuong-hang-size-5-7-con.jpg', 20, 263, 0.0, 0);
+INSERT INTO `products` VALUES (97, 4, 'Tôm thẻ khô thiên nhiên cao cấp', 'Tôm thẻ khô thiên nhiên cao cấp được làm từ tôm tươi tuyển chọn, phơi khô theo quy trình chuẩn, giữ vị ngọt tự nhiên và thơm ngon, phù hợp dùng ăn ngay hoặc chế biến nhiều món đặc sản.', 1320000.00, '/assets/images/products/hai-san-kho/tom-the-thien-nhien.jpg', 30, 452, 0.0, 0);
+INSERT INTO `products` VALUES (98, 4, 'Khô ức mỡ cá dứa loại ngon', 'Khô ức mỡ cá dứa loại ngon – được làm từ phần ức nhiều mỡ của cá dứa, phơi nắng đúng chuẩn 3 nắng, vị lạt vừa ăn, giòn béo thơm ngon, giàu dinh dưỡng và không chất bảo quản.', 80000.00, '/assets/images/products/hai-san-kho/kho-uc-mo-ca-dua-loai-ngon.jpg', 40, 481, 0.0, 0);
+INSERT INTO `products` VALUES (99, 4, 'Khô ruột vịt loại ngon', 'Khô ruột vịt loại ngon được làm từ ruột vịt tươi, phơi khô theo phương pháp truyền thống, giòn thơm, phù hợp ăn nướng hoặc chiên.', 140000.00, '/assets/images/products/hai-san-kho/kho-ruot-vit-loai-ngon.jpg', 30, 60, 0.0, 0);
+INSERT INTO `products` VALUES (100, 4, 'Khô Cá Khoai đặc sản Cà Mau', 'Khô Cá Khoai đặc sản Cà Mau – loại cá khô giòn, thịt ngọt thơm, dễ chế biến thành nhiều món ngon như chiên, rim hoặc nướng.', 260000.00, '/assets/images/products/hai-san-kho/kho-ca-khoai-ca-mau.jpg', 30, 315, 0.0, 0);
+INSERT INTO `products` VALUES (101, 4, 'Khô Cá Sặc Bướm', 'Khô Cá Sặc Bướm được làm từ cá sặc đồng loại ngon, ướp gia vị vừa ăn, giữ vị ngọt đậm đà và giòn thơm phù hợp ăn ngay hoặc chế biến món ngon.', 140000.00, '/assets/images/products/hai-san-kho/kho-ca-sac-buom.jpg', 40, 407, 0.0, 0);
+INSERT INTO `products` VALUES (102, 4, 'Khô Cá Bò Da Tẩm Vị', 'Khô cá bò da tẩm vị – cá được tẩm ướp gia vị và phơi khô, thịt mềm, thơm, thích hợp chiên hoặc nướng.', 160000.00, '/assets/images/products/hai-san-kho/kho-ca-bo-da-tam-vi.jpg', 30, 100, 0.0, 0);
+INSERT INTO `products` VALUES (103, 4, 'Tôm Đất Ba Tri Hàng loại 1', 'Tôm Đất Ba Tri loại 1 – tôm khô thơm ngọt, hảo hạng với hương vị đặc trưng, dùng nấu canh, rim, nước dùng hay ăn trực tiếp.', 900000.00, '/assets/images/products/hai-san-kho/tom-dat-ba-tri.jpg', 30, 250, 0.0, 0);
+INSERT INTO `products` VALUES (104, 4, 'Còi Sò Điệp Khô – Gói 500g', 'Còi sò điệp khô – gói 500g, hải sản khô giàu dinh dưỡng, dùng trực tiếp hoặc chế biến món ăn.', 375000.00, '/assets/images/products/hai-san-kho/coi-so-diep-kho-goi-500g.jpg', 40, 450, 0.0, 0);
+INSERT INTO `products` VALUES (105, 4, 'Khô cá bò – Gói 500g', 'Khô cá bò da – gói 500g, sản phẩm hải sản khô thơm ngon, có thể nướng hoặc chiên.', 140000.00, '/assets/images/products/hai-san-kho/kho-ca-bo-goi-500g.jpg', 20, 21, 0.0, 0);
+INSERT INTO `products` VALUES (106, 4, 'Khô cá bóng lá trầu – Gói 500g', 'Khô cá bóng lá trầu – gói 500g, hải sản khô Phan Thiết thơm ngon, nướng hoặc chiên ăn kèm tương ớt.', 175000.00, '/assets/images/products/hai-san-kho/kho-ca-bong-la-trau-goi-500g.jpg', 40, 216, 0.0, 0);
+INSERT INTO `products` VALUES (107, 4, 'Khô cá chỉ vàng – Gói 500g', 'Khô cá chỉ vàng – gói 500g, sản phẩm hải sản khô Phan Thiết dễ chế biến: nướng, chiên hoặc xé trộn gỏi.', 105000.00, '/assets/images/products/hai-san-kho/kho-ca-chi-vang-phan-thiet-goi-500g.jpg', 43, 28, 0.0, 0);
+INSERT INTO `products` VALUES (108, 4, 'Khô cá đù – Gói 500g', 'Khô cá đù – gói 500g, hải sản khô Phan Thiết thơm ngon, dùng nướng, chiên hoặc làm món gỏi.', 105000.00, '/assets/images/products/hai-san-kho/kho-ca-du-goi-500g.jpg', 30, 460, 0.0, 0);
+INSERT INTO `products` VALUES (109, 4, 'Khô cá Sặc – Khay 500g', 'Khô cá Sặc bổi (không mặn) – khay 500g, hải sản khô đa công dụng: chiên, kho, nướng, hấp, nấu canh.', 125000.00, '/assets/images/products/hai-san-kho/kho-ca-sac-khay-500g.jpg', 50, 249, 0.0, 0);
+INSERT INTO `products` VALUES (110, 4, 'Khô cá lãi trứng – Gói 500g', 'Khô cá lãi trứng – gói 500g, hải sản khô vị bùi đặc trưng, dùng chế biến nhiều món thơm ngon.', 105000.00, '/assets/images/products/hai-san-kho/kho-ca-lai-trung-goi-500g.jpg', 10, 345, 0.0, 0);
+INSERT INTO `products` VALUES (111, 4, 'Khô cá cơm – Gói 500g', 'Khô cá cơm – gói 500g, hải sản khô dân dã, dễ chế biến thành nhiều món như nướng, chiên.', 75000.00, '/assets/images/products/hai-san-kho/kho-ca-com-goi-500g.jpg', 60, 479, 0.0, 0);
+INSERT INTO `products` VALUES (112, 4, 'Khô mực câu size 12-14con – Gói 500g', 'Khô mực câu Phan Thiết size 12-14con – gói 500g, thích hợp nướng, chiên mắm hoặc xào.', 675000.00, '/assets/images/products/hai-san-kho/kho-muc-cau-size-12-14con-goi-500g.jpg', 49, 370, 0.0, 0);
+INSERT INTO `products` VALUES (113, 4, 'Khô cá đuối – Gói 1kg', 'Khô cá đuối – gói 1kg, hải sản khô Phan Thiết thơm ngon, dùng nướng và chiên trứng.', 750000.00, '/assets/images/products/hai-san-kho/kho-ca-duoi-phan-thiet-goi-1kg.jpg', 50, 403, 0.0, 0);
+INSERT INTO `products` VALUES (114, 4, 'Khô cá đường – Gói 1kg', 'Khô cá đường – gói 1kg, hải sản khô Phan Thiết, ngon khi nướng và chấm mắm me.', 320000.00, '/assets/images/products/hai-san-kho/kho-ca-duong-goi-1kg.jpg', 50, 404, 0.0, 0);
+INSERT INTO `products` VALUES (115, 4, 'Khô mực câu Phan Thiết – Gói 500g', 'Khô mực câu Phan Thiết – gói 500g, hải sản khô dai và ngọt, dễ chế biến món nướng và chiên.', 675000.00, '/assets/images/products/hai-san-kho/kho-muc-cau-phan-thiet-goi-500g.jpg', 45, 313, 0.0, 0);
+INSERT INTO `products` VALUES (116, 4, 'Tôm biển khô – Gói 500g', 'Tôm biển khô – gói 500g, hải sản khô Phan Thiết thơm ngon, dùng để nấu canh, xào hoặc ăn kèm củ kiệu.', 340000.00, '/assets/images/products/hai-san-kho/tom-bien-kho-goi-500g.jpg', 40, 341, 0.0, 0);
+INSERT INTO `products` VALUES (117, 4, 'Tôm khô nhỏ (Tôm canh) – Gói 500g', 'Tôm khô nhỏ (Tôm canh) – gói 500g, hải sản khô Phan Thiết thơm ngon, dùng nấu canh, xào hoặc ăn kèm củ kiệu.', 275000.00, '/assets/images/products/hai-san-kho/tom-kho-nho-tom-canh-goi-500g.jpg', 30, 270, 0.0, 0);
+INSERT INTO `products` VALUES (118, 4, 'Tép khô – Gói 500g', 'Tép khô – gói 500g, hải sản khô Phan Thiết thơm ngon, dùng để xào bắp, xào khế chua hoặc rang tép.', 75000.00, '/assets/images/products/hai-san-kho/tep-kho-goi-500g.jpg', 28, 314, 0.0, 0);
+INSERT INTO `products` VALUES (119, 5, 'Thác Khói Trầm Hương Chảy Ngược Bàn Tay Phật Có Đèn Led và Đế Sen Trắng', 'Thác khói trầm hương thủ công mô phỏng bàn tay Phật cầm hoa sen, tạo khói trầm chảy ngược đẹp mắt; có vòng đèn LED chiếu sáng và đế sen trắng.', 1550000.00, '/assets/images/products/lang-nghe-thu-cong/thac-khoi-tram-huong-ban-tay-phat-led-de-sen.jpg', 30, 262, 0.0, 0);
+INSERT INTO `products` VALUES (120, 5, 'Bộ Ấm Trà Du Lịch Zisha Cầm Tay 1 Ấm 4 Chén Kèm Hủ Chứa Trà', 'Bộ ấm trà du lịch Zisha bằng gốm sứ cao cấp gồm 1 ấm, 4 chén và hủ chứa trà; thiết kế nhỏ gọn, tiện lợi khi di chuyển.', 450000.00, '/assets/images/products/lang-nghe-thu-cong/bo-am-tra-du-lich-zisha-cam-tay.jpg', 25, 360, 0.0, 0);
+INSERT INTO `products` VALUES (121, 5, 'Bộ Ấm Trà Du Lịch Ngoài Trời Gốm Sứ Màu 1 Ấm 4 Chén Xanh Ngọc', 'Bộ ấm trà du lịch ngoài trời bằng gốm sứ màu xanh ngọc gồm 1 ấm và 4 chén, thích hợp cho picnic và dã ngoại.', 520000.00, '/assets/images/products/lang-nghe-thu-cong/bo-am-tra-du-lich-ngoai-troi-xanh-ngoc.jpg', 25, 23, 0.0, 0);
+INSERT INTO `products` VALUES (122, 5, 'Thác Khói Trầm Hương Tượng Phật Ngồi Đế Gỗ Có Đèn LED', 'Thác khói trầm hương thủ công với tượng Phật ngồi trên đế gỗ, kết hợp hiệu ứng khói chảy ngược và đèn LED.', 1350000.00, '/assets/images/products/lang-nghe-thu-cong/thac-khoi-tram-huong-tuong-phat-de-go-led.jpg', 20, 497, 0.0, 0);
+INSERT INTO `products` VALUES (123, 5, 'Kệ Trang Trí Đèn LED Tháp Trầm Hương Vòng Tròn Hào Quang Kèm Tượng Di Lặc', 'Kệ trang trí thủ công kết hợp tháp trầm hương và tượng Di Lặc, tích hợp đèn LED mang ý nghĩa phong thuỷ.', 1680000.00, '/assets/images/products/lang-nghe-thu-cong/ke-trang-tri-thap-tram-huong-di-lac-led.jpg', 15, 447, 0.0, 0);
+INSERT INTO `products` VALUES (124, 5, 'Bộ 3 Bình Gốm sứ Phong Thuỷ Trang Trí Phòng Khách', 'Bộ 3 bình gốm sứ phong thuỷ trang trí phòng khách, men sứ cao cấp, họa tiết nghệ thuật mang ý nghĩa phong thuỷ tốt lành cho gia chủ.', 1200000.00, '/assets/images/products/lang-nghe-thu-cong/bo-3-binh-gom-su-phong-thuy-trang-tri-phong-khach.jpg', 20, 242, 0.0, 0);
+INSERT INTO `products` VALUES (125, 5, 'Bộ Ấm Chén Trà Gốm Sứ Có Túi Sách Màu Trắng 1 Ấm 4 Chén Kèm Khay', 'Bộ ấm chén trà gốm sứ màu trắng gồm 1 ấm, 4 chén và khay, kèm túi sách thời trang; phù hợp dùng uống trà và làm quà tặng.', 550000.00, '/assets/images/products/lang-nghe-thu-cong/bo-am-chen-tra-gom-su-co-tui-sach-mau-trang.jpg', 30, 350, 0.0, 0);
+INSERT INTO `products` VALUES (126, 5, 'Bộ Ấm Chén Trà Gốm Sứ Có Túi Sách Màu Đen 1 Ấm 4 Chén Kèm Khay', 'Bộ ấm chén trà gốm sứ màu đen gồm 1 ấm, 4 chén và khay, đi kèm túi sách tiện lợi; phù hợp dùng uống trà, làm quà tặng.', 550000.00, '/assets/images/products/lang-nghe-thu-cong/bo-am-chen-tra-gom-su-co-tui-sach-mau-den.jpg', 30, 35, 0.0, 0);
+INSERT INTO `products` VALUES (127, 5, 'Thác Khói Trầm Hương Chảy Ngược Kèm Đế Sen', 'Thác khói trầm hương chảy ngược kèm đế sen; thủ công mỹ nghệ, tạo dòng khói trầm đẹp mắt khi dùng nụ trầm.', 400000.00, '/assets/images/products/lang-nghe-thu-cong/thac-khoi-tram-huong-chay-nguoc-kem-de-sen.jpg', 20, 94, 0.0, 0);
+INSERT INTO `products` VALUES (128, 5, 'Thác Khói Trầm Hương Chảy Ngược Trên Bàn Tay Phật', 'Thác khói trầm hương chảy ngược đặt trên bàn tay Phật bằng thủ công cát tím; mang phong thuỷ và tạo khói trầm đẹp mắt khi dùng trầm.', 550000.00, '/assets/images/products/lang-nghe-thu-cong/thac-khoi-tram-huong-chay-nguoc-tren-ban-tay-phat.jpg', 25, 357, 0.0, 0);
+INSERT INTO `products` VALUES (129, 5, 'Tranh Slogan Hãy Là Số 1 Trong Lĩnh Vực Của Mình', 'Tranh slogan tạo động lực, họa tiết chữ “Hãy là số 1 trong lĩnh vực của mình” trên nền vân gỗ, dùng trang trí góc học tập hoặc văn phòng.', 400000.00, '/assets/images/products/lang-nghe-thu-cong/tranh-slogan-hay-la-so-1-trong-linh-vuc-cua-minh.jpg', 0, 22, 0.0, 0);
+INSERT INTO `products` VALUES (130, 5, 'Bộ Ấm Chén Pha Trà Gốm Sứ Hình Cối Xay 2 Ấm 6 Chén', 'Bộ ấm chén pha trà bằng gốm sứ nghệ thuật hình cối xay gồm 2 ấm và 6 chén; thiết kế độc đáo, phù hợp dùng uống trà hoặc làm quà tặng.', 550000.00, '/assets/images/products/lang-nghe-thu-cong/bo-am-chen-pha-tra-gom-su-hinh-coi-xay-bao-gom-2-am-6-chen.jpg', 45, 499, 0.0, 0);
+INSERT INTO `products` VALUES (131, 5, 'Bộ 3 Bình Đĩa Gốm Sứ Hoa Sen', 'Bộ 3 bình đĩa gốm sứ họa tiết hoa sen; đồ trang trí phòng khách phong thuỷ với họa tiết hoa sen tinh xảo.', 950000.00, '/assets/images/products/lang-nghe-thu-cong/bo-3-binh-dia-gom-su-hoa-sen.jpg', 15, 462, 0.0, 0);
+INSERT INTO `products` VALUES (132, 5, 'Bộ Ấm Chén Bạch Ngọc Hoa Sen Quà Tặng Cao Cấp', 'Bộ ấm chén bạch ngọc gốm sứ họa tiết hoa sen; sản phẩm cao cấp phù hợp làm quà tặng sang trọng.', 5000000.00, '/assets/images/products/lang-nghe-thu-cong/bo-am-chen-bach-ngoc-hoa-sen-qua-tang-cao-cap.jpg', 10, 314, 0.0, 0);
+INSERT INTO `products` VALUES (133, 5, 'Bình Gốm Sứ Phong Thuỷ Bộ 3 Món 2 Bình 2 Đĩa Trang Trí Phòng Khách', 'Bình gốm sứ phong thuỷ bộ 3 món gồm 2 bình và 2 đĩa; trang trí phòng khách với họa tiết nghệ thuật mang phong thuỷ tốt lành.', 1200000.00, '/assets/images/products/lang-nghe-thu-cong/binh-gom-su-phong-thuy-bo-3-mon-gom-2-binh-2-dia-trang-tri-phong-khach.jpg', 20, 174, 0.0, 0);
 INSERT INTO `products` VALUES (134, 5, 'Bình Gốm Sứ Phong Thuỷ Trang Trí', 'Bình gốm sứ phong thuỷ dùng trang trí phòng khách hoặc không gian sống, mang ý nghĩa may mắn và tài lộc.', 900000.00, '/assets/images/products/lang-nghe-thu-cong/binh-gom-su-phong-thuy112.jpg', 20, 408, 0.0, 0);
 INSERT INTO `products` VALUES (135, 5, 'Chậu Hòn Non Bộ Mini Trang Trí', 'Chậu hòn non bộ mini trang trí bàn làm việc hoặc phòng khách, mang không gian thiên nhiên thu nhỏ.', 450000.00, '/assets/images/products/lang-nghe-thu-cong/chau-hon-non-bo-mini_300x300.jpg', 25, 41, 0.0, 0);
 INSERT INTO `products` VALUES (136, 5, 'Tranh Chữ Nhân Treo Tường', 'Tranh chữ Nhân mang ý nghĩa đạo đức và nhân văn, phù hợp trang trí phòng khách hoặc phòng làm việc.', 350000.00, '/assets/images/products/lang-nghe-thu-cong/tranh-chu-nhan12.jpg', 30, 438, 0.0, 0);
@@ -1217,12 +1233,10 @@ INSERT INTO `products` VALUES (151, 6, 'Găng Tay Võ Thuật 16350842860', 'Gă
 INSERT INTO `products` VALUES (152, 6, 'Găng Bảo Hộ CH2 Blue 0.8', 'Găng bảo hộ CH2 màu xanh, kích thước 0.8, hỗ trợ bảo vệ tay tối ưu khi tập luyện.', 950000.00, '/assets/images/products/van-hoa/ch2-blue-0-8-1.jpg', 18, 483, 0.0, 0);
 INSERT INTO `products` VALUES (153, 6, 'Găng Tay Võ Thuật 90172033882', 'Găng tay võ thuật đa năng, độ bền cao và ôm tay tốt cho mọi cấp độ võ sĩ.', 820000.00, '/assets/images/products/van-hoa/90172033882.jpg', 22, 84, 0.0, 0);
 INSERT INTO `products` VALUES (154, 6, 'Găng Tay RX105453', 'Găng tay võ thuật RX105453 với thiết kế ôm sát và đệm bảo vệ cao cấp.', 910000.00, '/assets/images/products/van-hoa/rx105453.jpg', 16, 430, 0.0, 0);
-INSERT INTO `products` VALUES (155, 6, 'Dịch Chuyển Mũ Võ Cổ Truyền', 'Mũ võ cổ truyền dùng cho tập luyện và biểu diễn, thiết kế truyền thống, bền đẹp.', 520000.00, '/assets/images/products/van-hoa/d_i_ch_y_nh_m_v__c__truy_n.png', 25, 421, 0.0, 0);
+INSERT INTO `products` VALUES (155, 6, 'Dịch Chuyển Mũ Võ Cổ Truyền', 'Mũ võ cổ truyền dùng cho tập luyện và biểu diễn, thiết kế truyền thống, bền đẹp.', 520000.00, '/assets/images/products/van-hoa/d_i_ch_y_nh_m_v__c__truy_n.jpg', 25, 421, 0.0, 0);
 INSERT INTO `products` VALUES (156, 6, 'Đinh Bảnh Mũ Võ Cổ Truyền', 'Mũ võ cổ truyền có họa tiết đinh bảnh, phù hợp võ thuật biểu diễn và tập luyện.', 540000.00, '/assets/images/products/van-hoa/dinh_ba_nh_m_v__c__truy_n.png', 22, 316, 0.0, 0);
-INSERT INTO `products` VALUES (157, 6, 'Song Kích Mũ Võ Cổ Truyền', 'Mũ song kích cho võ thuật truyền thống, thiết kế ôm đầu, bảo vệ tốt khi tập luyện.', 580000.00, '/assets/images/products/van-hoa/song_k_ch_nh_m_v__c__truy_n.png', 18, 305, 0.0, 0);
-INSERT INTO `products` VALUES (158, 6, 'Ph Mũ Nh Mũ Võ Cổ Truyền', 'Mũ võ cổ truyền phong cách Ph, thích hợp luyện tập và biểu diễn võ thuật dân tộc.', 510000.00, '/assets/images/products/van-hoa/ph__nh_m_v__c__truy_n.png', 24, 77, 0.0, 0);
-INSERT INTO `products` VALUES (159, 6, 'Ph Mũ Nh Mũ Võ Cổ Truyền', 'Mũ võ cổ truyền phong cách Ph, thích hợp luyện tập và biểu diễn võ thuật dân tộc.', 510000.00, '/assets/images/products/van-hoa/ph__nh_m_v__c__truy_n.png', 24, 441, 0.0, 0);
-INSERT INTO `products` VALUES (160, 6, 'Liễu Đao Nhôm Võ Cổ Truyền PT Chấm Rồng Phương', 'Liễu đao nhôm thiết kế truyền thống, dùng cho võ cổ truyền và biểu diễn.', 2800000.00, '/assets/images/products/van-hoa/lieu-dao-nhom-vo-co-truyen-pt-cham-rong-phuong.jpg', 8, 497, 0.0, 0);
+INSERT INTO `products` VALUES (158, 6, 'Ph Mũ Nh Mũ Võ Cổ Truyền', 'Mũ võ cổ truyền phong cách Ph, thích hợp luyện tập và biểu diễn võ thuật dân tộc.', 510000.00, '/assets/images/products/van-hoa/ph__nh_m_v__c__truy_n.jpg', 24, 77, 0.0, 0);
+INSERT INTO `products` VALUES (160, 6, 'Liễu Đao Nhôm Võ Cổ Truyền PT Chấm Rồng Phương', 'Liễu đao nhôm thiết kế truyền thống, dùng cho võ cổ truyền và biểu diễn.', 2800000.00, '/assets/images/products/van-hoa/lieu-dao-nhom-vo-co-truyen-pt-cham-rong-phuong.png', 8, 497, 0.0, 0);
 INSERT INTO `products` VALUES (161, 6, 'Kiếm Nhôm Võ Cổ Truyền PT', 'Kiếm nhôm võ thuật cổ truyền PT, chất liệu bền, dùng cho biểu diễn và luyện tập.', 2500000.00, '/assets/images/products/van-hoa/kiem-nhom-vo-co-truyen-pt.jpg', 10, 171, 0.0, 0);
 INSERT INTO `products` VALUES (162, 6, 'Đại Đao Nhôm Võ Cổ Truyền Vovinam PT', 'Đại đao nhôm Vovinam PT, vũ khí truyền thống dùng cho luyện tập và biểu diễn.', 3200000.00, '/assets/images/products/van-hoa/dai-dao-nhom-vo-co-truyen-vovinam-pt.jpg', 7, 336, 0.0, 0);
 INSERT INTO `products` VALUES (163, 6, 'Trưởng Côn Võ Cổ Truyền', 'Trưởng côn truyền thống dùng trong võ cổ truyền, thích hợp luyện tập và biểu diễn.', 2700000.00, '/assets/images/products/van-hoa/truong-con-vo-co-truyen.jpg', 9, 176, 0.0, 0);
@@ -1381,6 +1395,10 @@ CREATE TABLE `users`  (
                           `email` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
                           `password` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
                           `phone` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+
+                          `gender` varchar(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
+
+                          `dob` date NULL DEFAULT NULL,
                           `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
                           `avatar` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
                           `status` enum('Active','Inactive','Banned') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'Active',
@@ -1389,11 +1407,205 @@ CREATE TABLE `users`  (
                           `token_expiry` datetime NULL DEFAULT NULL,
                           PRIMARY KEY (`id`) USING BTREE,
                           UNIQUE INDEX `email`(`email`) USING BTREE
-) ENGINE = MyISAM AUTO_INCREMENT = 2 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = DYNAMIC;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ----------------------------
 -- Records of users
 -- ----------------------------
-INSERT INTO `users` VALUES (1, 'Thang', 'phannguyenminhthang123@gmail.com', '$2a$10$gUo066PoJvNHH6yjTJyIqu3GQEklsUMrK9b1kQqgGEGryff6XkrYm', '0935021969', '2026-01-24 17:31:00', 'default-avatar.png', 'Active', 'User', NULL, NULL);
+INSERT INTO `users` VALUES (1, 'Thang', 'phannguyenminhthang123@gmail.com', '$2a$10$gUo066PoJvNHH6yjTJyIqu3GQEklsUMrK9b1kQqgGEGryff6XkrYm', '0935021969', 'Male', '1990-05-15', '2026-01-24 17:31:00', 'default-avatar.png', 'Active', 'Admin', NULL, NULL);
+INSERT INTO `users` VALUES (2, 'Jun', 'jun@gmail.com', '$2a$10$gUo066PoJvNHH6yjTJyIqu3GQEklsUMrK9b1kQqgGEGryff6XkrYm', '0935021970', 'Male', '1990-05-15', '2026-01-24 17:31:00', 'default-avatar.png', 'Active', 'Admin', NULL, NULL);
+
+
+
+-- =========================================================
+-- NEW TABLES & SEED DATA FROM update_schema.sql
+-- =========================================================
+
+CREATE TABLE IF NOT EXISTS user_credentials
+(
+    id                 BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id            INT UNSIGNED NOT NULL UNIQUE,
+    password_hash      VARCHAR(255) NOT NULL,
+    email_verified     BOOLEAN      NOT NULL DEFAULT FALSE,
+    verification_token VARCHAR(64),
+    reset_token        VARCHAR(64),
+    reset_expires_at   TIMESTAMP,
+    created_at         TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at         TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    deleted_at         TIMESTAMP    NULL,
+    CONSTRAINT fk_cred_user FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- INSERT INTO user_credentials (user_id, password_hash, email_verified, verification_token, reset_token, reset_expires_at, created_at, updated_at, deleted_at)
+-- VALUES (1, '$2a$10$examplehashexamplehashexamplehashexamplehash', TRUE, NULL, NULL, NULL, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, NULL);
+
+CREATE TABLE IF NOT EXISTS oauth_accounts
+(
+    id               BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id          INT UNSIGNED NOT NULL,
+    provider         VARCHAR(30)  NOT NULL,
+    provider_user_id VARCHAR(128) NOT NULL,
+    provider_email   VARCHAR(255),
+    token_expires_at TIMESTAMP,
+    created_at       TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at       TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    deleted_at       TIMESTAMP    NULL,
+    CONSTRAINT fk_oauth_user FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
+    CONSTRAINT uq_provider_account UNIQUE (provider, provider_user_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- INSERT INTO oauth_accounts (user_id, provider, provider_user_id, provider_email, token_expires_at, created_at, updated_at, deleted_at)
+-- VALUES (1, 'google', 'google-12345', 'phannguyenminhthang123@gmail.com', CURRENT_TIMESTAMP + INTERVAL 30 DAY, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, NULL);
+
+CREATE TABLE IF NOT EXISTS sessions
+(
+    session_id VARCHAR(128) PRIMARY KEY,
+    user_id    INT UNSIGNED    NOT NULL,
+    ip_address VARCHAR(45),
+    user_agent TEXT,
+    expires_at TIMESTAMP NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP NULL,
+    CONSTRAINT fk_sess_user FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
+    INDEX idx_sess_user (user_id),
+    INDEX idx_sess_expires (expires_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- INSERT INTO sessions (session_id, user_id, ip_address, user_agent, expires_at, created_at, updated_at, deleted_at)
+-- VALUES ('sess_1234567890abcdef', 1, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)', CURRENT_TIMESTAMP + INTERVAL 7 DAY, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, NULL);
+
+CREATE TABLE IF NOT EXISTS roles
+(
+    id          INT AUTO_INCREMENT PRIMARY KEY,
+    name        VARCHAR(50) NOT NULL UNIQUE,
+    description VARCHAR(255),
+    is_system   BOOLEAN     NOT NULL DEFAULT FALSE,
+    created_at  TIMESTAMP   NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at  TIMESTAMP   NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    deleted_at  TIMESTAMP   NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS permissions
+(
+    id          INT AUTO_INCREMENT PRIMARY KEY,
+    resource    VARCHAR(50) NOT NULL,
+    action      VARCHAR(30) NOT NULL,
+    description VARCHAR(255),
+    created_at  TIMESTAMP   NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at  TIMESTAMP   NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    deleted_at  TIMESTAMP   NULL,
+    CONSTRAINT uq_perm UNIQUE (resource, action)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS role_permissions
+(
+    role_id       INT NOT NULL,
+    permission_id INT NOT NULL,
+    PRIMARY KEY (role_id, permission_id),
+    CONSTRAINT fk_rp_role
+        FOREIGN KEY (role_id)
+            REFERENCES roles (id)
+            ON DELETE CASCADE,
+    CONSTRAINT fk_rp_perm
+        FOREIGN KEY (permission_id)
+            REFERENCES permissions (id)
+            ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS user_roles
+(
+    user_id     INT UNSIGNED    NOT NULL,
+    role_id     INT             NOT NULL,
+    assigned_by INT UNSIGNED,
+    assigned_at TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    PRIMARY KEY (user_id, role_id),
+
+    CONSTRAINT fk_ur_user
+        FOREIGN KEY (user_id)
+            REFERENCES users (id)
+            ON DELETE CASCADE,
+
+    CONSTRAINT fk_ur_role
+        FOREIGN KEY (role_id)
+            REFERENCES roles (id)
+            ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- SEED PERMISSIONS
+INSERT INTO permissions (resource, action, description)
+VALUES
+    ('dashboard', 'read', 'View admin dashboard'),
+
+    ('product', 'read', 'View products'),
+    ('product', 'create', 'Create products'),
+    ('product', 'update', 'Update products'),
+    ('product', 'delete', 'Delete products'),
+
+    ('category', 'read', 'View categories'),
+    ('category', 'create', 'Create categories'),
+    ('category', 'update', 'Update categories'),
+    ('category', 'delete', 'Delete categories'),
+
+    ('order', 'read', 'View orders'),
+    ('order', 'update', 'Update orders'),
+
+    ('customer', 'read', 'View customers'),
+    ('customer', 'create', 'Create customers'),
+    ('customer', 'update', 'Update customers'),
+    ('customer', 'delete', 'Delete customers'),
+
+    ('banner', 'read', 'View banners'),
+    ('banner', 'create', 'Create banners'),
+    ('banner', 'update', 'Update banners'),
+    ('banner', 'delete', 'Delete banners'),
+
+    -- ('settings', 'read', 'View settings'),
+    -- ('settings', 'update', 'Update settings'),
+
+    ('role', 'read', 'View permission groups'),
+    ('role', 'create', 'Create permission groups'),
+    ('role', 'update', 'Update permission groups'),
+    ('role', 'delete', 'Delete permission groups');
+
+-- SEED ROLES
+INSERT INTO roles (name, description, is_system)
+VALUES
+    ('Admin', 'Full access to the administration area', TRUE),
+    ('Customer', 'Default customer account', TRUE);
+
+-- ADMIN GETS ALL PERMISSIONS
+INSERT IGNORE INTO role_permissions (role_id, permission_id)
+SELECT r.id, p.id
+FROM roles r
+CROSS JOIN permissions p
+WHERE r.name = 'Admin';
+
+-- ASSIGN CUSTOMER ROLE TO USERS WITHOUT ROLE
+INSERT INTO user_roles (user_id, role_id, assigned_by)
+SELECT
+    u.id,
+    r.id,
+    NULL
+FROM users u
+JOIN roles r
+    ON r.name = 'Customer'
+LEFT JOIN user_roles ur
+    ON ur.user_id = u.id
+WHERE ur.user_id IS NULL;
+
+-- -- OPTIONAL: ASSIGN FIRST USER AS ADMIN
+-- INSERT IGNORE INTO user_roles (user_id, role_id, assigned_by)
+-- SELECT
+--     u.id,
+--     r.id,
+--     NULL
+-- FROM users u
+-- JOIN roles r
+--     ON r.name = 'Admin'
+-- WHERE u.id = 1;
+
 
 SET FOREIGN_KEY_CHECKS = 1;
+
