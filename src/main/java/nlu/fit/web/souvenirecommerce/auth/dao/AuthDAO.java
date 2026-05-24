@@ -2,6 +2,7 @@ package nlu.fit.web.souvenirecommerce.auth.dao;
 
 import nlu.fit.web.souvenirecommerce.dao.IUserDAO;
 import nlu.fit.web.souvenirecommerce.dao.impl.AbstractHibernateIDAO;
+import nlu.fit.web.souvenirecommerce.enums.Gender;
 import nlu.fit.web.souvenirecommerce.model.entity.Role;
 import nlu.fit.web.souvenirecommerce.model.entity.User;
 import nlu.fit.web.souvenirecommerce.model.entity.UserCredential;
@@ -134,15 +135,18 @@ public class AuthDAO extends AbstractHibernateIDAO<Long, User> implements IUserD
                     .uniqueResult();
 
             if (existingUsers != null && existingUsers > 0) {
-                transaction.rollback();
+                rollback(transaction);
                 return Optional.empty();
             }
 
+            String hashedPassword = PasswordUtil.hashPassword(password);
             User user = User.builder()
                     .email(email.trim().toLowerCase())
+                    .password(hashedPassword)
                     .firstName(firstName.trim())
                     .lastName(lastName.trim())
                     .phone(phone.trim())
+                    .gender(Gender.OTHER)
                     .avatarUrl("default-avatar.png")
                     .isActive(true)
                     .roles(new HashSet<>())
@@ -150,7 +154,7 @@ public class AuthDAO extends AbstractHibernateIDAO<Long, User> implements IUserD
 
             UserCredential credential = UserCredential.builder()
                     .user(user)
-                    .passwordHash(PasswordUtil.hashPassword(password))
+                    .passwordHash(hashedPassword)
                     .emailVerified(true)
                     .build();
             user.setCredentials(credential);

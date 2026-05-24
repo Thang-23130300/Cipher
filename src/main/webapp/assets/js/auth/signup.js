@@ -305,7 +305,7 @@ $('#submitBtn').click(function() {
     $('#submitBtn').prop('disabled', true);
 
     $.ajax({
-        url: `${contextPath}/api/register`,
+        url: `${contextPath}/api/signup`,
         type: 'POST',
         data: {
             email: email,
