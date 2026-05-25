@@ -2,6 +2,8 @@ package nlu.fit.web.souvenirecommerce.auth.dao;
 
 import nlu.fit.web.souvenirecommerce.dao.IUserDAO;
 import nlu.fit.web.souvenirecommerce.dao.impl.AbstractHibernateIDAO;
+import nlu.fit.web.souvenirecommerce.enums.Gender;
+import nlu.fit.web.souvenirecommerce.enums.VerificationCodePurpose;
 import nlu.fit.web.souvenirecommerce.model.entity.Role;
 import nlu.fit.web.souvenirecommerce.model.entity.User;
 import nlu.fit.web.souvenirecommerce.model.entity.UserCredential;
@@ -45,10 +47,24 @@ public class AuthDAO extends AbstractHibernateIDAO<Long, User> implements IUserD
             return Optional.empty();
         }
 
-        return findByUserEmail(userEmail)
-                .filter(user -> user.isActive()
-                        && user.getCredentials() != null
-                        && PasswordUtil.checkPassword(password, user.getCredentials().getPasswordHash()));
+        String hql = """
+                select distinct u from User u
+                left join fetch u.credentials
+                left join fetch u.roles r
+                left join fetch r.permissions
+                left join fetch u.oauthAccounts
+                where (lower(u.email) = lower(:loginDetail) or u.phone = :loginDetail)
+                """;
+
+        try (var session = HibernateUtil.getSessionFactory().openSession()) {
+            var user = session.createQuery(hql, User.class)
+                    .setParameter("loginDetail", userEmail.trim())
+                    .uniqueResultOptional();
+
+            return user.filter(u -> u.isActive()
+                    && u.getCredentials() != null
+                    && PasswordUtil.checkPassword(password, u.getCredentials().getPasswordHash()));
+        }
     }
 
     @Override
@@ -112,12 +128,13 @@ public class AuthDAO extends AbstractHibernateIDAO<Long, User> implements IUserD
     }
 
     @Override
-    public Optional<User> createUser(String email, String password, String firstName, String lastName, String phone) {
+    public Optional<User> createUser(String email, String password, String firstName, String lastName, String phone, String gender) {
         if (email == null || email.isBlank()
                 || password == null || password.isBlank()
                 || firstName == null || firstName.isBlank()
                 || lastName == null || lastName.isBlank()
-                || phone == null || phone.isBlank()) {
+                || phone == null || phone.isBlank()
+                || gender == null || gender.isBlank()) {
             return Optional.empty();
         }
 
@@ -143,10 +160,33 @@ public class AuthDAO extends AbstractHibernateIDAO<Long, User> implements IUserD
                     .firstName(firstName.trim())
                     .lastName(lastName.trim())
                     .phone(phone.trim())
+                    .gender(Gender.valueOf(gender.trim().toUpperCase()))
                     .avatarUrl("default-avatar.png")
                     .isActive(true)
                     .roles(new HashSet<>())
                     .build();
+
+            // Assign Customer role - create it on demand if database is not seeded yet
+            Role customerRole = session.createQuery("""
+                            select r from Role r
+                            where lower(r.name) = lower(:name)
+                            """, Role.class)
+                    .setParameter("name", "Customer")
+                    .uniqueResultOptional()
+                    .orElseGet(() -> {
+                        Role role = Role.builder()
+                                .name("Customer")
+                                .description("Default customer account")
+                                .isSystem(true)
+                                .build();
+                        session.persist(role);
+                        return role;
+                    });
+
+            user.getRoles().add(customerRole);
+
+            session.persist(user);
+            session.flush();
 
             UserCredential credential = UserCredential.builder()
                     .user(user)
@@ -154,16 +194,21 @@ public class AuthDAO extends AbstractHibernateIDAO<Long, User> implements IUserD
                     .emailVerified(true)
                     .build();
             user.setCredentials(credential);
+            session.persist(credential);
 
-            session.createQuery("""
-                            select r from Role r
-                            where lower(r.name) = lower(:name)
-                            """, Role.class)
-                    .setParameter("name", "User")
-                    .uniqueResultOptional()
-                    .ifPresent(role -> user.getRoles().add(role));
+            session.createMutationQuery("""
+                            update VerificationCode vc
+                            set vc.user = :user
+                            where lower(vc.email) = lower(:email)
+                              and vc.purpose = :purpose
+                              and vc.verifiedAt is not null
+                              and vc.user is null
+                            """)
+                    .setParameter("user", user)
+                    .setParameter("email", user.getEmail())
+                    .setParameter("purpose", VerificationCodePurpose.SIGNUP)
+                    .executeUpdate();
 
-            session.persist(user);
             transaction.commit();
             return Optional.of(user);
         } catch (RuntimeException e) {

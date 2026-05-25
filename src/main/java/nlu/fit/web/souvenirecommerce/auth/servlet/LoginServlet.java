@@ -66,6 +66,7 @@ public class LoginServlet extends HttpServlet {
             }
             session = req.getSession(true);
             setAuthenticatedUser(session, user);
+            log.info("Đăng nhập thành công: userId={}, loginDetail={}", user.getId(), loginDetail);
 
             if (redirectAfterLogin instanceof String redirect && !redirect.isBlank()) {
                 resp.sendRedirect(redirect);
@@ -96,7 +97,7 @@ public class LoginServlet extends HttpServlet {
         String role = Optional.ofNullable(entityUser.getRoles())
                 .filter(roles -> !roles.isEmpty())
                 .map(roles -> roles.stream().map(Role::getName).collect(Collectors.joining(",")))
-                .orElse("User");
+                .orElse("Customer");
 
         return nlu.fit.web.souvenirecommerce.model.User.builder()
                 .id(entityUser.getId() == null ? 0 : entityUser.getId().intValue())

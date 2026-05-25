@@ -24,15 +24,4 @@ public class PasswordUtil {
         new SecureRandom().nextBytes(bytes);
         return HexFormat.of().formatHex(bytes);
     }
-
-    // Khi verify reset token — so sánh bằng constant-time để tránh timing attack
-    public boolean isResetTokenValid(UserCredential cred, String token) {
-        if (cred.getResetToken() == null || cred.getResetExpiresAt() == null) return false;
-        boolean tokenMatch = MessageDigest.isEqual(
-                cred.getResetToken().getBytes(),
-                token.getBytes()
-        );
-        boolean notExpired = cred.getResetExpiresAt().isAfter(ChronoLocalDateTime.from(Instant.now()));
-        return tokenMatch && notExpired;
-    }
 }
