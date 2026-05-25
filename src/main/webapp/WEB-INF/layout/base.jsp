@@ -3,35 +3,93 @@
 
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
+
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><c:out value="${empty pageTitle ? 'INOLA' : pageTitle}"/></title>
-    <link rel="icon" type="image/png" href="${pageContext.request.contextPath}/assets/images/logo.png">
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/Base.css">
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/layout/header.css">
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/layout/footer.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>
+        <c:out value="${empty pageTitle ? 'INOLA' : pageTitle}"/>
+    </title>
+
+    <!-- ================= FAVICON ================= -->
+
+    <link rel="icon"
+          type="image/png"
+          href="${pageContext.request.contextPath}/assets/images/logo.png">
+
+    <!-- ================= GLOBAL CSS ================= -->
+
+    <!-- Theme variables -->
+    <link rel="stylesheet"
+          href="${pageContext.request.contextPath}/assets/css/theme.css">
+
+    <!-- Base/reset/layout -->
+    <link rel="stylesheet"
+          href="${pageContext.request.contextPath}/assets/css/Base.css">
+
+    <!-- Header -->
+    <link rel="stylesheet"
+          href="${pageContext.request.contextPath}/assets/css/layout/header.css?v=2">
+
+    <!-- Footer -->
+    <link rel="stylesheet"
+          href="${pageContext.request.contextPath}/assets/css/layout/footer.css">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+    <!-- ================= PAGE CSS ================= -->
+
     <c:if test="${not empty pageCss}">
-        <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/${pageCss}">
+        <link rel="stylesheet"
+              href="${pageContext.request.contextPath}/assets/css/${pageCss}">
     </c:if>
+
     <c:if test="${not empty contentCss}">
-        <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/${contentCss}">
+        <link rel="stylesheet"
+              href="${pageContext.request.contextPath}/assets/css/${contentCss}">
     </c:if>
+
 </head>
+
 <body>
+
+<!-- ================= HEADER ================= -->
+
 <jsp:include page="/WEB-INF/layout/header.jsp"/>
 
+<!-- ================= MAIN CONTENT ================= -->
+
 <main id="main-content">
+
     <jsp:include page="${contentPage}"/>
+
 </main>
+
+<!-- ================= FOOTER ================= -->
 
 <jsp:include page="/WEB-INF/layout/footer.jsp"/>
 
+<!-- ================= GLOBAL JS ================= -->
+
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
 <script src="${pageContext.request.contextPath}/assets/js/common.js"></script>
+
+<script src="${pageContext.request.contextPath}/assets/js/header.js?v=2"></script>
+
+<!-- ================= PAGE JS ================= -->
+
 <c:if test="${not empty pageJs}">
-    <script src="${pageContext.request.contextPath}/assets/js/${pageJs}"></script>
+    <script src="${pageContext.request.contextPath}/assets/js/${pageJs}">
+    </script>
 </c:if>
+
 </body>
+
 </html>

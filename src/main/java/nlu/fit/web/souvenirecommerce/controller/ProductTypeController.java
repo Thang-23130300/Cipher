@@ -5,14 +5,14 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import nlu.fit.web.souvenirecommerce.enums.ProductSort;
 import nlu.fit.web.souvenirecommerce.dto.ProductTypeDTO;
+import nlu.fit.web.souvenirecommerce.enums.ProductSort;
 import nlu.fit.web.souvenirecommerce.service.ProductTypeService;
 
 import java.io.IOException;
 
 @WebServlet("/category")
-public class    ProductTypeController extends HttpServlet {
+public class ProductTypeController extends HttpServlet {
 
     private ProductTypeService productTypeService;
 
@@ -22,11 +22,13 @@ public class    ProductTypeController extends HttpServlet {
     }
 
     @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+    protected void doGet(
+            HttpServletRequest request,
+            HttpServletResponse response
+    ) throws ServletException, IOException {
 
-        /* ===== 1. VALIDATE CATEGORY ID ===== */
         Long categoryId;
+
         try {
             categoryId = Long.parseLong(request.getParameter("id"));
         } catch (Exception e) {
@@ -34,15 +36,12 @@ public class    ProductTypeController extends HttpServlet {
             return;
         }
 
-        /* ===== 2. FILTER PARAMS ===== */
         Integer minPrice = parseInteger(request.getParameter("minPrice"));
         Integer maxPrice = parseInteger(request.getParameter("maxPrice"));
-        ProductSort sort = parseSort(request.getParameter("sort"));
-
-        int page = parseInteger(request.getParameter("page"), 1);
         Integer rating = parseInteger(request.getParameter("rating"));
+        ProductSort sort = parseSort(request.getParameter("sort"));
+        int page = parseInteger(request.getParameter("page"), 1);
 
-        /* ===== 3. SERVICE ===== */
         ProductTypeDTO dto = productTypeService.getProductType(
                 categoryId,
                 minPrice,
@@ -57,56 +56,53 @@ public class    ProductTypeController extends HttpServlet {
             return;
         }
 
-        /* ===== 4. HEADER ===== */
         request.setAttribute("headerMode", "BREADCRUMB");
         request.setAttribute("breadcrumbCategory", dto.getCategory());
-        request.setAttribute("enableHeaderOverlay", true);
 
-        /* ===== 5. PAGE DATA ===== */
         request.setAttribute("data", dto);
 
-        /* ===== 6. LAYOUT CONFIG ===== */
         request.setAttribute("pageTitle", dto.getCategory().getCategoryName());
-        request.setAttribute("contentPage", "productType.jsp");
+        request.setAttribute("contentPage", "/productType.jsp");
         request.setAttribute("pageCss", "PTypeMain.css");
         request.setAttribute("pageJs", "ProductType.js");
 
-        /* ===== 7. FORWARD QUA LAYOUT ===== */
-        request.getRequestDispatcher("layoutMain.jsp")
+        request.getRequestDispatcher("WEB-INF/layout/base.jsp")
                 .forward(request, response);
-
     }
 
-    /* ================= UTIL ================= */
-
     private Integer parseInteger(String value) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+
         try {
-            return value != null && !value.isEmpty()
-                    ? Integer.parseInt(value)
-                    : null;
-        } catch (Exception e) {
+            return Integer.parseInt(value);
+        } catch (NumberFormatException e) {
             return null;
         }
     }
 
     private int parseInteger(String value, int defaultValue) {
+        if (value == null || value.isBlank()) {
+            return defaultValue;
+        }
+
         try {
-            return value != null
-                    ? Integer.parseInt(value)
-                    : defaultValue;
-        } catch (Exception e) {
+            return Integer.parseInt(value);
+        } catch (NumberFormatException e) {
             return defaultValue;
         }
     }
 
-    private ProductSort parseSort(String sort) {
-        if (sort == null) return ProductSort.POPULAR;
+    private ProductSort parseSort(String value) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
 
-        return switch (sort) {
-            case "price_asc" -> ProductSort.PRICE_ASC;
-            case "price_desc" -> ProductSort.PRICE_DESC;
-            case "newest" -> ProductSort.NEWEST;
-            default -> ProductSort.POPULAR;
-        };
+        try {
+            return ProductSort.valueOf(value);
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
     }
 }

@@ -37,10 +37,12 @@
                     <div class="filter-group">
                         <label>Sắp xếp</label>
                         <select name="sort">
-                            <option value="popular" ${data.sort.name() == 'POPULAR' ? 'selected' : ''}>Bán chạy</option>
-                            <option value="newest" ${data.sort.name() == 'NEWEST' ? 'selected' : ''}>Mới nhất</option>
-                            <option value="price_asc" ${data.sort.name() == 'PRICE_ASC' ? 'selected' : ''}>Giá tăng</option>
-                            <option value="price_desc" ${data.sort.name() == 'PRICE_DESC' ? 'selected' : ''}>Giá giảm</option>
+                            <option value="popular" ${data.sortParam == 'popular' ? 'selected' : ''}>Bán chạy</option>
+                            <option value="newest" ${data.sortParam == 'newest' ? 'selected' : ''}>Mới nhất</option>
+                            <option value="price_asc" ${data.sortParam == 'price_asc' ? 'selected' : ''}>Giá tăng
+                            </option>
+                            <option value="price_desc" ${data.sortParam == 'price_desc' ? 'selected' : ''}>Giá giảm
+                            </option>
                         </select>
                     </div>
 
