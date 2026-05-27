@@ -1,7 +1,7 @@
-package nlu.fit.web.souvenirecommerce.account.service;
+package nlu.fit.web.souvenirecommerce.profile.service;
 
-import nlu.fit.web.souvenirecommerce.account.dao.AccountDAO;
-import nlu.fit.web.souvenirecommerce.account.exception.UserNotFoundException;
+import nlu.fit.web.souvenirecommerce.profile.dao.AccountDAO;
+import nlu.fit.web.souvenirecommerce.profile.exception.UserNotFoundException;
 import nlu.fit.web.souvenirecommerce.model.entity.User;
 import nlu.fit.web.souvenirecommerce.util.HibernateUtil;
 

@@ -9,7 +9,7 @@ import jakarta.servlet.http.HttpSession;
 import nlu.fit.web.souvenirecommerce.dao.OrderDAO;
 import nlu.fit.web.souvenirecommerce.model.Order;
 import nlu.fit.web.souvenirecommerce.model.OrderItem;
-import nlu.fit.web.souvenirecommerce.model.User;
+import nlu.fit.web.souvenirecommerce.model.entity.User;
 
 import java.io.IOException;
 import java.util.List;
@@ -58,7 +58,7 @@ public class UserOrderController extends HttpServlet {
                                User user)
             throws ServletException, IOException {
 
-        List<Order> orderList = orderDAO.getOrdersByUserId(user.getId());
+        List<Order> orderList = orderDAO.getOrdersByUserId(user.getId().intValue());
 
         request.setAttribute("orderList", orderList);
         request.getRequestDispatcher("/user/userorder.jsp")
@@ -80,7 +80,7 @@ public class UserOrderController extends HttpServlet {
 
         Order order = orderDAO.getOrderById(orderId);
 
-        if (order == null || order.getUserId() != user.getId()) {
+        if (order == null || user.getId() == null || order.getUserId() != user.getId().intValue()) {
             response.sendRedirect(request.getContextPath() + "/user/orders");
             return;
         }

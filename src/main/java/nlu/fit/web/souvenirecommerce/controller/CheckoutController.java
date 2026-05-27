@@ -9,7 +9,7 @@ import jakarta.servlet.http.HttpSession;
 import nlu.fit.web.souvenirecommerce.model.cart.Cart;
 import nlu.fit.web.souvenirecommerce.model.cart.CartItem;
 import nlu.fit.web.souvenirecommerce.dao.OrderDAO;
-import nlu.fit.web.souvenirecommerce.model.User;
+import nlu.fit.web.souvenirecommerce.model.entity.User;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -65,7 +65,7 @@ public class CheckoutController extends HttpServlet {
             OrderDAO orderDAO = new OrderDAO();
 
             // Get user ID (default to 1 if not logged in - guest user)
-            int userId = (user != null) ? user.getId() : 1;
+            int userId = (user != null && user.getId() != null) ? user.getId().intValue() : 1;
 
             // Create address record
             String fullAddress = address + ", " + district + ", " + province;

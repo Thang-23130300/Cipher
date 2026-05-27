@@ -8,7 +8,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import nlu.fit.web.souvenirecommerce.dao.SettingsDAO;
 import nlu.fit.web.souvenirecommerce.dao.impl.UserDAOImpl;
-import nlu.fit.web.souvenirecommerce.model.User;
+import nlu.fit.web.souvenirecommerce.model.entity.User;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -67,9 +67,17 @@ public class AdminSettingsController extends HttpServlet {
                 String email = req.getParameter("email");
                 String phone = req.getParameter("phone");
 
-                if (userDAOImpl.updateUser(currentUser.getId(), fullName, email, phone)) {
+                if (currentUser.getId() != null && userDAOImpl.updateUser(currentUser.getId().intValue(), fullName, email, phone)) {
                     // Update session user
-                    currentUser.setFullName(fullName);
+                    String normalized = fullName == null ? "" : fullName.trim();
+                    int split = normalized.lastIndexOf(' ');
+                    if (split > 0) {
+                        currentUser.setFirstName(normalized.substring(0, split));
+                        currentUser.setLastName(normalized.substring(split + 1));
+                    } else {
+                        currentUser.setFirstName(normalized);
+                        currentUser.setLastName(normalized);
+                    }
                     currentUser.setEmail(email);
                     currentUser.setPhone(phone);
                     session.setAttribute("user", currentUser);
@@ -90,10 +98,10 @@ public class AdminSettingsController extends HttpServlet {
                 if (!newPassword.equals(confirmPassword)) {
                     session.setAttribute("message", "Mật khẩu mới không khớp!");
                     session.setAttribute("messageType", "error");
-                } else if (!userDAOImpl.checkPassword(currentUser.getId(), currentPassword)) {
+                } else if (currentUser.getId() == null || !userDAOImpl.checkPassword(currentUser.getId().intValue(), currentPassword)) {
                     session.setAttribute("message", "Mật khẩu hiện tại không đúng!");
                     session.setAttribute("messageType", "error");
-                } else if (userDAOImpl.updatePasswordByUserId(currentUser.getId(), newPassword)) {
+                } else if (userDAOImpl.updatePasswordByUserId(currentUser.getId().intValue(), newPassword)) {
                     session.setAttribute("message", "Đổi mật khẩu thành công!");
                     session.setAttribute("messageType", "success");
                 } else {

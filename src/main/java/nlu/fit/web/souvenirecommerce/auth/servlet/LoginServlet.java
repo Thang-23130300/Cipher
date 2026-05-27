@@ -9,11 +9,11 @@ import jakarta.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
 import nlu.fit.web.souvenirecommerce.auth.dao.AuthDAO;
 import nlu.fit.web.souvenirecommerce.auth.service.AuthService;
-import nlu.fit.web.souvenirecommerce.model.entity.Role;
+import nlu.fit.web.souvenirecommerce.enums.Constants;
 import nlu.fit.web.souvenirecommerce.model.entity.User;
 import java.io.IOException;
-import java.util.Optional;
-import java.util.stream.Collectors;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 
 @Slf4j
 @WebServlet(name = "LoginServlet", value = "/login")
@@ -32,6 +32,14 @@ public class LoginServlet extends HttpServlet {
             resp.sendRedirect(req.getContextPath() + "/home");
             return;
         }
+        if (session != null) {
+            Object error = session.getAttribute("error");
+            if (error instanceof String message && !message.isBlank()) {
+                req.setAttribute("error", message);
+                session.removeAttribute("error");
+            }
+        }
+        req.setAttribute("googleAuthUrl", buildGoogleAuthUrl());
 
         req.getRequestDispatcher("/WEB-INF/views/auth/login.jsp").forward(req, resp);
     }
@@ -86,30 +94,16 @@ public class LoginServlet extends HttpServlet {
 
     private void setAuthenticatedUser(HttpSession session, User user) {
         session.setAttribute("currentUser", user);
-
-        nlu.fit.web.souvenirecommerce.model.User legacyUser = toLegacySessionUser(user);
-        session.setAttribute("userInSession", legacyUser);
-        session.setAttribute("user", legacyUser);
-        session.setAttribute("authUser", legacyUser);
+        session.setAttribute("userInSession", user);
+        session.setAttribute("user", user);
+        session.setAttribute("authUser", user);
     }
 
-    private nlu.fit.web.souvenirecommerce.model.User toLegacySessionUser(User entityUser) {
-        String role = Optional.ofNullable(entityUser.getRoles())
-                .filter(roles -> !roles.isEmpty())
-                .map(roles -> roles.stream().map(Role::getName).collect(Collectors.joining(",")))
-                .orElse("Customer");
-
-        return nlu.fit.web.souvenirecommerce.model.User.builder()
-                .id(entityUser.getId() == null ? 0 : entityUser.getId().intValue())
-                .fullName(entityUser.getFullName())
-                .email(entityUser.getEmail())
-                .phone(entityUser.getPhone())
-                .avatar(entityUser.getAvatarUrl())
-                .status(entityUser.isActive() ? "Active" : "Inactive")
-                .role(role)
-                .gender(entityUser.getGender())
-                .dob(entityUser.getDateOfBirth() == null ? null : entityUser.getDateOfBirth().toString())
-                .createdAt(entityUser.getCreatedAt() == null ? null : entityUser.getCreatedAt().toString())
-                .build();
+    private String buildGoogleAuthUrl() {
+        return "https://accounts.google.com/o/oauth2/auth?scope=email%20profile&redirect_uri="
+                + URLEncoder.encode(Constants.GOOGLE_REDIRECT_URI, StandardCharsets.UTF_8)
+                + "&response_type=code&client_id="
+                + URLEncoder.encode(Constants.GOOGLE_CLIENT_ID, StandardCharsets.UTF_8)
+                + "&approval_prompt=force";
     }
 }

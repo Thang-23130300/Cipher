@@ -25,7 +25,7 @@
         <h2 id="profile-info-title">Thông tin cá nhân</h2>
     </div>
 
-    <form class="profile-form" action="${pageContext.request.contextPath}/user/account/profile" method="post">
+    <form class="profile-form" action="${pageContext.request.contextPath}/user/profile" method="post">
         <input type="hidden" name="action" value="update_profile">
 
         <table class="form-table">

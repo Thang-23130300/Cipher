@@ -1,22 +1,18 @@
-package nlu.fit.web.souvenirecommerce.account.servlet;
+package nlu.fit.web.souvenirecommerce.profile.servlet;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.MultipartConfig;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
-import nlu.fit.web.souvenirecommerce.model.User;
 
-import java.io.File;
 import java.io.IOException;
-import java.nio.file.Paths;
-import java.util.UUID;
 
 @MultipartConfig(
         fileSizeThreshold = 1024 * 1024,
         maxFileSize = 5 * 1024 * 1024,
         maxRequestSize = 10 * 1024 * 1024
 )
-@WebServlet(urlPatterns = "/user/account/profile")
+@WebServlet(urlPatterns = {"/user/profile", "/user/account/profile"})
 public class ProfileServlet extends HttpServlet {
 
 

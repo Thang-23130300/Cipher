@@ -54,7 +54,7 @@
             </div>
 
             <nav class="account-nav" aria-label="Menu tài khoản">
-                <a class="is-active" href="${pageContext.request.contextPath}/user/account/profile">
+                <a class="is-active" href="${pageContext.request.contextPath}/user/profile">
                     <i class="fa-solid fa-user"></i>
                     <span>Hồ sơ</span>
                 </a>

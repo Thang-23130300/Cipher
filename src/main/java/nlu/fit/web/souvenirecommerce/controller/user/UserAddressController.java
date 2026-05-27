@@ -6,7 +6,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import nlu.fit.web.souvenirecommerce.dao.impl.UserDAOImpl;
-import nlu.fit.web.souvenirecommerce.model.User;
+import nlu.fit.web.souvenirecommerce.model.entity.User;
 
 import java.io.IOException;
 
@@ -38,12 +38,12 @@ public class UserAddressController extends HttpServlet {
 
                 case "/default" -> {
                     int id = Integer.parseInt(request.getParameter("id"));
-                    dao.setDefaultAddress(user.getId(), id);
+                    if (user.getId() != null) dao.setDefaultAddress(user.getId().intValue(), id);
                 }
 
                 case "/delete" -> {
                     int id = Integer.parseInt(request.getParameter("id"));
-                    dao.deleteAddress(id, user.getId()); // SIẾT USER
+                    if (user.getId() != null) dao.deleteAddress(id, user.getId().intValue()); // SIẾT USER
                 }
 
                 default -> {
@@ -79,8 +79,8 @@ public class UserAddressController extends HttpServlet {
             switch (path) {
 
                 case "/add" -> {
-                    dao.addAddress(
-                            user.getId(),
+                    if (user.getId() != null) dao.addAddress(
+                            user.getId().intValue(),
                             request.getParameter("addressDetail"),
                             request.getParameter("city"),
                             request.getParameter("district"),
@@ -91,9 +91,9 @@ public class UserAddressController extends HttpServlet {
                 case "/edit" -> {
                     // CHƯA DÙNG – giữ sẵn để gộp edit sau
                     int id = Integer.parseInt(request.getParameter("id"));
-                    dao.updateAddress(
+                    if (user.getId() != null) dao.updateAddress(
                             id,
-                            user.getId(),
+                            user.getId().intValue(),
                             request.getParameter("addressDetail"),
                             request.getParameter("ward"),
                             request.getParameter("district"),

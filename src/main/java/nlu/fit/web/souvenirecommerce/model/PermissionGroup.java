@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Builder.Default;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import nlu.fit.web.souvenirecommerce.model.entity.User;
 
 import java.io.Serializable;
 import java.util.ArrayList;

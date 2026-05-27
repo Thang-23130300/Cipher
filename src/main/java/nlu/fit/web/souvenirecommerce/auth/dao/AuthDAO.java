@@ -4,6 +4,7 @@ import nlu.fit.web.souvenirecommerce.dao.IUserDAO;
 import nlu.fit.web.souvenirecommerce.dao.impl.AbstractHibernateIDAO;
 import nlu.fit.web.souvenirecommerce.enums.Gender;
 import nlu.fit.web.souvenirecommerce.enums.VerificationCodePurpose;
+import nlu.fit.web.souvenirecommerce.model.entity.OAuthAccount;
 import nlu.fit.web.souvenirecommerce.model.entity.Role;
 import nlu.fit.web.souvenirecommerce.model.entity.User;
 import nlu.fit.web.souvenirecommerce.model.entity.UserCredential;
@@ -12,9 +13,11 @@ import nlu.fit.web.souvenirecommerce.util.PasswordUtil;
 import org.hibernate.Transaction;
 import org.hibernate.query.Query;
 
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 public class AuthDAO extends AbstractHibernateIDAO<Long, User> implements IUserDAO {
 
@@ -166,24 +169,7 @@ public class AuthDAO extends AbstractHibernateIDAO<Long, User> implements IUserD
                     .roles(new HashSet<>())
                     .build();
 
-            // Assign Customer role - create it on demand if database is not seeded yet
-            Role customerRole = session.createQuery("""
-                            select r from Role r
-                            where lower(r.name) = lower(:name)
-                            """, Role.class)
-                    .setParameter("name", "Customer")
-                    .uniqueResultOptional()
-                    .orElseGet(() -> {
-                        Role role = Role.builder()
-                                .name("Customer")
-                                .description("Default customer account")
-                                .isSystem(true)
-                                .build();
-                        session.persist(role);
-                        return role;
-                    });
-
-            user.getRoles().add(customerRole);
+            user.getRoles().add(resolveOrCreateCustomerRole(session));
 
             session.persist(user);
             session.flush();
@@ -215,5 +201,148 @@ public class AuthDAO extends AbstractHibernateIDAO<Long, User> implements IUserD
             rollback(transaction);
             throw e;
         }
+    }
+
+    public Optional<User> findByOAuthProviderUserId(String provider, String providerUserId) {
+        if (provider == null || provider.isBlank() || providerUserId == null || providerUserId.isBlank()) {
+            return Optional.empty();
+        }
+        String hql = """
+                select distinct u from OAuthAccount oa
+                join oa.user u
+                left join fetch u.credentials
+                left join fetch u.roles r
+                left join fetch r.permissions
+                left join fetch u.oauthAccounts
+                where lower(oa.provider) = lower(:provider)
+                  and oa.providerUserId = :providerUserId
+                """;
+        try (var session = HibernateUtil.getSessionFactory().openSession()) {
+            return session.createQuery(hql, User.class)
+                    .setParameter("provider", provider.trim())
+                    .setParameter("providerUserId", providerUserId.trim())
+                    .uniqueResultOptional();
+        }
+    }
+
+    public User upsertGoogleUser(
+            String providerUserId,
+            String email,
+            String firstName,
+            String lastName,
+            String avatarUrl
+    ) {
+        if (providerUserId == null || providerUserId.isBlank()) {
+            throw new IllegalArgumentException("Google providerUserId is required");
+        }
+        if (email == null || email.isBlank()) {
+            throw new IllegalArgumentException("Google email is required");
+        }
+
+        Transaction transaction = null;
+        try (var session = HibernateUtil.getSessionFactory().openSession()) {
+            transaction = session.beginTransaction();
+
+            User user = session.createQuery("""
+                            select distinct u from OAuthAccount oa
+                            join oa.user u
+                            left join fetch u.credentials
+                            left join fetch u.roles r
+                            left join fetch r.permissions
+                            left join fetch u.oauthAccounts
+                            where lower(oa.provider) = 'google'
+                              and oa.providerUserId = :providerUserId
+                            """, User.class)
+                    .setParameter("providerUserId", providerUserId.trim())
+                    .uniqueResultOptional()
+                    .orElse(null);
+
+            if (user == null) {
+                user = session.createQuery("""
+                                select distinct u from User u
+                                left join fetch u.credentials
+                                left join fetch u.roles r
+                                left join fetch r.permissions
+                                left join fetch u.oauthAccounts
+                                where lower(u.email) = lower(:email)
+                                """, User.class)
+                        .setParameter("email", email.trim())
+                        .uniqueResultOptional()
+                        .orElse(null);
+            }
+
+            if (user == null) {
+                user = User.builder()
+                        .email(email.trim().toLowerCase())
+                        .firstName(normalizeName(firstName, "Google"))
+                        .lastName(normalizeName(lastName, "User"))
+                        .phone("0000000000")
+                        .gender(Gender.OTHER)
+                        .avatarUrl(avatarUrl == null || avatarUrl.isBlank() ? "default-avatar.png" : avatarUrl.trim())
+                        .isActive(true)
+                        .roles(new HashSet<>())
+                        .build();
+                user.getRoles().add(resolveOrCreateCustomerRole(session));
+                session.persist(user);
+            }
+
+            OAuthAccount oauthAccount = session.createQuery("""
+                            from OAuthAccount oa
+                            where lower(oa.provider) = 'google'
+                              and oa.providerUserId = :providerUserId
+                            """, OAuthAccount.class)
+                    .setParameter("providerUserId", providerUserId.trim())
+                    .uniqueResultOptional()
+                    .orElse(null);
+
+            if (oauthAccount == null) {
+                oauthAccount = OAuthAccount.builder()
+                        .user(user)
+                        .provider("google")
+                        .providerUserId(providerUserId.trim())
+                        .providerEmail(email.trim().toLowerCase())
+                        .tokenExpiresAt(LocalDateTime.now().plusHours(1))
+                        .build();
+                session.persist(oauthAccount);
+            } else {
+                oauthAccount.setUser(user);
+                oauthAccount.setProviderEmail(email.trim().toLowerCase());
+                oauthAccount.setTokenExpiresAt(LocalDateTime.now().plusHours(1));
+                session.merge(oauthAccount);
+            }
+
+            user.setUpdatedAt(LocalDateTime.now());
+            user.setActive(true);
+            session.merge(user);
+
+            transaction.commit();
+            return findById(user.getId()).orElse(user);
+        } catch (RuntimeException e) {
+            rollback(transaction);
+            throw e;
+        }
+    }
+
+    private Role resolveOrCreateCustomerRole(org.hibernate.Session session) {
+        return session.createQuery("""
+                        select r from Role r
+                        where lower(r.name) = lower(:name)
+                        """, Role.class)
+                .setParameter("name", "Customer")
+                .uniqueResultOptional()
+                .orElseGet(() -> {
+                    Role role = Role.builder()
+                            .name("Customer")
+                            .description("Default customer account")
+                            .isSystem(true)
+                            .build();
+                    session.persist(role);
+                    return role;
+                });
+    }
+
+    private String normalizeName(String value, String fallback) {
+        if (value == null || value.isBlank()) return fallback;
+        return value.trim();
     }
 }

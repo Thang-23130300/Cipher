@@ -1,4 +1,4 @@
-package nlu.fit.web.souvenirecommerce.account.dao;
+package nlu.fit.web.souvenirecommerce.profile.dao;
 
 import jakarta.persistence.EntityGraph;
 import jakarta.persistence.EntityManager;
