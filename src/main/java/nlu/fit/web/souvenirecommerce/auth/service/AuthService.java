@@ -1,6 +1,6 @@
 package nlu.fit.web.souvenirecommerce.auth.service;
 
-import nlu.fit.web.souvenirecommerce.auth.GooglePojo;
+import nlu.fit.web.souvenirecommerce.auth.dto.GooglePojo;
 import nlu.fit.web.souvenirecommerce.auth.dao.AuthDAO;
 import nlu.fit.web.souvenirecommerce.auth.util.GoogleUtils;
 import nlu.fit.web.souvenirecommerce.model.entity.User;

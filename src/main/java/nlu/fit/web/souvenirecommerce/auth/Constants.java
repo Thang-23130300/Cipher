@@ -1,4 +1,4 @@
-package nlu.fit.web.souvenirecommerce.enums;
+package nlu.fit.web.souvenirecommerce.auth;
 
 import nlu.fit.web.souvenirecommerce.util.ApplicationLoader;
 

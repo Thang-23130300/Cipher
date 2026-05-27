@@ -1,4 +1,4 @@
-package nlu.fit.web.souvenirecommerce.auth;
+package nlu.fit.web.souvenirecommerce.auth.dto;
 
 import com.google.gson.annotations.SerializedName;
 import lombok.Getter;

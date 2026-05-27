@@ -9,7 +9,7 @@ import jakarta.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
 import nlu.fit.web.souvenirecommerce.auth.dao.AuthDAO;
 import nlu.fit.web.souvenirecommerce.auth.service.AuthService;
-import nlu.fit.web.souvenirecommerce.enums.Constants;
+import nlu.fit.web.souvenirecommerce.auth.Constants;
 import nlu.fit.web.souvenirecommerce.model.entity.User;
 import java.io.IOException;
 import java.net.URLEncoder;

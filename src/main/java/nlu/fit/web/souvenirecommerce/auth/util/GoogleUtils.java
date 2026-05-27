@@ -2,8 +2,8 @@ package nlu.fit.web.souvenirecommerce.auth.util;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import nlu.fit.web.souvenirecommerce.auth.GooglePojo;
-import nlu.fit.web.souvenirecommerce.enums.Constants;
+import nlu.fit.web.souvenirecommerce.auth.Constants;
+import nlu.fit.web.souvenirecommerce.auth.dto.GooglePojo;
 import org.apache.http.client.fluent.Form;
 import org.apache.http.client.fluent.Request;
 

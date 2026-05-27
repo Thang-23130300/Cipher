@@ -65,15 +65,15 @@
                 <td>
                     <div class="gender-options">
                         <label>
-                            <input type="radio" name="gender" value="Nam" ${currentUser.gender == "MALE" ? 'checked' : ''}>
+                            <input type="radio" name="gender" value="Nam" ${currentUser.gender == 'MALE' ? 'checked' : ''}>
                             <span>Nam</span>
                         </label>
                         <label>
-                            <input type="radio" name="gender" value="Nữ" ${currentUser.gender == "FEMALE" ? 'checked' : ''}>
+                            <input type="radio" name="gender" value="Nữ" ${currentUser.gender == 'FEMALE' ? 'checked' : ''}>
                             <span>Nữ</span>
                         </label>
                         <label>
-                            <input type="radio" name="gender" value="Khác" ${currentUser.gender == "OTHER" ? 'checked' : ''}>
+                            <input type="radio" name="gender" value="Khác" ${currentUser.gender == 'OTHER' ? 'checked' : ''}>
                             <span>Khác</span>
                         </label>
                     </div>

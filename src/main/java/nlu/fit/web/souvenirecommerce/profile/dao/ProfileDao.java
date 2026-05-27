@@ -8,7 +8,7 @@ import nlu.fit.web.souvenirecommerce.model.entity.User;
 import java.util.Map;
 import java.util.Optional;
 
-public class AccountDAO {
+public class ProfileDao {
 
 
 
@@ -102,4 +102,19 @@ public class AccountDAO {
             return null;
         }
     }
-}
+
+     public User updateUser(User user, EntityManager em) {
+         try {
+             em.getTransaction().begin();
+             user.setUpdatedAt(java.time.LocalDateTime.now());
+             User updatedUser = em.merge(user);
+             em.getTransaction().commit();
+             return updatedUser;
+         } catch (Exception e) {
+             if (em.getTransaction().isActive()) {
+                 em.getTransaction().rollback();
+             }
+             throw new RuntimeException("Failed to update user: " + e.getMessage(), e);
+         }
+     }
+ }

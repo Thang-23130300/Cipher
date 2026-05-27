@@ -1,19 +1,19 @@
 package nlu.fit.web.souvenirecommerce.profile.service;
 
-import nlu.fit.web.souvenirecommerce.profile.dao.AccountDAO;
+import nlu.fit.web.souvenirecommerce.profile.dao.ProfileDao;
 import nlu.fit.web.souvenirecommerce.profile.exception.UserNotFoundException;
 import nlu.fit.web.souvenirecommerce.model.entity.User;
 import nlu.fit.web.souvenirecommerce.util.HibernateUtil;
 
-public class AccountService {
-    private AccountDAO accountDAO;
+public class ProfileService {
+    private ProfileDao profileDao;
 
-    public AccountService(AccountDAO accountDAO) {
-        this.accountDAO = accountDAO;
+    public ProfileService(ProfileDao profileDao) {
+        this.profileDao = profileDao;
     }
 
-    public AccountService() {
-        this.accountDAO = new AccountDAO();
+    public ProfileService() {
+        this.profileDao = new ProfileDao();
     }
 
     /**
@@ -27,12 +27,21 @@ public class AccountService {
      * @throws UserNotFoundException If the user doesn't exist or the user is deleted
      */
     public User findByEmail(String email){
-        return accountDAO.findByEmail(email, HibernateUtil.getEntityManager())
+        return profileDao.findByEmail(email, HibernateUtil.getEntityManager())
                 .orElseThrow(() -> new UserNotFoundException("User not found with email: " + email));
     }
 
     public User findById(Long userId){
-        return accountDAO.findById(userId, HibernateUtil.getEntityManager())
+        return profileDao.findById(userId, HibernateUtil.getEntityManager())
                 .orElseThrow(() -> new UserNotFoundException("User not found by id: " + userId));
+    }
+
+    /**
+     * Updates user profile information
+     * @param user User object with updated fields
+     * @return Updated User object
+     */
+    public User updateProfile(User user) {
+        return profileDao.updateUser(user, HibernateUtil.getEntityManager());
     }
 }
