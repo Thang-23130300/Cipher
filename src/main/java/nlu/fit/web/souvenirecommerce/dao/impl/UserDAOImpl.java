@@ -10,6 +10,7 @@ import java.sql.DatabaseMetaData;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -35,18 +36,36 @@ public class UserDAOImpl {
     }
 
     public boolean register(String email, String password, String fullName, String phone) {
-        String sql = "INSERT INTO users (full_name, email, password, phone, status, role, avatar) " +
-                "VALUES (?, ?, ?, ?, 'Active', 'User', 'default-avatar.png')";
+        String sql = "INSERT INTO users (full_name, email, password, phone, status, avatar) " +
+                "VALUES (?, ?, ?, ?, 'Active', 'default-avatar.png')";
 
-        try (Connection conn = new DBContext().getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = new DBContext().getConnection()) {
+            conn.setAutoCommit(false);
+            try (PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+                ps.setString(1, fullName);
+                ps.setString(2, email);
+                ps.setString(3, PasswordUtil.hashPassword(password));
+                ps.setString(4, phone);
 
-            ps.setString(1, fullName);
-            ps.setString(2, email);
-            ps.setString(3, PasswordUtil.hashPassword(password));
-            ps.setString(4, phone);
-            return ps.executeUpdate() > 0;
+                int affected = ps.executeUpdate();
+                if (affected == 0) {
+                    conn.rollback();
+                    return false;
+                }
 
+                try (ResultSet generatedKeys = ps.getGeneratedKeys()) {
+                    if (generatedKeys.next()) {
+                        int userId = generatedKeys.getInt(1);
+                        if (!assignRoleToUser(conn, userId, "User")) {
+                            conn.rollback();
+                            return false;
+                        }
+                        conn.commit();
+                        return true;
+                    }
+                }
+            }
+            conn.rollback();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -354,7 +373,11 @@ public class UserDAOImpl {
     }
 
     public int getTotalCustomers() {
-        String sql = "SELECT COUNT(*) as total FROM users WHERE role = 'User'";
+        String sql = "SELECT COUNT(DISTINCT u.id) AS total " +
+                "FROM users u " +
+                "INNER JOIN user_roles ur ON ur.user_id = u.id " +
+                "INNER JOIN roles r ON r.id = ur.role_id " +
+                "WHERE r.name = 'User'";
         try (Connection conn = DBContext.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
@@ -369,7 +392,14 @@ public class UserDAOImpl {
 
     public List<User> getAllCustomers() {
         List<User> list = new ArrayList<>();
-        String sql = "SELECT * FROM users WHERE role = 'User' ORDER BY id DESC";
+        String sql = "SELECT u.id, u.full_name, u.email, u.phone, u.avatar, u.status, u.created_at, " +
+                "GROUP_CONCAT(DISTINCT r.name SEPARATOR ', ') AS role " +
+                "FROM users u " +
+                "INNER JOIN user_roles ur ON ur.user_id = u.id " +
+                "INNER JOIN roles r ON r.id = ur.role_id " +
+                "WHERE r.name = 'User' " +
+                "GROUP BY u.id, u.full_name, u.email, u.phone, u.avatar, u.status, u.created_at " +
+                "ORDER BY u.id DESC";
 
         try (Connection conn = DBContext.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql);
@@ -395,7 +425,13 @@ public class UserDAOImpl {
 
     public List<User> getAllUsers() {
         List<User> list = new ArrayList<>();
-        String sql = "SELECT * FROM users ORDER BY id DESC";
+        String sql = "SELECT u.id, u.full_name, u.email, u.phone, u.avatar, u.status, u.created_at, " +
+                "GROUP_CONCAT(DISTINCT r.name SEPARATOR ', ') AS role " +
+                "FROM users u " +
+                "LEFT JOIN user_roles ur ON ur.user_id = u.id " +
+                "LEFT JOIN roles r ON r.id = ur.role_id " +
+                "GROUP BY u.id, u.full_name, u.email, u.phone, u.avatar, u.status, u.created_at " +
+                "ORDER BY u.id DESC";
 
         try (Connection conn = DBContext.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql);
@@ -421,7 +457,14 @@ public class UserDAOImpl {
 
     public List<User> getCustomersWithPagination(int offset, int limit) {
         List<User> list = new ArrayList<>();
-        String sql = "SELECT * FROM users WHERE role = 'User' ORDER BY id DESC LIMIT ? OFFSET ?";
+        String sql = "SELECT u.id, u.full_name, u.email, u.phone, u.avatar, u.status, u.created_at, " +
+                "GROUP_CONCAT(DISTINCT r.name SEPARATOR ', ') AS role " +
+                "FROM users u " +
+                "INNER JOIN user_roles ur ON ur.user_id = u.id " +
+                "INNER JOIN roles r ON r.id = ur.role_id " +
+                "WHERE r.name = 'User' " +
+                "GROUP BY u.id, u.full_name, u.email, u.phone, u.avatar, u.status, u.created_at " +
+                "ORDER BY u.id DESC LIMIT ? OFFSET ?";
 
         try (Connection conn = DBContext.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -449,7 +492,13 @@ public class UserDAOImpl {
     }
 
     public User getUserById(int id) {
-        String sql = "SELECT * FROM users WHERE id = ?";
+        String sql = "SELECT u.id, u.full_name, u.email, u.phone, u.avatar, u.status, u.created_at, " +
+                "GROUP_CONCAT(DISTINCT r.name SEPARATOR ', ') AS role " +
+                "FROM users u " +
+                "LEFT JOIN user_roles ur ON ur.user_id = u.id " +
+                "LEFT JOIN roles r ON r.id = ur.role_id " +
+                "WHERE u.id = ? " +
+                "GROUP BY u.id, u.full_name, u.email, u.phone, u.avatar, u.status, u.created_at";
 
         try (Connection conn = DBContext.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -491,18 +540,36 @@ public class UserDAOImpl {
     }
 
     public boolean insertUser(String fullName, String email, String password, String phone) {
-        String sql = "INSERT INTO users (full_name, email, password, phone, status, role, avatar) " +
-                "VALUES (?, ?, ?, ?, 'Active', 'User', 'default-avatar.png')";
+        String sql = "INSERT INTO users (full_name, email, password, phone, status, avatar) " +
+                "VALUES (?, ?, ?, ?, 'Active', 'default-avatar.png')";
 
-        try (Connection conn = new DBContext().getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = new DBContext().getConnection()) {
+            conn.setAutoCommit(false);
+            try (PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+                ps.setString(1, fullName);
+                ps.setString(2, email);
+                ps.setString(3, PasswordUtil.hashPassword(password));
+                ps.setString(4, phone);
 
-            ps.setString(1, fullName);
-            ps.setString(2, email);
-            ps.setString(3, PasswordUtil.hashPassword(password));
-            ps.setString(4, phone);
-            return ps.executeUpdate() > 0;
+                int affected = ps.executeUpdate();
+                if (affected == 0) {
+                    conn.rollback();
+                    return false;
+                }
 
+                try (ResultSet generatedKeys = ps.getGeneratedKeys()) {
+                    if (generatedKeys.next()) {
+                        int userId = generatedKeys.getInt(1);
+                        if (!assignRoleToUser(conn, userId, "User")) {
+                            conn.rollback();
+                            return false;
+                        }
+                        conn.commit();
+                        return true;
+                    }
+                }
+            }
+            conn.rollback();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -563,7 +630,9 @@ public class UserDAOImpl {
         user.setEmail(rs.getString("email"));
         user.setPhone(rs.getString("phone"));
         user.setAvatar(rs.getString("avatar"));
-        user.setRole(rs.getString("role"));
+        if (hasColumn(rs, "role")) {
+            user.setRole(rs.getString("role"));
+        }
         user.setStatus(rs.getString("status"));
         user.setCreatedAt(rs.getString("created_at"));
         if (hasColumn(rs, "gender")) {
@@ -602,6 +671,32 @@ public class UserDAOImpl {
         } catch (Exception ignored) {
         }
         return false;
+    }
+
+    private Integer getRoleIdByName(Connection conn, String roleName) throws Exception {
+        String sql = "SELECT id FROM roles WHERE name = ? LIMIT 1";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, roleName);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("id");
+                }
+            }
+        }
+        return null;
+    }
+
+    private boolean assignRoleToUser(Connection conn, int userId, String roleName) throws Exception {
+        Integer roleId = getRoleIdByName(conn, roleName);
+        if (roleId == null) {
+            return false;
+        }
+        String sql = "INSERT IGNORE INTO user_roles (user_id, role_id, assigned_by) VALUES (?, ?, NULL)";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, userId);
+            ps.setInt(2, roleId);
+            return ps.executeUpdate() > 0;
+        }
     }
 
     private String normalize(String value) {
