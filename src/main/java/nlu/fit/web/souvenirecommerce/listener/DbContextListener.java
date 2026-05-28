@@ -21,22 +21,11 @@ public class DbContextListener implements ServletContextListener {
 
     @Override
     public void contextDestroyed(ServletContextEvent sce) {
-        try {
-            if (HibernateUtil.getSessionFactory() != null) {
-                HibernateUtil.shutdown();
-                System.out.println("Hibernate SessionFactory destroyed.");
-            }
-        } catch (Throwable throwable) {
-            System.err.println("Error during Hibernate shutdown: " + throwable.getMessage());
-            throwable.printStackTrace();
-        } finally {
-            try {
-                DBContext.shutdown();
-                System.out.println("JDBC HikariDataSource destroyed.");
-            } catch (Throwable throwable) {
-                System.err.println("Error during DBContext shutdown: " + throwable.getMessage());
-                throwable.printStackTrace();
-            }
+        if (HibernateUtil.getSessionFactory() != null){
+            HibernateUtil.shutdown();
+            System.out.println("Hibernate SessionFactory destroyed.");
         }
+        DBContext.shutdown();
+        System.out.println("JDBC HikariDataSource destroyed.");
     }
 }
