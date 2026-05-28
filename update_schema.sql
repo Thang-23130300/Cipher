@@ -282,12 +282,15 @@ ON DUPLICATE KEY UPDATE
     description = VALUES(description);
 
 -- =========================================================
--- SEED ROLES
+-- SEED ROLES (4 Default Roles)
 -- =========================================================
 
 INSERT INTO roles (name, description, is_system)
 VALUES
-    ('Admin', 'Full access to the administration area', TRUE),
+    ('Super Admin', 'Full system access including role management', TRUE),
+    ('Admin', 'Administrative access to all features', TRUE),
+    ('Sales', 'Sales management access (products, orders, customers)', TRUE),
+    ('User', 'Basic user access', TRUE),
     ('Customer', 'Default customer account', TRUE)
 
 ON DUPLICATE KEY UPDATE
@@ -295,14 +298,49 @@ ON DUPLICATE KEY UPDATE
     is_system = VALUES(is_system);
 
 -- =========================================================
--- ADMIN GETS ALL PERMISSIONS
+-- SUPER ADMIN GETS ALL PERMISSIONS
 -- =========================================================
 
 INSERT IGNORE INTO role_permissions (role_id, permission_id)
 SELECT r.id, p.id
 FROM roles r
 CROSS JOIN permissions p
-WHERE r.name = 'Admin';
+WHERE r.name = 'Super Admin';
+
+-- =========================================================
+-- ADMIN GETS ALL PERMISSIONS EXCEPT ROLE MANAGEMENT
+-- =========================================================
+
+INSERT IGNORE INTO role_permissions (role_id, permission_id)
+SELECT r.id, p.id
+FROM roles r
+JOIN permissions p ON 1=1
+WHERE r.name = 'Admin'
+AND NOT (p.resource = 'role');
+
+-- =========================================================
+-- SALES ROLE - PRODUCT, ORDER, CUSTOMER, DASHBOARD
+-- =========================================================
+
+INSERT IGNORE INTO role_permissions (role_id, permission_id)
+SELECT r.id, p.id
+FROM roles r
+JOIN permissions p ON 1=1
+WHERE r.name = 'Sales'
+AND p.resource IN ('dashboard', 'product', 'order', 'customer')
+AND (p.resource = 'dashboard' OR p.action IN ('read', 'update'));
+
+-- =========================================================
+-- USER ROLE - BASIC ACCESS
+-- =========================================================
+
+INSERT IGNORE INTO role_permissions (role_id, permission_id)
+SELECT r.id, p.id
+FROM roles r
+JOIN permissions p ON 1=1
+WHERE r.name = 'User'
+AND p.resource = 'dashboard'
+AND p.action = 'read';
 
 -- =========================================================
 -- ASSIGN CUSTOMER ROLE TO USERS WITHOUT ROLE
