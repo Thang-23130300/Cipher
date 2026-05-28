@@ -49,28 +49,29 @@ public class SendSignupCodeServlet extends HttpServlet {
             return;
         }
 
-        if (userDAO.hasEmailExist(email)) {
-            writeJson(resp, jsonResponse, "error", "Email này đã được đăng ký");
-            return;
-        }
-
-        String code = String.format("%06d", RANDOM.nextInt(1_000_000));
-
         try {
+            if (userDAO.hasEmailExist(email)) {
+                writeJson(resp, jsonResponse, "error", "Email này đã được đăng ký");
+                return;
+            }
+
+            String code = String.format("%06d", RANDOM.nextInt(1_000_000));
             emailService.sendSignupVerificationCode(email, code);
+
+            HttpSession session = req.getSession();
+            session.setAttribute("signupEmail", email);
+            session.setAttribute("signupOtp", code);
+            session.setAttribute("signupOtpExpiresAt", System.currentTimeMillis() + OTP_TTL_MILLIS);
+            session.removeAttribute("signupVerifiedEmail");
+
+            writeJson(resp, jsonResponse, "success", "Mã xác thực đã được gửi tới email của bạn");
         } catch (MessagingException e) {
             e.printStackTrace();
             writeJson(resp, jsonResponse, "error", "Không gửi được mã xác thực. Vui lòng kiểm tra cấu hình email");
-            return;
+        } catch (Exception e) {
+            e.printStackTrace();
+            writeJson(resp, jsonResponse, "error", "Đã xảy ra lỗi máy chủ. Vui lòng thử lại sau");
         }
-
-        HttpSession session = req.getSession();
-        session.setAttribute("signupEmail", email);
-        session.setAttribute("signupOtp", code);
-        session.setAttribute("signupOtpExpiresAt", System.currentTimeMillis() + OTP_TTL_MILLIS);
-        session.removeAttribute("signupVerifiedEmail");
-
-        writeJson(resp, jsonResponse, "success", "Mã xác thực đã được gửi tới email của bạn");
     }
 
     private void writeJson(HttpServletResponse resp, JsonObject jsonResponse, String status, String message) throws IOException {
