@@ -9,132 +9,7 @@
     <title>Phân quyền - Admin</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/admin-dashboard.css">
-    <style>
-        .permission-layout {
-            display: grid;
-            grid-template-columns: 1.15fr 0.85fr;
-            gap: 24px;
-            margin-top: 24px;
-        }
-
-        @media (max-width: 1100px) {
-            .permission-layout {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        .form-group {
-            margin-bottom: 16px;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: #1f2937;
-        }
-
-        .form-control {
-            width: 100%;
-            padding: 10px 12px;
-            border: 1px solid #d1d5db;
-            border-radius: 8px;
-            font-size: 14px;
-        }
-
-        .permission-grid {
-            display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 12px;
-        }
-
-        @media (max-width: 768px) {
-            .permission-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        .permission-pill {
-            display: flex;
-            align-items: flex-start;
-            gap: 10px;
-            padding: 12px;
-            border: 1px solid #e5e7eb;
-            border-radius: 10px;
-            background: #fafafa;
-        }
-
-        .permission-pill input {
-            margin-top: 3px;
-        }
-
-        .permission-pill strong {
-            display: block;
-            color: #111827;
-        }
-
-        .permission-pill span {
-            display: block;
-            color: #6b7280;
-            font-size: 12px;
-            margin-top: 2px;
-        }
-
-        .tag-list {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 6px;
-        }
-
-        .tag {
-            padding: 4px 10px;
-            border-radius: 999px;
-            background: #eff6ff;
-            color: #1d4ed8;
-            font-size: 12px;
-            font-weight: 600;
-        }
-
-        .tag-muted {
-            background: #f3f4f6;
-            color: #374151;
-        }
-
-        .alert {
-            padding: 12px 16px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-        }
-
-        .alert-success {
-            background: #dcfce7;
-            color: #166534;
-        }
-
-        .alert-error {
-            background: #fee2e2;
-            color: #991b1b;
-        }
-
-        .content-actions {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .inline-actions {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
-
-        .inline-actions .btn-icon {
-            border: none;
-            border-radius: 8px;
-            padding: 8px 10px;
-            cursor: pointer;
-        }
-    </style>
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/admin-roles.css">
 </head>
 <body>
 <c:set var="ctx" value="${pageContext.request.contextPath}" />
@@ -151,10 +26,12 @@
             <div class="content-header">
                 <h1 class="content-title">Phân quyền</h1>
                 <div class="content-actions">
-                    <a href="${ctx}/admin/roles" class="btn btn-secondary" style="text-decoration:none; display:inline-flex; align-items:center; gap:8px;">
-                        <i class="fas fa-plus"></i>
-                        Tạo nhóm mới
-                    </a>
+                    <c:if test="${canCreateRole}">
+                        <a href="${ctx}/admin/roles" class="btn btn-secondary" style="text-decoration:none; display:inline-flex; align-items:center; gap:8px;">
+                            <i class="fas fa-plus"></i>
+                            Tạo nhóm mới
+                        </a>
+                    </c:if>
                 </div>
             </div>
 
@@ -213,13 +90,15 @@
                                 </div>
 
                                 <div class="inline-actions">
-                                    <button type="submit" class="btn-primary">
-                                        <i class="fas fa-save"></i>
-                                        <c:choose>
-                                            <c:when test="${not empty editRole}">Lưu thay đổi</c:when>
-                                            <c:otherwise>Tạo nhóm</c:otherwise>
-                                        </c:choose>
-                                    </button>
+                                    <c:if test="${canCreateRole or canUpdateRole}">
+                                        <button type="submit" class="btn-primary">
+                                            <i class="fas fa-save"></i>
+                                            <c:choose>
+                                                <c:when test="${not empty editRole}">Lưu thay đổi</c:when>
+                                                <c:otherwise>Tạo nhóm</c:otherwise>
+                                            </c:choose>
+                                        </button>
+                                    </c:if>
                                     <c:if test="${not empty editRole}">
                                         <a href="${ctx}/admin/roles" class="btn-secondary" style="text-decoration:none; display:inline-flex; align-items:center; gap:8px;">
                                             Hủy
@@ -282,16 +161,20 @@
                                         </td>
                                         <td>
                                             <div class="inline-actions">
-                                                <a href="${ctx}/admin/roles?editId=${role.id}" class="btn-icon" style="background:#3b82f6; color:white; text-decoration:none;">
-                                                    <i class="fas fa-edit"></i>
-                                                </a>
-                                                <form action="${ctx}/admin/roles" method="post" onsubmit="return confirm('Xóa nhóm quyền này?');">
+                                                <c:if test="${canUpdateRole}">
+                                                    <a href="${ctx}/admin/roles?editId=${role.id}" class="btn-icon" style="background:#3b82f6; color:white; text-decoration:none;">
+                                                        <i class="fas fa-edit"></i>
+                                                    </a>
+                                                </c:if>
+                                                <c:if test="${canDeleteRole}">
+                                                    <form action="${ctx}/admin/roles" method="post" onsubmit="return confirm('Xóa nhóm quyền này?');">
                                                     <input type="hidden" name="action" value="delete">
                                                     <input type="hidden" name="id" value="${role.id}">
                                                     <button type="submit" class="btn-icon" style="background:#ef4444; color:white;" <c:if test="${role.system}">disabled</c:if>>
                                                         <i class="fas fa-trash"></i>
                                                     </button>
                                                 </form>
+                                            </c:if>
                                             </div>
                                         </td>
                                     </tr>
@@ -340,9 +223,11 @@
                                     </small>
                                 </div>
 
-                                <button type="submit" class="btn-primary" style="width:100%;">
-                                    <i class="fas fa-users-cog"></i> Lưu phân nhóm
-                                </button>
+                                <c:if test="${canUpdateRole}">
+                                    <button type="submit" class="btn-primary" style="width:100%;">
+                                        <i class="fas fa-users-cog"></i> Lưu phân nhóm
+                                    </button>
+                                </c:if>
                             </form>
                         </div>
                     </div>
