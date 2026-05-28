@@ -15,8 +15,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import nlu.fit.web.souvenirecommerce.exception.RoleExistsException;
-import nlu.fit.web.souvenirecommerce.exception.PermissionNotFoundException;
 
 public class AuthorizationDAO {
 
@@ -196,10 +194,6 @@ public class AuthorizationDAO {
     public boolean saveRole(Long roleId, String name, String description, List<Long> permissionIds) {
         try (Connection conn = DBContext.getConnection()) {
             conn.setAutoCommit(false);
-            // ensure role name is unique (exclude current role id when updating)
-            if (roleNameExists(conn, name, roleId)) {
-                throw new RoleExistsException("Role name already exists: " + name);
-            }
 
             Long savedRoleId = roleId != null ? roleId : insertRole(conn, name, description);
             if (savedRoleId <= 0) {
@@ -219,53 +213,10 @@ public class AuthorizationDAO {
                 return false;
             }
 
-            // validate permission ids exist (after save to ensure role id available)
-            if (permissionIds != null && !permissionIds.isEmpty()) {
-                if (!permissionIdsExist(conn, permissionIds)) {
-                    conn.rollback();
-                    throw new PermissionNotFoundException("One or more permission IDs are invalid");
-                }
-            }
-
             conn.commit();
             return true;
         } catch (Exception e) {
             e.printStackTrace();
-        }
-        return false;
-    }
-
-    private boolean roleNameExists(Connection conn, String name, Long excludeId) throws Exception {
-        String sql = "SELECT id FROM roles WHERE name = ?" + (excludeId != null ? " AND id != ?" : "");
-        try (PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, name);
-            if (excludeId != null) {
-                ps.setLong(2, excludeId);
-            }
-            ResultSet rs = ps.executeQuery();
-            return rs.next();
-        }
-    }
-
-    private boolean permissionIdsExist(Connection conn, List<Long> ids) throws Exception {
-        if (ids == null || ids.isEmpty()) return true;
-        // build placeholders
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < ids.size(); i++) {
-            if (i > 0) sb.append(',');
-            sb.append('?');
-        }
-        String sql = "SELECT COUNT(*) AS cnt FROM permissions WHERE id IN (" + sb + ")";
-        try (PreparedStatement ps = conn.prepareStatement(sql)) {
-            int idx = 1;
-            for (Long id : ids) {
-                ps.setLong(idx++, id);
-            }
-            ResultSet rs = ps.executeQuery();
-            if (rs.next()) {
-                long count = rs.getLong("cnt");
-                return count == new HashSet<>(ids).size();
-            }
         }
         return false;
     }
