@@ -11,11 +11,15 @@ public class EmailUtil {
 
     static {
         Properties props = ApplicationLoader.getProperties();
-        username = props.getProperty("mail.username");
-        password = props.getProperty("mail.password");
+        username = getProperty(props, "mail.username", "app_mail");
+        password = getProperty(props, "mail.password", "app_password");
     }
 
-    private static Session getSession() {
+    private static Session getSession() throws MessagingException {
+        if (username == null || username.isBlank() || password == null || password.isBlank()) {
+            throw new MessagingException("SMTP credentials are not configured. Please set mail.username/mail.password or app_mail/app_password.");
+        }
+
         Properties prop = new Properties();
         prop.put("mail.smtp.host", "smtp.gmail.com");
         prop.put("mail.smtp.port", "587");
@@ -36,6 +40,14 @@ public class EmailUtil {
         message.setSubject(subject);
         message.setContent(content, type);
         Transport.send(message);
+    }
+
+    private static String getProperty(Properties props, String primaryKey, String fallbackKey) {
+        String value = props.getProperty(primaryKey);
+        if (value == null || value.isBlank()) {
+            value = props.getProperty(fallbackKey);
+        }
+        return value;
     }
 
     public static String normalizeEmail(String email) {
