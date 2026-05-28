@@ -1402,7 +1402,7 @@ CREATE TABLE `users`  (
                           `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
                           `avatar` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
                           `status` enum('Active','Inactive','Banned') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'Active',
-                          `role` enum('User','Admin','Staff') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'User',
+                          `role` enum('Super Admin','Admin','Sales','User','Customer') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'User',
                           `reset_token` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
                           `token_expiry` datetime NULL DEFAULT NULL,
                           PRIMARY KEY (`id`) USING BTREE,
@@ -1412,9 +1412,6 @@ CREATE TABLE `users`  (
 -- ----------------------------
 -- Records of users
 -- ----------------------------
-INSERT INTO `users` VALUES (1, 'Thang', 'phannguyenminhthang123@gmail.com', '$2a$10$gUo066PoJvNHH6yjTJyIqu3GQEklsUMrK9b1kQqgGEGryff6XkrYm', '0935021969', 'Male', '1990-05-15', '2026-01-24 17:31:00', 'default-avatar.png', 'Active', 'Admin', NULL, NULL);
-INSERT INTO `users` VALUES (2, 'Jun', 'jun@gmail.com', '$2a$10$gUo066PoJvNHH6yjTJyIqu3GQEklsUMrK9b1kQqgGEGryff6XkrYm', '0935021970', 'Male', '1990-05-15', '2026-01-24 17:31:00', 'default-avatar.png', 'Active', 'Admin', NULL, NULL);
-
 
 
 -- =========================================================
