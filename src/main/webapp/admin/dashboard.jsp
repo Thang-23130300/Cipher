@@ -255,7 +255,12 @@
                                 <c:forEach items="${topProducts}" var="product">
                                     <tr>
                                         <td>${product.name}</td>
-                                        <td>${product.categoryName}</td>
+                                        <td>
+                                            <c:choose>
+                                                <c:when test="${not empty product.category}">${product.category.categoryName}</c:when>
+                                                <c:otherwise>Không xác định</c:otherwise>
+                                            </c:choose>
+                                        </td>
                                         <td><fmt:formatNumber value="${product.originalPrice}" type="currency" currencySymbol="₫" maxFractionDigits="0"/></td>
                                         <td>${product.totalSold}</td>
                                         <td>${product.stockQuantity}</td>
