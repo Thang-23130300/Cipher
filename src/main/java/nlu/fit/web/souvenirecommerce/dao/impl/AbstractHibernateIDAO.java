@@ -87,14 +87,16 @@ public abstract class AbstractHibernateIDAO<K, T> implements IDAO<K, T> {
     }
 
     protected void rollback(Transaction transaction) {
-        if (transaction == null || !transaction.isActive()) {
+        if (transaction == null) {
             return;
         }
 
         try {
-            transaction.rollback();
+            if (transaction.isActive()) {
+                transaction.rollback();
+            }
         } catch (RuntimeException e) {
-            // Ignore rollback failures when the JDBC connection is already closed.
+            // Ignore rollback failures when the JDBC connection is already closed or the transaction is no longer usable.
         }
     }
 }
