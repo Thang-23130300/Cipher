@@ -367,6 +367,106 @@ public class AuthorizationDAO {
         return false;
     }
 
+    /**
+     * Get all permissions for a specific user
+     */
+    public List<PermissionItem> getUserPermissions(long userId) {
+        List<PermissionItem> list = new ArrayList<>();
+        String sql = """
+                SELECT DISTINCT p.id, p.resource, p.action, p.description
+                FROM user_roles ur
+                INNER JOIN role_permissions rp ON rp.role_id = ur.role_id
+                INNER JOIN permissions p ON p.id = rp.permission_id
+                WHERE ur.user_id = ?
+                ORDER BY p.resource, p.action
+                """;
+
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setLong(1, userId);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                list.add(PermissionItem.builder()
+                        .id(rs.getLong("id"))
+                        .resource(rs.getString("resource"))
+                        .action(rs.getString("action"))
+                        .description(rs.getString("description"))
+                        .build());
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    /**
+     * Check if user has any of the specified permissions
+     */
+    public boolean hasAnyPermission(long userId, String... resources) {
+        if (resources == null || resources.length == 0) {
+            return false;
+        }
+
+        StringBuilder sql = new StringBuilder("""
+                SELECT 1
+                FROM user_roles ur
+                INNER JOIN role_permissions rp ON rp.role_id = ur.role_id
+                INNER JOIN permissions p ON p.id = rp.permission_id
+                WHERE ur.user_id = ? AND p.resource IN (""");
+
+        for (int i = 0; i < resources.length; i++) {
+            if (i > 0) sql.append(",");
+            sql.append("?");
+        }
+        sql.append(") LIMIT 1");
+
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+            ps.setLong(1, userId);
+            for (int i = 0; i < resources.length; i++) {
+                ps.setString(i + 2, resources[i]);
+            }
+            ResultSet rs = ps.executeQuery();
+            return rs.next();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    /**
+     * Get all roles assigned to a user
+     */
+    public List<PermissionGroup> getUserRoles(long userId) {
+        List<PermissionGroup> list = new ArrayList<>();
+        String sql = """
+                SELECT DISTINCT r.id, r.name, r.description, r.is_system
+                FROM user_roles ur
+                INNER JOIN roles r ON r.id = ur.role_id
+                WHERE ur.user_id = ?
+                ORDER BY r.name
+                """;
+
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setLong(1, userId);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                Long roleId = rs.getLong("id");
+                list.add(PermissionGroup.builder()
+                        .id(roleId)
+                        .name(rs.getString("name"))
+                        .description(rs.getString("description"))
+                        .system(rs.getBoolean("is_system"))
+                        .permissions(getPermissionsByRoleId(roleId))
+                        .build());
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
     private Long insertRole(Connection conn, String name, String description) throws Exception {
         String sql = "INSERT INTO roles (name, description, is_system) VALUES (?, ?, false)";
         try (PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
