@@ -17,7 +17,7 @@ public final class AuthorizationPolicy {
             return new RequiredPermission(null, null, false);
         }
 
-        if ("/admin/dashboard".equals(servletPath)) {
+        if ("/admin".equals(servletPath) || "/admin/".equals(servletPath) || "/admin/dashboard".equals(servletPath)) {
             return new RequiredPermission("dashboard", "read", true);
         }
 
