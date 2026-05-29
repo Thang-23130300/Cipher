@@ -42,10 +42,11 @@
                 <%--Change avatarUrl--%>
                 <form id="avatarUrlForm"
                       class="avatarUrl-form"
-                      action="${pageContext.request.contextPath}/user/account/change-avatar"
+                      action="${pageContext.request.contextPath}/user/profile"
                       method="post"
                       enctype="multipart/form-data">
-                    <input id="avatarUrlInput" class="sr-only" type="file" name="avatarUrlFile" accept="image/*" required>
+                    <input type="hidden" name="action" value="change_avatar">
+                    <input id="avatarUrlInput" class="sr-only" type="file" name="avatarFile" accept="image/*" required>
                     <button id="avatarUrlButton" class="avatarUrl-button" type="button">
                         <i class="fa-solid fa-camera"></i>
                         <span>Đổi ảnh</span>
@@ -54,19 +55,23 @@
             </div>
 
             <nav class="account-nav" aria-label="Menu tài khoản">
-                <a class="is-active" href="${pageContext.request.contextPath}/user/profile">
+                <a href="${pageContext.request.contextPath}/user/profile"
+                   class="${requestScope.pageTitle eq 'Hồ sơ' ? 'is-active' : ''}">
                     <i class="fa-solid fa-user"></i>
                     <span>Hồ sơ</span>
                 </a>
-                <a href="${pageContext.request.contextPath}/user/orders">
+                <a href="${pageContext.request.contextPath}/user/orders"
+                   class="${requestScope.pageTitle eq 'Đơn hàng' or requestScope.pageTitle eq 'Chi tiết đơn hàng' ? 'is-active' : ''}">
                     <i class="fa-solid fa-receipt"></i>
                     <span>Đơn hàng</span>
                 </a>
-                <a href="${pageContext.request.contextPath}/user/review">
+                <a href="${pageContext.request.contextPath}/user/review"
+                   class="${requestScope.pageTitle eq 'Đánh giá' ? 'is-active' : ''}">
                     <i class="fa-solid fa-star"></i>
                     <span>Đánh giá</span>
                 </a>
-                <a href="${pageContext.request.contextPath}/user/change-password">
+                <a href="${pageContext.request.contextPath}/user/change-password"
+                   class="${requestScope.pageTitle eq 'Đổi mật khẩu' ? 'is-active' : ''}">
                     <i class="fa-solid fa-key"></i>
                     <span>Đổi mật khẩu</span>
                 </a>
@@ -75,10 +80,62 @@
                     <span>Đăng xuất</span>
                 </a>
             </nav>
-        </aside>
+         </aside>
 
-        <div class="account-content">
-            <jsp:include page="profile.jsp"/>
-        </div>
-    </div>
-</section>
+         <div class="account-content">
+             <jsp:include page="${requestScope.pageContent != null ? requestScope.pageContent : 'profile.jsp'}"/>
+         </div>
+     </div>
+ </section>
+
+ <!-- Avatar Upload Script -->
+ <script>
+     // Sidebar avatar upload
+     const avatarButton = document.getElementById('avatarUrlButton');
+     const avatarInput = document.getElementById('avatarUrlInput');
+     const avatarForm = document.getElementById('avatarUrlForm');
+
+     if (avatarButton && avatarInput) {
+         avatarButton.addEventListener('click', function() {
+             avatarInput.click();
+         });
+
+         avatarInput.addEventListener('change', function() {
+             if (this.files.length > 0) {
+                 const file = this.files[0];
+
+                 // Validate file type
+                 if (!file.type.startsWith('image/')) {
+                     alert('Vui lòng chọn một tệp hình ảnh');
+                     this.value = '';
+                     return;
+                 }
+
+                 // Validate file size (5MB)
+                 const maxSize = 5 * 1024 * 1024;
+                 if (file.size > maxSize) {
+                     alert('Hình ảnh không được vượt quá 5MB');
+                     this.value = '';
+                     return;
+                 }
+
+                 // Show preview
+                 const reader = new FileReader();
+                 reader.onload = function(e) {
+                     const avatarImg = document.querySelector('.account-avatarUrl img');
+                     if (avatarImg) {
+                         avatarImg.src = e.target.result;
+                     }
+                 };
+                 reader.readAsDataURL(file);
+
+                 // Submit form after a short delay to ensure all processing is done
+                 setTimeout(function() {
+                     if (avatarForm) {
+                         avatarForm.submit();
+                     }
+                 }, 100);
+             }
+         });
+     }
+ </script>

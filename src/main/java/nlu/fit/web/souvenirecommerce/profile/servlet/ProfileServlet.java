@@ -7,10 +7,12 @@ import jakarta.servlet.http.*;
 import nlu.fit.web.souvenirecommerce.enums.Gender;
 import nlu.fit.web.souvenirecommerce.model.entity.User;
 import nlu.fit.web.souvenirecommerce.profile.service.ProfileService;
+import nlu.fit.web.souvenirecommerce.util.CloudinaryUtil;
 
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -50,11 +52,11 @@ public class ProfileServlet extends HttpServlet {
             return;
         }
 
-        req.setAttribute("pageTitle", "Hồ sơ");
-        req.setAttribute("pageCss", "account/account-layout.css");
-        req.setAttribute("contentCss", "account/profile.css");
-        req.setAttribute("pageJs", "account/profile.js");
-        req.setAttribute("contentPage", "/WEB-INF/views/account/account_layout.jsp");
+         req.setAttribute("pageTitle", "Hồ sơ");
+         req.setAttribute("pageCss", "account/account-layout.css");
+         req.setAttribute("contentCss", "account/profile-form.css");
+         req.setAttribute("pageJs", "account/profile.js");
+         req.setAttribute("contentPage", "/WEB-INF/views/account/account_layout.jsp");
 
         req.getRequestDispatcher("/WEB-INF/layout/base.jsp").forward(req, resp);
     }
@@ -74,6 +76,8 @@ public class ProfileServlet extends HttpServlet {
         try {
             if ("update_profile".equals(action)) {
                 updateUserProfile(request, response, currentUser, session);
+            } else if ("change_avatar".equals(action)) {
+                changeUserAvatar(request, response, currentUser, session);
             } else {
                 response.sendRedirect(request.getContextPath() + "/user/profile");
             }
@@ -153,10 +157,10 @@ public class ProfileServlet extends HttpServlet {
 
         session.setAttribute("profileMessage", "Cập nhật hồ sơ thành công!");
         session.setAttribute("profileMessageType", "success");
-        response.sendRedirect(request.getContextPath() + "/user/profile");
-    }
+         response.sendRedirect(request.getContextPath() + "/user/profile");
+     }
 
-    private Gender mapGender(String vietnameseGender) {
+     private Gender mapGender(String vietnameseGender) {
         if (vietnameseGender == null || vietnameseGender.trim().isEmpty()) {
             return null;
         }
@@ -171,6 +175,93 @@ public class ProfileServlet extends HttpServlet {
             default:
                 return null;
         }
+    }
+
+    private void changeUserAvatar(HttpServletRequest request, HttpServletResponse response,
+                                  User currentUser, HttpSession session) throws IOException, ServletException {
+        // Check if Cloudinary is configured
+        if (!CloudinaryUtil.isConfigured()) {
+            session.setAttribute("profileMessage", "Hệ thống chưa được cấu hình để tải hình ảnh");
+            session.setAttribute("profileMessageType", "error");
+            response.sendRedirect(request.getContextPath() + "/user/profile");
+            return;
+        }
+
+        // Get the uploaded file
+        Part filePart = request.getPart("avatarFile");
+        if (filePart == null || filePart.getSize() == 0) {
+            session.setAttribute("profileMessage", "Vui lòng chọn một tệp hình ảnh");
+            session.setAttribute("profileMessageType", "error");
+            response.sendRedirect(request.getContextPath() + "/user/profile");
+            return;
+        }
+
+        // Validate file type
+        String contentType = filePart.getContentType();
+        if (contentType == null || !contentType.startsWith("image/")) {
+            session.setAttribute("profileMessage", "Tệp phải là một hình ảnh");
+            session.setAttribute("profileMessageType", "error");
+            response.sendRedirect(request.getContextPath() + "/user/profile");
+            return;
+        }
+
+        // Validate file size (max 5MB)
+        if (filePart.getSize() > 5 * 1024 * 1024) {
+            session.setAttribute("profileMessage", "Hình ảnh không được vượt quá 5MB");
+            session.setAttribute("profileMessageType", "error");
+            response.sendRedirect(request.getContextPath() + "/user/profile");
+            return;
+        }
+
+        try {
+            // Delete old avatar from Cloudinary if exists
+            if (currentUser.getAvatarPublicId() != null && !currentUser.getAvatarPublicId().isEmpty()) {
+                CloudinaryUtil.deleteImage(currentUser.getAvatarPublicId());
+            }
+
+            // Generate unique public ID for the avatar
+            String publicId = "avatar_user_" + currentUser.getId() + "_" + System.currentTimeMillis();
+
+            // Upload image to Cloudinary
+             Map<String, Object> uploadResult = CloudinaryUtil.uploadImage(
+                 filePart.getInputStream(),
+                 filePart.getSubmittedFileName(),
+                 "avatars",
+                 publicId
+             );
+
+             // Log the upload result for debugging
+             Logger.getLogger(ProfileServlet.class.getName()).info("Cloudinary upload result: " + uploadResult);
+
+             // Update user avatar information
+             String avatarUrl = (String) uploadResult.get("secure_url");
+             if (avatarUrl == null || avatarUrl.isEmpty()) {
+                 avatarUrl = (String) uploadResult.get("url");
+             }
+             currentUser.setAvatarUrl(avatarUrl);
+             currentUser.setAvatarPublicId((String) uploadResult.get("public_id"));
+
+            // Save to database
+            ProfileService profileService = new ProfileService();
+            profileService.updateProfile(currentUser);
+
+            // Update session
+            session.setAttribute("currentUser", currentUser);
+            session.setAttribute("userInSession", currentUser);
+            session.setAttribute("user", currentUser);
+            session.setAttribute("authUser", currentUser);
+
+            session.setAttribute("profileMessage", "Cập nhật ảnh đại diện thành công!");
+            session.setAttribute("profileMessageType", "success");
+
+            Logger.getLogger(ProfileServlet.class.getName()).info("Avatar updated successfully for user: " + currentUser.getId());
+        } catch (IOException e) {
+            Logger.getLogger(ProfileServlet.class.getName()).log(Level.SEVERE, "Error uploading avatar", e);
+            session.setAttribute("profileMessage", "Lỗi tải lên hình ảnh: " + e.getMessage());
+            session.setAttribute("profileMessageType", "error");
+        }
+
+        response.sendRedirect(request.getContextPath() + "/user/profile");
     }
 
 }
