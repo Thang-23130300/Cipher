@@ -1,4 +1,4 @@
-<%@ page contentType="text/html;charset=UTF-8" language="java" import="nlu.fit.web.souvenirecommerce.util.PermissionHelper" %>
+<%@ page contentType="text/html;charset=UTF-8" language="java" import="nlu.fit.web.souvenirecommerce.common.utils.PermissionHelper" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 <%

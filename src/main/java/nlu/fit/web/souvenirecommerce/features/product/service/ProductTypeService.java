@@ -1,0 +1,74 @@
+package nlu.fit.web.souvenirecommerce.features.product.service;
+
+import nlu.fit.web.souvenirecommerce.legacy.dao.CategoryDAO;
+import nlu.fit.web.souvenirecommerce.legacy.dao.ProductDAO;
+import nlu.fit.web.souvenirecommerce.legacy.dao.PromotionDAO;
+import nlu.fit.web.souvenirecommerce.features.product.dto.ProductCardDTO;
+import nlu.fit.web.souvenirecommerce.features.product.dto.ProductTypeDTO;
+import nlu.fit.web.souvenirecommerce.common.enums.ProductSort;
+import nlu.fit.web.souvenirecommerce.legacy.model.Promotion;
+import nlu.fit.web.souvenirecommerce.model.entity.Category;
+import nlu.fit.web.souvenirecommerce.model.entity.Product;
+import nlu.fit.web.souvenirecommerce.common.utils.ProductCardMapper;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+public class ProductTypeService {
+
+    private static final int PAGE_SIZE = 12;
+
+    private final ProductDAO productDAO = new ProductDAO();
+    private final CategoryDAO categoryDAO = new CategoryDAO();
+    private final PromotionDAO promotionDAO = new PromotionDAO();
+
+    public ProductTypeDTO getProductType(Long categoryId, Integer minPrice, Integer maxPrice, Integer rating, ProductSort sort, int page) {
+        Category category = categoryDAO.getCategoryById(categoryId);
+
+        if (category == null) {
+            return null;
+        }
+
+        int safePage = Math.max(page, 1);
+        int offset = (safePage - 1) * PAGE_SIZE;
+
+        List<Product> products = productDAO.getProductsByCategoryWithFilter(categoryId, minPrice, maxPrice, rating, sort, offset, PAGE_SIZE);
+
+        int totalProducts = productDAO.countProductsByCategoryWithFilter(categoryId, minPrice, maxPrice, rating);
+
+        int totalPages = (int) Math.ceil((double) totalProducts / PAGE_SIZE);
+
+        ProductTypeDTO dto = new ProductTypeDTO();
+        dto.setCategory(category);
+        dto.setProducts(mapToProductCardDTOs(products));
+        dto.setCurrentPage(safePage);
+        dto.setTotalPages(totalPages);
+        dto.setTotalProducts(totalProducts);
+        dto.setMinPrice(minPrice);
+        dto.setMaxPrice(maxPrice);
+        dto.setRating(rating);
+        dto.setSort(sort);
+        dto.setSortParam(sort != null ? sort.name().toLowerCase() : "popular");
+
+        return dto;
+    }
+
+    private List<ProductCardDTO> mapToProductCardDTOs(List<Product> products) {
+        List<ProductCardDTO> cards = new ArrayList<>();
+
+        if (products == null || products.isEmpty()) {
+            return cards;
+        }
+
+        List<Long> productIds = products.stream().map(Product::getId).toList();
+
+        Map<Long, Promotion> promotionMap = promotionDAO.getActivePromotionsByProductIds(productIds);
+
+        for (Product product : products) {
+            cards.add(ProductCardMapper.from(product, promotionMap.get(product.getId())));
+        }
+
+        return cards;
+    }
+}
