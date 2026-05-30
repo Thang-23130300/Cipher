@@ -7,8 +7,11 @@ import nlu.fit.web.souvenirecommerce.util.DBContext;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class OrderDAO {
 
@@ -411,32 +414,40 @@ public class OrderDAO {
 
     public List<Double> getMonthlyRevenueData(int months) {
         List<Double> revenues = new ArrayList<>();
+        Map<String, Double> revenueMap = new HashMap<>();
         String sql = """
-            SELECT COALESCE(SUM(o.total_amount), 0) as revenue
+            SELECT YEAR(o.order_date) AS y,
+                   MONTH(o.order_date) AS m,
+                   COALESCE(SUM(o.total_amount), 0) AS revenue
             FROM orders o
             JOIN order_status os ON o.status_id = os.id
             WHERE os.description = 'Hoàn thành'
-            AND o.order_date >= DATE_SUB(CURDATE(), INTERVAL ? MONTH)
-            AND o.order_date < DATE_SUB(CURDATE(), INTERVAL ? MONTH) + INTERVAL 1 MONTH
+              AND o.order_date >= DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL ? MONTH), '%Y-%m-01')
+              AND o.order_date < DATE_ADD(DATE_FORMAT(CURDATE(), '%Y-%m-01'), INTERVAL 1 MONTH)
+            GROUP BY y, m
+            ORDER BY y, m
         """;
 
-        for (int i = months - 1; i >= 0; i--) {
-            try (Connection conn = DBContext.getConnection();
-                 PreparedStatement ps = conn.prepareStatement(sql)) {
-                ps.setInt(1, i + 1);
-                ps.setInt(2, i);
-                try (ResultSet rs = ps.executeQuery()) {
-                    if (rs.next()) {
-                        revenues.add(rs.getDouble("revenue"));
-                    } else {
-                        revenues.add(0.0);
-                    }
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, months - 1);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    String key = rs.getInt("y") + "-" + rs.getInt("m");
+                    revenueMap.put(key, rs.getDouble("revenue"));
                 }
-            } catch (Exception e) {
-                e.printStackTrace();
-                revenues.add(0.0);
             }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
+
+        LocalDate today = LocalDate.now();
+        for (int i = months - 1; i >= 0; i--) {
+            LocalDate month = today.minusMonths(i);
+            String key = month.getYear() + "-" + month.getMonthValue();
+            revenues.add(revenueMap.getOrDefault(key, 0.0));
+        }
+
         return revenues;
     }
 

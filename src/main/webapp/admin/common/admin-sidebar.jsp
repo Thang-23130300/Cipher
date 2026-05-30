@@ -1,5 +1,6 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" import="nlu.fit.web.souvenirecommerce.util.PermissionHelper" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 <%
     request.setAttribute("canViewDashboard", true);
     request.setAttribute("canViewProducts", PermissionHelper.hasAnyPermission(request, "product"));
@@ -152,14 +153,14 @@
             <div class="sidebar-user-avatar">
                 <c:choose>
                     <c:when test="${not empty currentAdminUser.fullName}">
-                        ${currentAdminUser.fullName.substring(0, 1).toUpperCase()}
+                        <c:out value="${fn:toUpperCase(fn:substring(currentAdminUser.fullName, 0, 1))}"/>
                     </c:when>
                     <c:otherwise>A</c:otherwise>
                 </c:choose>
             </div>
             <div class="sidebar-user-info">
-                <span class="sidebar-user-name">${currentAdminUser.fullName}</span>
-                <span class="sidebar-user-role">${currentAdminUser.role}</span>
+                <span class="sidebar-user-name"><c:out value="${currentAdminUser.fullName}"/></span>
+                <span class="sidebar-user-role"><c:out value="${currentAdminUser.role}"/></span>
             </div>
         </div>
     </div>
