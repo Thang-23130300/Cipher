@@ -25,7 +25,7 @@
         <appender-ref ref="FILE" />
     </root>
 
-    <logger name="nlu.fit.web.souvenirecommerce.auth" level="DEBUG" />
-    <logger name="nlu.fit.web.souvenirecommerce.dao" level="DEBUG" />
+    <logger name="nlu.fit.web.souvenirecommerce.features.auth" level="DEBUG" />
+    <logger name="nlu.fit.web.souvenirecommerce.legacy.dao" level="DEBUG" />
 
 </configuration>
