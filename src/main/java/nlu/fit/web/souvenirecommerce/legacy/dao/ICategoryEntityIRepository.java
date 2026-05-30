@@ -1,10 +1,11 @@
 package nlu.fit.web.souvenirecommerce.legacy.dao;
 
+import nlu.fit.web.souvenirecommerce.common.base.IRepository;
 import nlu.fit.web.souvenirecommerce.model.entity.Category;
 
 import java.util.List;
 
-public interface ICategoryEntityIDAO extends IDAO<Long, Category> {
+public interface ICategoryEntityIRepository extends IRepository<Long, Category> {
 
     List<Category> findHeaderCategories();
 

@@ -1,7 +1,7 @@
 package nlu.fit.web.souvenirecommerce.features.product.service.impl;
 
-import nlu.fit.web.souvenirecommerce.legacy.dao.ICategoryEntityIDAO;
-import nlu.fit.web.souvenirecommerce.legacy.dao.impl.ICategoryIDAOImpl2;
+import nlu.fit.web.souvenirecommerce.legacy.dao.ICategoryEntityIRepository;
+import nlu.fit.web.souvenirecommerce.legacy.dao.impl.ICategoryIRepositoryImpl2;
 import nlu.fit.web.souvenirecommerce.features.product.dto.HeaderCategoryDTO;
 import nlu.fit.web.souvenirecommerce.model.entity.Category;
 import nlu.fit.web.souvenirecommerce.features.product.service.ICategoryService;
@@ -10,13 +10,13 @@ import java.util.List;
 
 public class CategoryServiceImpl implements ICategoryService {
 
-    private final ICategoryEntityIDAO categoryDAO;
+    private final ICategoryEntityIRepository categoryDAO;
 
     public CategoryServiceImpl() {
-        this.categoryDAO = new ICategoryIDAOImpl2();
+        this.categoryDAO = new ICategoryIRepositoryImpl2();
     }
 
-    public CategoryServiceImpl(ICategoryEntityIDAO categoryDAO) {
+    public CategoryServiceImpl(ICategoryEntityIRepository categoryDAO) {
         this.categoryDAO = categoryDAO;
     }
 

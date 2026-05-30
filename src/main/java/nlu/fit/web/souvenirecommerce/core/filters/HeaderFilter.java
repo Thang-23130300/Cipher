@@ -6,7 +6,6 @@ import jakarta.servlet.FilterConfig;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
-import jakarta.servlet.annotation.WebFilter;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import nlu.fit.web.souvenirecommerce.features.cart.model.Cart;
@@ -16,7 +15,6 @@ import nlu.fit.web.souvenirecommerce.features.product.service.impl.CategoryServi
 import java.io.IOException;
 import java.util.Collections;
 
-@WebFilter("/*")
 public class HeaderFilter implements Filter {
 
     private ICategoryService categoryService;

@@ -1,15 +1,16 @@
 package nlu.fit.web.souvenirecommerce.legacy.dao.impl;
 
-import nlu.fit.web.souvenirecommerce.legacy.dao.IPermissionEntityIDAO;
+import nlu.fit.web.souvenirecommerce.common.base.AbsBaseRepository;
+import nlu.fit.web.souvenirecommerce.legacy.dao.IPermissionEntityIRepository;
 import nlu.fit.web.souvenirecommerce.model.entity.Permission;
 import nlu.fit.web.souvenirecommerce.core.config.HibernateUtil;
 
 import java.util.List;
 import java.util.Optional;
 
-public class IPermissionIDAOImpl extends AbstractHibernateIDAO<Long, Permission> implements IPermissionEntityIDAO {
+public class IPermissionIRepositoryImpl extends AbsBaseRepository<Long, Permission> implements IPermissionEntityIRepository {
 
-    public IPermissionIDAOImpl() {
+    public IPermissionIRepositoryImpl() {
         super(Permission.class);
     }
 

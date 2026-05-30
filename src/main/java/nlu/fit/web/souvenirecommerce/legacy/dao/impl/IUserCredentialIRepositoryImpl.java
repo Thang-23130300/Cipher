@@ -1,15 +1,16 @@
 package nlu.fit.web.souvenirecommerce.legacy.dao.impl;
 
-import nlu.fit.web.souvenirecommerce.legacy.dao.IUserCredentialIDAO;
+import nlu.fit.web.souvenirecommerce.common.base.AbsBaseRepository;
+import nlu.fit.web.souvenirecommerce.legacy.dao.IUserCredentialIRepository;
 import nlu.fit.web.souvenirecommerce.model.entity.UserCredential;
 import nlu.fit.web.souvenirecommerce.core.config.HibernateUtil;
 
 import java.util.List;
 import java.util.Optional;
 
-public class IUserCredentialIDAOImpl extends AbstractHibernateIDAO<Long, UserCredential> implements IUserCredentialIDAO {
+public class IUserCredentialIRepositoryImpl extends AbsBaseRepository<Long, UserCredential> implements IUserCredentialIRepository {
 
-    public IUserCredentialIDAOImpl() {
+    public IUserCredentialIRepositoryImpl() {
         super(UserCredential.class);
     }
 
