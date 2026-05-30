@@ -390,6 +390,27 @@ public class UserDAOImpl {
         return 0;
     }
 
+    public int getNewCustomerCount(int days) {
+        String sql = "SELECT COUNT(DISTINCT u.id) AS total " +
+                "FROM users u " +
+                "INNER JOIN user_roles ur ON ur.user_id = u.id " +
+                "INNER JOIN roles r ON r.id = ur.role_id " +
+                "WHERE r.name = 'User' " +
+                "AND u.created_at >= DATE_SUB(CURDATE(), INTERVAL ? DAY)";
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, days);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("total");
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
     public List<User> getAllCustomers() {
         List<User> list = new ArrayList<>();
         String sql = "SELECT u.id, u.full_name, u.email, u.phone, u.avatar, u.status, u.created_at, " +
