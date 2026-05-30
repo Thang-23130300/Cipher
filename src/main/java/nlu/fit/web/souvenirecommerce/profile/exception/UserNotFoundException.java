@@ -1,4 +1,4 @@
-package nlu.fit.web.souvenirecommerce.account.exception;
+package nlu.fit.web.souvenirecommerce.profile.exception;
 
 public class UserNotFoundException extends RuntimeException{
     public UserNotFoundException(String message){

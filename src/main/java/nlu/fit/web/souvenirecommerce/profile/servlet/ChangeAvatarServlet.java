@@ -1,4 +1,4 @@
-package nlu.fit.web.souvenirecommerce.account.servlet;
+package nlu.fit.web.souvenirecommerce.profile.servlet;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.MultipartConfig;

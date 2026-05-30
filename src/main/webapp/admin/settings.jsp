@@ -166,9 +166,11 @@
                                        value="${currentAdminUser.phone}" placeholder="Nhập số điện thoại">
                             </div>
 
-                            <button type="submit" class="btn-save">
-                                <i class="fas fa-save"></i> Lưu thay đổi
-                            </button>
+                            <c:if test="${canUpdateSettings}">
+                                <button type="submit" class="btn-save">
+                                    <i class="fas fa-save"></i> Lưu thay đổi
+                                </button>
+                            </c:if>
                         </form>
                     </div>
                 </div>
@@ -200,9 +202,11 @@
                                        placeholder="Nhập lại mật khẩu mới" required>
                             </div>
 
-                            <button type="submit" class="btn-save">
-                                <i class="fas fa-key"></i> Đổi mật khẩu
-                            </button>
+                            <c:if test="${canUpdateSettings}">
+                                <button type="submit" class="btn-save">
+                                    <i class="fas fa-key"></i> Đổi mật khẩu
+                                </button>
+                            </c:if>
                         </form>
                     </div>
                 </div>
@@ -272,9 +276,11 @@
                             </div>
                         </div>
 
-                        <button type="submit" class="btn-save">
-                            <i class="fas fa-save"></i> Lưu cài đặt hệ thống
-                        </button>
+                        <c:if test="${canUpdateSettings}">
+                            <button type="submit" class="btn-save">
+                                <i class="fas fa-save"></i> Lưu cài đặt hệ thống
+                            </button>
+                        </c:if>
                     </form>
                 </div>
             </div>

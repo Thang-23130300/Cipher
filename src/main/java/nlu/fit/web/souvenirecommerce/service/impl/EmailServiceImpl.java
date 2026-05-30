@@ -46,6 +46,6 @@ public class EmailServiceImpl implements IEmailService {
 
     @Override
     public void send(String to, String subject, String content, String type) throws MessagingException {
-        EmailUtil.send(to, subject, subject, type);
+        EmailUtil.send(to, subject, content, type);
     }
 }

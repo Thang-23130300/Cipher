@@ -10,13 +10,14 @@ import nlu.fit.web.souvenirecommerce.dao.ProductDAO;
 import nlu.fit.web.souvenirecommerce.dao.impl.UserDAOImpl;
 import nlu.fit.web.souvenirecommerce.model.Order;
 import nlu.fit.web.souvenirecommerce.model.entity.Product;
-import nlu.fit.web.souvenirecommerce.model.User;
+import nlu.fit.web.souvenirecommerce.model.entity.User;
 
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @WebServlet("/admin/export-report")
 public class ExportReportController extends HttpServlet {
@@ -184,9 +185,11 @@ public class ExportReportController extends HttpServlet {
                     u.getFullName() != null ? u.getFullName().replace("\"", "\"\"") : "",
                     u.getEmail() != null ? u.getEmail().replace("\"", "\"\"") : "",
                     u.getPhone() != null ? u.getPhone() : "",
-                    u.getRole() != null ? u.getRole() : "customer",
-                    u.getStatus() != null ? u.getStatus() : "Active",
-                    u.getCreatedAt() != null ? u.getCreatedAt() : ""
+                    u.getRoles() != null && !u.getRoles().isEmpty()
+                            ? u.getRoles().stream().map(r -> r.getName()).collect(Collectors.joining("|"))
+                            : "Customer",
+                    u.isActive() ? "Active" : "Inactive",
+                    u.getCreatedAt() != null ? u.getCreatedAt().toString() : ""
             ));
         }
 

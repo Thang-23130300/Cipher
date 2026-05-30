@@ -7,6 +7,8 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import lombok.extern.slf4j.Slf4j;
+import nlu.fit.web.souvenirecommerce.auth.dao.SignupVerificationCodeDAO;
 import nlu.fit.web.souvenirecommerce.dao.IUserDAO;
 import nlu.fit.web.souvenirecommerce.auth.dao.AuthDAO;
 
@@ -14,8 +16,10 @@ import java.io.IOException;
 import java.io.PrintWriter;
 
 @WebServlet("/api/signup/verify-code")
+@Slf4j
 public class VerifySignupCodeServlet extends HttpServlet {
     private final IUserDAO userDAO = new AuthDAO();
+    private final SignupVerificationCodeDAO signupVerificationCodeDAO = new SignupVerificationCodeDAO();
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
@@ -27,58 +31,51 @@ public class VerifySignupCodeServlet extends HttpServlet {
         JsonObject jsonResponse = new JsonObject();
 
         if (email == null || email.isEmpty()) {
+            log.warn("Xác thực mã đăng ký thất bại: email rỗng");
             writeJson(resp, jsonResponse, "error", "Email không được để trống");
             return;
         }
 
         if (!code.matches("^[0-9]{6}$")) {
+            log.warn("Xác thực mã đăng ký thất bại: format code sai, email={}", email);
             writeJson(resp, jsonResponse, "error", "Mã xác thực gồm 6 chữ số");
             return;
         }
 
         if (userDAO.hasEmailExist(email)) {
+            log.warn("Xác thực mã đăng ký thất bại: email đã tồn tại {}", email);
             writeJson(resp, jsonResponse, "error", "Email này đã được đăng ký");
             return;
         }
 
         HttpSession session = req.getSession(false);
         if (session == null) {
+            log.warn("Xác thực mã đăng ký thất bại: không có session, email={}", email);
             writeJson(resp, jsonResponse, "error", "Vui lòng gửi mã xác thực trước");
             return;
         }
 
         String sessionEmail = (String) session.getAttribute("signupEmail");
-        String sessionOtp = (String) session.getAttribute("signupOtp");
-        Long expiresAt = (Long) session.getAttribute("signupOtpExpiresAt");
-
-        if (!email.equals(sessionEmail) || sessionOtp == null || expiresAt == null) {
+        if (!email.equals(sessionEmail)) {
+            log.warn("Xác thực mã đăng ký thất bại: email không khớp session, email={}, sessionEmail={}", email, sessionEmail);
             writeJson(resp, jsonResponse, "error", "Vui lòng gửi mã xác thực trước");
             return;
         }
 
-        if (System.currentTimeMillis() > expiresAt) {
-            clearOtp(session);
-            writeJson(resp, jsonResponse, "error", "Mã xác thực đã hết hạn. Vui lòng gửi lại mã");
-            return;
-        }
-
-        if (!sessionOtp.equals(code)) {
+        boolean verified = signupVerificationCodeDAO.verifySignupCode(email, code);
+        if (!verified) {
+            log.warn("Xác thực mã đăng ký thất bại: code không đúng/hết hạn, email={}", email);
             writeJson(resp, jsonResponse, "error", "Mã xác thực không đúng");
             return;
         }
 
         session.setAttribute("signupVerifiedEmail", email);
-        clearOtp(session);
+        log.info("Xác thực mã đăng ký thành công: email={}", email);
         writeJson(resp, jsonResponse, "success", "Email đã được xác thực");
     }
 
     private String normalizeEmail(String email) {
         return email == null ? null : email.trim().toLowerCase();
-    }
-
-    private void clearOtp(HttpSession session) {
-        session.removeAttribute("signupOtp");
-        session.removeAttribute("signupOtpExpiresAt");
     }
 
     private void writeJson(HttpServletResponse resp, JsonObject jsonResponse, String status, String message) throws IOException {

@@ -9,7 +9,7 @@ import jakarta.servlet.http.HttpSession;
 import nlu.fit.web.souvenirecommerce.model.cart.Cart;
 import nlu.fit.web.souvenirecommerce.dao.ProductDAO;
 import nlu.fit.web.souvenirecommerce.model.entity.Product;
-import nlu.fit.web.souvenirecommerce.model.User;
+import nlu.fit.web.souvenirecommerce.model.entity.User;
 
 import java.io.IOException;
 import java.io.PrintWriter;

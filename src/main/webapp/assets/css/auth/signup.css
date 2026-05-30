@@ -156,6 +156,39 @@ body.auth-page {
     font-weight: 700;
 }
 
+.gender-field {
+    margin: 0;
+    padding: 0;
+    border: 0;
+}
+
+.gender-field legend {
+    margin-bottom: 8px;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.gender-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.gender-options label {
+    min-height: 42px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 12px;
+    border: 1px solid var(--auth-border);
+    background: var(--surface-subtle);
+    cursor: pointer;
+}
+
+.gender-options input {
+    accent-color: var(--auth-primary);
+}
+
 .name-grid {
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
@@ -470,6 +503,11 @@ body.auth-page {
     }
 
     .name-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .gender-options {
+        display: grid;
         grid-template-columns: 1fr;
     }
 

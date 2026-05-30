@@ -267,6 +267,7 @@ $('#submitBtn').click(function() {
     const firstName = $('#first_name').val().trim();
     const fullName = `${lastName} ${firstName}`.trim();
     const phone = $('#phone').val().trim();
+    const gender = $('input[name="gender"]:checked').val();
     const password = $('#password').val();
     const confirmPassword = $('#confirm_password').val();
 
@@ -291,6 +292,11 @@ $('#submitBtn').click(function() {
         return;
     }
 
+    if (!gender) {
+        showMessage('Vui lòng chọn giới tính', 'error');
+        return;
+    }
+
     if (!password || password.length < 8) {
         showMessage('Mật khẩu phải ít nhất 8 ký tự', 'error');
         return;
@@ -304,39 +310,60 @@ $('#submitBtn').click(function() {
     $('#submitLoading').show();
     $('#submitBtn').prop('disabled', true);
 
-    $.ajax({
-        url: `${contextPath}/api/register`,
-        type: 'POST',
-        data: {
-            email: email,
-            firstName: firstName,
-            lastName: lastName,
-            fullName: fullName,
-            phone: phone,
-            password: password,
-            confirmPassword: confirmPassword
-        },
-        dataType: 'json',
-        timeout: 5000,
-        success: function(response) {
-            $('#submitLoading').hide();
-            $('#submitBtn').prop('disabled', false);
+     $.ajax({
+         url: `${contextPath}/api/signup`,
+         type: 'POST',
+         data: {
+             email: email,
+             firstName: firstName,
+             lastName: lastName,
+             phone: phone,
+             gender: gender,
+             password: password,
+             confirmPassword: confirmPassword
+         },
+         dataType: 'json',
+         timeout: 15000,
+         success: function(response) {
+             $('#submitLoading').hide();
+             $('#submitBtn').prop('disabled', false);
 
-            if (response.status === 'success') {
-                showMessage('Tạo tài khoản thành công. Đang chuyển sang trang đăng nhập...', 'success');
-                setTimeout(() => {
-                    window.location.href = `${contextPath}/login`;
-                }, 1600);
-            } else {
-                showMessage(response.message, 'error');
-            }
-        },
-        error: function() {
-            $('#submitLoading').hide();
-            $('#submitBtn').prop('disabled', false);
-            showMessage('Có lỗi xảy ra. Vui lòng thử lại', 'error');
-        }
-    });
+             if (response.status === 'success') {
+                 showMessage('Tạo tài khoản thành công. Đang chuyển sang trang đăng nhập...', 'success');
+                 setTimeout(() => {
+                     window.location.href = `${contextPath}/login`;
+                 }, 1600);
+             } else {
+                 showMessage(response.message || 'Có lỗi xảy ra. Vui lòng thử lại', 'error');
+             }
+         },
+         error: function(xhr, status, error) {
+             $('#submitLoading').hide();
+             $('#submitBtn').prop('disabled', false);
+
+             let errorMessage = 'Có lỗi xảy ra. Vui lòng thử lại';
+
+             // Try to parse error response
+             if (xhr.responseJSON && xhr.responseJSON.message) {
+                 errorMessage = xhr.responseJSON.message;
+             } else if (xhr.responseText) {
+                 try {
+                     const parsed = JSON.parse(xhr.responseText);
+                     if (parsed && parsed.message) {
+                         errorMessage = parsed.message;
+                     }
+                 } catch (parseError) {
+                     // Keep fallback error message
+                 }
+             } else if (status === 'timeout') {
+                 errorMessage = 'Yêu cầu quá lâu. Vui lòng thử lại';
+             } else if (error) {
+                 console.error('Signup error:', error, xhr.status);
+             }
+
+             showMessage(errorMessage, 'error');
+         }
+     });
 });
 
 $('#password').on('keyup', function() {

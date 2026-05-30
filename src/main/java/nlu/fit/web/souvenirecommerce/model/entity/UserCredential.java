@@ -17,6 +17,7 @@ import java.time.LocalDateTime;
 @SQLDelete(sql = "UPDATE user_credentials SET deleted_at = CURRENT_TIMESTAMP WHERE user_id = ?")
 @SQLRestriction("deleted_at IS NULL")
 public class UserCredential extends BaseEntity {
+
     @Id
     private Long id;
 
@@ -31,11 +32,8 @@ public class UserCredential extends BaseEntity {
     @Column(name = "email_verified", nullable = false)
     private boolean emailVerified = false;
 
-    @Column(name = "verification_token", length = 64)
-    private String verificationToken;
-
-    @Column(name = "reset_token", length = 64)
-    private String resetToken;
+    @Column(name = "reset_code", length = 64)
+    private String resetCode;
 
     @Column(name = "reset_expires_at")
     private LocalDateTime resetExpiresAt;

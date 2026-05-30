@@ -42,3 +42,6 @@ build/
 ### Config file ###
 application.properties
 hibernate.cfg.xml
+
+### Logs ###
+/logs

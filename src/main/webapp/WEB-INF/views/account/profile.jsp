@@ -20,12 +20,55 @@
     </div>
 </c:if>
 
+<!-- Avatar Section -->
+<section class="profile-panel avatar-section" aria-labelledby="avatar-title">
+    <div class="panel-header">
+        <h2 id="avatar-title">Ảnh đại diện</h2>
+    </div>
+
+    <div class="avatar-container">
+        <c:choose>
+            <c:when test="${not empty currentUser.avatarUrl}">
+                <img src="${currentUser.avatarUrl}"
+                     id="avatarPreview"
+                     class="avatar-image"
+                     alt="Avatar của ${currentUser.fullName}">
+            </c:when>
+            <c:otherwise>
+                <div class="avatar-placeholder">
+                    <i class="fa-solid fa-user-circle"></i>
+                </div>
+            </c:otherwise>
+        </c:choose>
+
+        <form id="avatarForm"
+              action="${pageContext.request.contextPath}/user/profile"
+              method="post"
+              enctype="multipart/form-data"
+              style="display: none;">
+            <input type="hidden" name="action" value="change_avatar">
+            <input type="file"
+                   id="avatarInput"
+                   name="avatarFile"
+                   accept="image/*"
+                   style="display: none;">
+        </form>
+
+        <div class="avatar-actions">
+            <button type="button" class="primary-button" onclick="triggerAvatarUpload()">
+                <i class="fa-solid fa-camera"></i>
+                <span>Thay đổi ảnh</span>
+            </button>
+        </div>
+    </div>
+</section>
+
 <section class="profile-panel" aria-labelledby="profile-info-title">
     <div class="panel-header">
         <h2 id="profile-info-title">Thông tin cá nhân</h2>
     </div>
 
-    <form class="profile-form" action="${pageContext.request.contextPath}/user/account/profile" method="post">
+    <form class="profile-form" action="${pageContext.request.contextPath}/user/profile" method="post">
         <input type="hidden" name="action" value="update_profile">
 
         <table class="form-table">
@@ -65,15 +108,15 @@
                 <td>
                     <div class="gender-options">
                         <label>
-                            <input type="radio" name="gender" value="Nam" ${currentUser.gender == "MALE" ? 'checked' : ''}>
+                            <input type="radio" name="gender" value="Nam" ${currentUser.gender == 'MALE' ? 'checked' : ''}>
                             <span>Nam</span>
                         </label>
                         <label>
-                            <input type="radio" name="gender" value="Nữ" ${currentUser.gender == "FEMALE" ? 'checked' : ''}>
+                            <input type="radio" name="gender" value="Nữ" ${currentUser.gender == 'FEMALE' ? 'checked' : ''}>
                             <span>Nữ</span>
                         </label>
                         <label>
-                            <input type="radio" name="gender" value="Khác" ${currentUser.gender == "OTHER" ? 'checked' : ''}>
+                            <input type="radio" name="gender" value="Khác" ${currentUser.gender == 'OTHER' ? 'checked' : ''}>
                             <span>Khác</span>
                         </label>
                     </div>
@@ -179,6 +222,63 @@
                 <i class="fa-regular fa-map"></i>
                 <p>Bạn chưa có địa chỉ nào.</p>
             </div>
-        </c:otherwise>
-    </c:choose>
-</section>
+         </c:otherwise>
+     </c:choose>
+ </section>
+
+ <!-- Avatar Upload Script -->
+ <script>
+     function triggerAvatarUpload() {
+         document.getElementById('avatarInput').click();
+     }
+
+     const avatarInput = document.getElementById('avatarInput');
+     if (avatarInput) {
+         avatarInput.addEventListener('change', function () {
+             if (this.files.length > 0) {
+                 const file = this.files[0];
+
+                 // Validate file type
+                 if (!file.type.startsWith('image/')) {
+                     alert('Vui lòng chọn một tệp hình ảnh');
+                     this.value = '';
+                     return;
+                 }
+
+                 // Validate file size (5MB)
+                 const maxSize = 5 * 1024 * 1024;
+                 if (file.size > maxSize) {
+                     alert('Hình ảnh không được vượt quá 5MB');
+                     this.value = '';
+                     return;
+                 }
+
+                 // Show preview
+                 const reader = new FileReader();
+                 reader.onload = function(e) {
+                     const avatarPreview = document.getElementById('avatarPreview');
+                     if (avatarPreview) {
+                         avatarPreview.src = e.target.result;
+                     } else {
+                         // If placeholder, replace with image
+                         const placeholder = document.querySelector('.avatar-placeholder');
+                         if (placeholder) {
+                             const img = document.createElement('img');
+                             img.src = e.target.result;
+                             img.id = 'avatarPreview';
+                             img.className = 'avatar-image';
+                             img.alt = 'Avatar preview';
+                             placeholder.replaceWith(img);
+                         }
+                     }
+                 };
+                 reader.readAsDataURL(file);
+
+                 // Submit form after a short delay to ensure all processing is done
+                 setTimeout(function() {
+                     document.getElementById('avatarForm').submit();
+                 }, 100);
+             }
+         });
+     }
+ </script>

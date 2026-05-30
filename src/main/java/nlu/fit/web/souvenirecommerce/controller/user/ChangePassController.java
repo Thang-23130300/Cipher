@@ -7,7 +7,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import nlu.fit.web.souvenirecommerce.dao.impl.UserDAOImpl;
-import nlu.fit.web.souvenirecommerce.model.User;
+import nlu.fit.web.souvenirecommerce.model.entity.User;
 
 import java.io.IOException;
 
@@ -52,7 +52,7 @@ public class ChangePassController extends HttpServlet {
         String newPassword = request.getParameter("newPassword");
         String confirmPassword = request.getParameter("confirmPassword");
 
-        if (!userDAOImpl.checkPassword(user.getId(), currentPassword)) {
+        if (user.getId() == null || !userDAOImpl.checkPassword(user.getId().intValue(), currentPassword)) {
             request.setAttribute("error", "Mật khẩu hiện tại không đúng");
         } else if (!newPassword.equals(confirmPassword)) {
             request.setAttribute("error", "Mật khẩu xác nhận không khớp");
@@ -60,7 +60,7 @@ public class ChangePassController extends HttpServlet {
             request.setAttribute("error", "Mật khẩu mới phải từ 8 ký tự trở lên");
         } else {
 
-            boolean updated = userDAOImpl.updatePassword(user.getId(), newPassword);
+            boolean updated = userDAOImpl.updatePassword(user.getId().intValue(), newPassword);
 
             if (updated) {
                 request.setAttribute("success", "Đổi mật khẩu thành công");
