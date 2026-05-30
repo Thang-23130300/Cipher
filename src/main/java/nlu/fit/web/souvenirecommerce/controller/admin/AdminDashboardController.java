@@ -5,10 +5,9 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import nlu.fit.web.souvenirecommerce.dao.OrderDAO;
-import nlu.fit.web.souvenirecommerce.dao.ProductDAO;
-import nlu.fit.web.souvenirecommerce.dao.impl.UserDAOImpl;
+import nlu.fit.web.souvenirecommerce.dto.DashboardMetricsDTO;
 import nlu.fit.web.souvenirecommerce.model.entity.Product;
+import nlu.fit.web.souvenirecommerce.service.AdminDashboardService;
 
 import java.io.IOException;
 import java.util.List;
@@ -16,15 +15,11 @@ import java.util.List;
 @WebServlet(name = "AdminDashboardController", urlPatterns = {"/admin/dashboard"})
 public class AdminDashboardController extends HttpServlet {
 
-    private ProductDAO productDAO;
-    private UserDAOImpl userDAOImpl;
-    private OrderDAO orderDAO;
+    private AdminDashboardService dashboardService;
 
     @Override
     public void init() {
-        productDAO = new ProductDAO();
-        userDAOImpl = new UserDAOImpl();
-        orderDAO = new OrderDAO();
+        dashboardService = new AdminDashboardService();
     }
 
     @Override
@@ -32,31 +27,17 @@ public class AdminDashboardController extends HttpServlet {
             throws ServletException, IOException {
 
         try {
-            // Get statistics from database
-            int totalProducts = productDAO.getTotalProducts();
-            int totalCustomers = userDAOImpl.getTotalCustomers();
-            double totalRevenue = orderDAO.getMonthlyRevenue();
-            int totalOrders = orderDAO.getMonthlyOrders();
+            DashboardMetricsDTO metrics = dashboardService.buildDashboardMetrics();
 
-            // Get top selling products
-            List<Product> topProducts = productDAO.getTopSellingProducts(10);
+            request.setAttribute("totalProducts", metrics.getTotalProducts());
+            request.setAttribute("totalCustomers", metrics.getTotalCustomers());
+            request.setAttribute("totalRevenue", metrics.getTotalRevenue());
+            request.setAttribute("totalOrders", metrics.getTotalOrders());
+            request.setAttribute("topProducts", metrics.getTopProducts());
+            request.setAttribute("recentOrders", metrics.getRecentOrders());
+            request.setAttribute("monthlyRevenues", metrics.getMonthlyRevenue());
+            request.setAttribute("dashboardMetrics", metrics);
 
-            // Get recent orders
-            List<nlu.fit.web.souvenirecommerce.model.Order> recentOrders = orderDAO.getRecentOrders(5);
-
-            // Get monthly revenue data for chart (last 6 months)
-            List<Double> monthlyRevenues = orderDAO.getMonthlyRevenueData(6);
-
-            // Set attributes
-            request.setAttribute("totalProducts", totalProducts);
-            request.setAttribute("totalCustomers", totalCustomers);
-            request.setAttribute("totalRevenue", totalRevenue);
-            request.setAttribute("totalOrders", totalOrders);
-            request.setAttribute("topProducts", topProducts);
-            request.setAttribute("recentOrders", recentOrders);
-            request.setAttribute("monthlyRevenues", monthlyRevenues);
-
-            // Forward to dashboard page
             request.getRequestDispatcher("/admin/dashboard.jsp").forward(request, response);
 
         } catch (Exception e) {
