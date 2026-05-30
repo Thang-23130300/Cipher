@@ -5,12 +5,12 @@
          version="6.0">
 
     <listener>
-        <listener-class>nlu.fit.web.souvenirecommerce.listener.DbContextListener</listener-class>
+        <listener-class>nlu.fit.web.souvenirecommerce.core.config.DbContextListener</listener-class>
     </listener>
 
     <filter>
         <filter-name>HeaderFilter</filter-name>
-        <filter-class>nlu.fit.web.souvenirecommerce.filter.HeaderFilter</filter-class>
+        <filter-class>nlu.fit.web.souvenirecommerce.core.filters.HeaderFilter</filter-class>
     </filter>
 
     <filter-mapping>

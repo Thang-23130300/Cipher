@@ -1,7 +1,7 @@
 package nlu.fit.web.souvenirecommerce.dao;
 
-import nlu.fit.web.souvenirecommerce.exception.RoleExistsException;
-import nlu.fit.web.souvenirecommerce.util.DBContext;
+import nlu.fit.web.souvenirecommerce.legacy.dao.AuthorizationDAO;
+import nlu.fit.web.souvenirecommerce.legacy.utils.DBContext;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;

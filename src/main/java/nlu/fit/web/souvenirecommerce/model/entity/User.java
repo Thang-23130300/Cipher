@@ -2,8 +2,8 @@ package nlu.fit.web.souvenirecommerce.model.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import nlu.fit.web.souvenirecommerce.enums.EmailType;
-import nlu.fit.web.souvenirecommerce.enums.Gender;
+import nlu.fit.web.souvenirecommerce.common.enums.EmailType;
+import nlu.fit.web.souvenirecommerce.common.enums.Gender;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 
