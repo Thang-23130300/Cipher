@@ -1,6 +1,7 @@
 package nlu.fit.web.souvenirecommerce.dao;
 
 import nlu.fit.web.souvenirecommerce.enums.ProductSort;
+import nlu.fit.web.souvenirecommerce.dto.CategorySalesDTO;
 import nlu.fit.web.souvenirecommerce.model.entity.Product;
 import nlu.fit.web.souvenirecommerce.model.entity.Category;
 import nlu.fit.web.souvenirecommerce.util.DBContext;
@@ -371,6 +372,88 @@ public class ProductDAO {
     public List<Product> getTopSellingProducts(int limit) {
         String sql = BASE_SELECT + " ORDER BY total_sold DESC LIMIT ?";
         return getProductsByLimit(sql, limit);
+    }
+
+    public List<Product> getLowStockProducts(int threshold) {
+        String sql = """
+            SELECT
+                p.id,
+                p.category_id,
+                p.name,
+                p.description,
+                p.original_price,
+                p.image_url,
+                p.stock_quantity,
+                p.total_sold,
+                COALESCE(p.avg_rating, 0) AS avg_rating,
+                COALESCE(p.review_count, 0) AS review_count,
+                0 AS discount_percent,
+                NULL AS sale_price
+            FROM products p
+            WHERE p.stock_quantity <= ?
+            GROUP BY
+                p.id,
+                p.category_id,
+                p.name,
+                p.description,
+                p.original_price,
+                p.image_url,
+                p.stock_quantity,
+                p.total_sold,
+                p.avg_rating,
+                p.review_count
+            ORDER BY p.stock_quantity ASC
+            LIMIT 20
+        """;
+        List<Product> list = new ArrayList<>();
+
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, threshold);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(mapProduct(rs));
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    public List<CategorySalesDTO> getTopCategoriesBySales(int limit) {
+        List<CategorySalesDTO> categories = new ArrayList<>();
+        String sql = """
+            SELECT c.category_name AS category_name,
+                   COALESCE(SUM(oi.quantity), 0) AS total_sold,
+                   COALESCE(SUM(oi.quantity * oi.price_at_purchase), 0) AS revenue
+            FROM products p
+            JOIN categories c ON p.category_id = c.id
+            JOIN order_items oi ON p.id = oi.product_id
+            JOIN orders o ON oi.order_id = o.id
+            JOIN order_status os ON o.status_id = os.id
+            WHERE os.description = 'Hoàn thành'
+            GROUP BY c.category_name
+            ORDER BY revenue DESC
+            LIMIT ?
+        """;
+
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, limit);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    CategorySalesDTO dto = new CategorySalesDTO();
+                    dto.setCategoryName(rs.getString("category_name"));
+                    dto.setTotalSold(rs.getInt("total_sold"));
+                    dto.setRevenue(rs.getDouble("revenue"));
+                    categories.add(dto);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return categories;
     }
 
     public List<Product> getAllProducts() {
