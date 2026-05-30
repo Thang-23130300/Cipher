@@ -144,10 +144,12 @@
                                                    class="btn-icon" title="Xem chi tiết">
                                                     <i class="fas fa-eye"></i>
                                                 </a>
-                                                <button class="btn-icon" title="Cập nhật trạng thái"
-                                                        onclick="showUpdateStatusModal(${order.id}, '${order.status}')">
-                                                    <i class="fas fa-edit"></i>
-                                                </button>
+                                                <c:if test="${canUpdateOrder}">
+                                                    <button class="btn-icon" title="Cập nhật trạng thái"
+                                                            onclick="showUpdateStatusModal(${order.id}, '${order.status}')">
+                                                        <i class="fas fa-edit"></i>
+                                                    </button>
+                                                </c:if>
                                             </div>
                                         </td>
                                     </tr>

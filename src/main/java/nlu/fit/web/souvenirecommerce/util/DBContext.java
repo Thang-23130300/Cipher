@@ -5,7 +5,10 @@ import com.zaxxer.hikari.HikariDataSource;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
+import java.sql.Driver;
+import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.Enumeration;
 import java.util.Properties;
 
 public final class DBContext {
@@ -44,6 +47,32 @@ public final class DBContext {
     public static void shutdown() {
         if (dataSource != null) {
             dataSource.close();
+        }
+        cleanupJdbcDriver();
+    }
+
+    private static void cleanupJdbcDriver() {
+        try {
+            Enumeration<Driver> drivers = DriverManager.getDrivers();
+            ClassLoader cl = Thread.currentThread().getContextClassLoader();
+            while (drivers.hasMoreElements()) {
+                Driver driver = drivers.nextElement();
+                if (driver.getClass().getClassLoader() == cl) {
+                    DriverManager.deregisterDriver(driver);
+                    System.out.println("Deregistered JDBC driver: " + driver);
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Error deregistering JDBC drivers: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        try {
+            com.mysql.cj.jdbc.AbandonedConnectionCleanupThread.checkedShutdown();
+            System.out.println("MySQL AbandonedConnectionCleanupThread shut down.");
+        } catch (Throwable e) {
+            System.err.println("Error shutting down MySQL AbandonedConnectionCleanupThread: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 

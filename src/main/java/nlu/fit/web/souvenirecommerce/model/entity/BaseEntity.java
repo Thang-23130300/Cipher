@@ -19,7 +19,8 @@ public abstract class BaseEntity {
     protected LocalDateTime createdAt;
 
     @UpdateTimestamp
-    @Column(name = "updated_at", nullable = false)
+    @Column(name = "updated_at", nullable = false,
+            columnDefinition = "datetime(6) default CURRENT_TIMESTAMP(6) on update CURRENT_TIMESTAMP(6)")
     protected LocalDateTime updatedAt;
 
     @Column(name = "deleted_at")

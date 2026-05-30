@@ -29,7 +29,7 @@
                 <h1 class="content-title">Dashboard</h1>
                 <div class="content-actions">
                     <div style="position: relative; display: inline-block;">
-                        <button class="btn btn-secondary" onclick="toggleReportMenu(event)">
+                        <button type="button" id="reportMenuButton" class="btn btn-secondary" onclick="toggleReportMenu(event)" aria-haspopup="true" aria-expanded="false" aria-controls="reportMenu">
                             <svg class="btn-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
                                 <polyline points="7 10 12 15 17 10"/>
@@ -37,28 +37,30 @@
                             </svg>
                             Xuất báo cáo
                         </button>
-                        <div id="reportMenu" style="display: none; position: absolute; top: 100%; right: 0; margin-top: 8px; background: white; border: 1px solid #e5e7eb; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); min-width: 200px; z-index: 1000;">
-                            <a href="${ctx}/admin/export-report?type=summary" style="display: block; padding: 12px 16px; text-decoration: none; color: #374151; border-bottom: 1px solid #e5e7eb;">
+                        <div id="reportMenu" role="menu" style="display: none; position: absolute; top: 100%; right: 0; margin-top: 8px; background: white; border: 1px solid #e5e7eb; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); min-width: 200px; z-index: 1000;">
+                            <a href="${ctx}/admin/export-report?type=summary" role="menuitem" style="display: block; padding: 12px 16px; text-decoration: none; color: #374151; border-bottom: 1px solid #e5e7eb;">
                                 <i class="fas fa-chart-line" style="margin-right: 8px;"></i> Báo cáo tổng quan
                             </a>
-                            <a href="${ctx}/admin/export-report?type=products" style="display: block; padding: 12px 16px; text-decoration: none; color: #374151; border-bottom: 1px solid #e5e7eb;">
+                            <a href="${ctx}/admin/export-report?type=products" role="menuitem" style="display: block; padding: 12px 16px; text-decoration: none; color: #374151; border-bottom: 1px solid #e5e7eb;">
                                 <i class="fas fa-box" style="margin-right: 8px;"></i> Báo cáo sản phẩm
                             </a>
-                            <a href="${ctx}/admin/export-report?type=orders" style="display: block; padding: 12px 16px; text-decoration: none; color: #374151; border-bottom: 1px solid #e5e7eb;">
+                            <a href="${ctx}/admin/export-report?type=orders" role="menuitem" style="display: block; padding: 12px 16px; text-decoration: none; color: #374151; border-bottom: 1px solid #e5e7eb;">
                                 <i class="fas fa-shopping-cart" style="margin-right: 8px;"></i> Báo cáo đơn hàng
                             </a>
-                            <a href="${ctx}/admin/export-report?type=customers" style="display: block; padding: 12px 16px; text-decoration: none; color: #374151;">
+                            <a href="${ctx}/admin/export-report?type=customers" role="menuitem" style="display: block; padding: 12px 16px; text-decoration: none; color: #374151;">
                                 <i class="fas fa-users" style="margin-right: 8px;"></i> Báo cáo khách hàng
                             </a>
                         </div>
                     </div>
-                    <button class="btn btn-primary" onclick="window.location.href='${ctx}/admin/products?action=add'">
-                        <svg class="btn-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M5 12h14"/>
-                            <path d="M12 5v14"/>
-                        </svg>
-                        Thêm sản phẩm
-                    </button>
+                    <c:if test="${canCreateProduct}">
+                        <button class="btn btn-primary" onclick="window.location.href='${ctx}/admin/products?action=add'">
+                            <svg class="btn-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M5 12h14"/>
+                                <path d="M12 5v14"/>
+                            </svg>
+                            Thêm sản phẩm
+                        </button>
+                    </c:if>
                 </div>
             </div>
 
@@ -157,7 +159,7 @@
                                             <div style="display: flex; align-items: center; gap: 1rem; padding: 0.75rem 0; border-bottom: 1px solid var(--border);">
                                                 <div style="flex: 1;">
                                                     <p style="font-weight: 500; font-size: 0.875rem;">#${order.id}</p>
-                                                    <p style="font-size: 0.75rem; color: var(--muted-foreground);">${order.customerName}</p>
+                                                    <p style="font-size: 0.75rem; color: var(--muted-foreground);"><c:out value="${order.customerName}"/></p>
                                                 </div>
                                                 <div style="text-align: right;">
                                                     <p style="font-weight: 600; font-size: 0.875rem;">
@@ -202,22 +204,22 @@
                                         <c:forEach items="${recentOrders}" var="order">
                                             <tr>
                                                 <td>#${order.id}</td>
-                                                <td>${order.customerName}</td>
+                                                <td><c:out value="${order.customerName}"/></td>
                                                 <td><fmt:formatDate value="${order.orderDate}" pattern="dd/MM/yyyy HH:mm"/></td>
                                                 <td><fmt:formatNumber value="${order.totalAmount}" pattern="#,###"/>₫</td>
                                                 <td>
                                                     <c:choose>
                                                         <c:when test="${order.status == 'Đang xử lý'}">
-                                                            <span class="badge badge-warning">${order.status}</span>
+                                                            <span class="badge badge-warning"><c:out value="${order.status}"/></span>
                                                         </c:when>
                                                         <c:when test="${order.status == 'Đang giao'}">
-                                                            <span class="badge badge-info">${order.status}</span>
+                                                            <span class="badge badge-info"><c:out value="${order.status}"/></span>
                                                         </c:when>
                                                         <c:when test="${order.status == 'Hoàn thành'}">
-                                                            <span class="badge badge-success">${order.status}</span>
+                                                            <span class="badge badge-success"><c:out value="${order.status}"/></span>
                                                         </c:when>
                                                         <c:otherwise>
-                                                            <span class="badge badge-secondary">${order.status}</span>
+                                                            <span class="badge badge-secondary"><c:out value="${order.status}"/></span>
                                                         </c:otherwise>
                                                     </c:choose>
                                                 </td>
@@ -239,28 +241,42 @@
                             <p class="card-description">Top 10 sản phẩm bán chạy nhất</p>
                         </div>
                         <div class="card-content">
-                            <table class="data-table">
-                                <thead>
-                                <tr>
-                                    <th>Sản phẩm</th>
-                                    <th>Danh mục</th>
-                                    <th>Giá</th>
-                                    <th>Đã bán</th>
-                                    <th>Tồn kho</th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                <c:forEach items="${topProducts}" var="product">
-                                    <tr>
-                                        <td>${product.name}</td>
-                                        <td>${product.categoryName}</td>
-                                        <td><fmt:formatNumber value="${product.originalPrice}" type="currency" currencySymbol="₫" maxFractionDigits="0"/></td>
-                                        <td>${product.totalSold}</td>
-                                        <td>${product.stockQuantity}</td>
-                                    </tr>
-                                </c:forEach>
-                                </tbody>
-                            </table>
+                            <c:choose>
+                                <c:when test="${empty topProducts}">
+                                    <div style="padding: 3rem; text-align: center; color: var(--muted-foreground);">
+                                        <p>Không có sản phẩm bán chạy</p>
+                                    </div>
+                                </c:when>
+                                <c:otherwise>
+                                    <table class="data-table">
+                                        <thead>
+                                        <tr>
+                                            <th>Sản phẩm</th>
+                                            <th>Danh mục</th>
+                                            <th>Giá</th>
+                                            <th>Đã bán</th>
+                                            <th>Tồn kho</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        <c:forEach items="${topProducts}" var="product">
+                                            <tr>
+                                                <td><c:out value="${product.name}"/></td>
+                                                <td>
+                                                    <c:choose>
+                                                        <c:when test="${not empty product.category}"><c:out value="${product.category.categoryName}"/></c:when>
+                                                        <c:otherwise>Không xác định</c:otherwise>
+                                                    </c:choose>
+                                                </td>
+                                                <td><fmt:formatNumber value="${product.originalPrice}" type="currency" currencySymbol="₫" maxFractionDigits="0"/></td>
+                                                <td>${product.totalSold}</td>
+                                                <td>${product.stockQuantity}</td>
+                                            </tr>
+                                        </c:forEach>
+                                        </tbody>
+                                    </table>
+                                </c:otherwise>
+                            </c:choose>
                         </div>
                     </div>
                 </div>
@@ -289,14 +305,31 @@
     function toggleReportMenu(event) {
         event.stopPropagation();
         const menu = document.getElementById('reportMenu');
-        menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+        const button = document.getElementById('reportMenuButton');
+        const isOpen = menu.style.display === 'block';
+        menu.style.display = isOpen ? 'none' : 'block';
+        button?.setAttribute('aria-expanded', String(!isOpen));
     }
 
     // Close menu when clicking outside
     document.addEventListener('click', function(event) {
         const menu = document.getElementById('reportMenu');
+        const button = document.getElementById('reportMenuButton');
         if (menu.style.display === 'block') {
             menu.style.display = 'none';
+            button?.setAttribute('aria-expanded', 'false');
+        }
+    });
+
+    // Close menu when pressing Escape
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape') {
+            const menu = document.getElementById('reportMenu');
+            const button = document.getElementById('reportMenuButton');
+            if (menu.style.display === 'block') {
+                menu.style.display = 'none';
+                button?.setAttribute('aria-expanded', 'false');
+            }
         }
     });
 
@@ -314,9 +347,14 @@
     if (ctx) {
         // Get data from JSP
         const revenueData = [
-            <c:forEach items="${monthlyRevenues}" var="revenue" varStatus="status">
-            ${revenue}<c:if test="${!status.last}">,</c:if>
-            </c:forEach>
+            <c:choose>
+                <c:when test="${not empty monthlyRevenues}">
+                    <c:forEach items="${monthlyRevenues}" var="revenue" varStatus="status">
+                        ${revenue}<c:if test="${!status.last}">,</c:if>
+                    </c:forEach>
+                </c:when>
+                <c:otherwise>0,0,0,0,0,0</c:otherwise>
+            </c:choose>
         ];
 
         // Get month labels (last 6 months)

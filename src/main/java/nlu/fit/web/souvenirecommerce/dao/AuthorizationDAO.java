@@ -213,6 +213,58 @@ public class AuthorizationDAO {
         }
     }
 
+    public boolean hasAnyPermission(long userId, String... resources) {
+        if (resources == null || resources.length == 0) return false;
+        try (var session = HibernateUtil.getSessionFactory().openSession()) {
+            Long count = session.createQuery("""
+                    select count(distinct p.id) from User u
+                    join u.roles r
+                    join r.permissions p
+                    where u.id = :uid and p.resource in :resources
+                    """, Long.class)
+                    .setParameter("uid", userId)
+                    .setParameter("resources", List.of(resources))
+                    .uniqueResult();
+            return count != null && count > 0;
+        }
+    }
+
+    public List<PermissionItem> getUserPermissions(long userId) {
+        try (var session = HibernateUtil.getSessionFactory().openSession()) {
+            return session.createQuery("""
+                    select distinct p from User u
+                    join u.roles r
+                    join r.permissions p
+                    where u.id = :uid
+                    order by p.resource, p.action
+                    """, Permission.class)
+                    .setParameter("uid", userId)
+                    .getResultList()
+                    .stream()
+                    .map(this::toPermissionItem)
+                    .toList();
+        }
+    }
+
+    public List<PermissionGroup> getUserRoles(long userId) {
+        try (var session = HibernateUtil.getSessionFactory().openSession()) {
+            User user = session.createQuery("""
+                    select distinct u from User u
+                    left join fetch u.roles r
+                    left join fetch r.permissions
+                    where u.id = :uid
+                    """, User.class)
+                    .setParameter("uid", userId)
+                    .uniqueResult();
+            if (user == null || user.getRoles() == null) {
+                return List.of();
+            }
+            return user.getRoles().stream()
+                    .map(this::toPermissionGroup)
+                    .toList();
+        }
+    }
+
     public Map<Long, List<Long>> getUserIdsByRoleIds(List<Long> roleIds) {
         Map<Long, List<Long>> result = new LinkedHashMap<>();
         if (roleIds == null) return result;

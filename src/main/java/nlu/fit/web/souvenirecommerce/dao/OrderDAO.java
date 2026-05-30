@@ -7,8 +7,12 @@ import nlu.fit.web.souvenirecommerce.util.DBContext;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 public class OrderDAO {
 
@@ -83,6 +87,66 @@ public class OrderDAO {
             e.printStackTrace();
         }
         return 0;
+    }
+
+    public List<Integer> getMonthlyOrdersData(int months) {
+        List<Integer> counts = new ArrayList<>();
+        Map<String, Integer> countByMonth = new HashMap<>();
+        String sql = """
+            SELECT YEAR(o.order_date) AS y,
+                   MONTH(o.order_date) AS m,
+                   COUNT(*) AS total_orders
+            FROM orders o
+            JOIN order_status os ON o.status_id = os.id
+            WHERE os.description = 'Hoàn thành'
+              AND o.order_date >= DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL ? MONTH), '%Y-%m-01')
+              AND o.order_date < DATE_ADD(DATE_FORMAT(CURDATE(), '%Y-%m-01'), INTERVAL 1 MONTH)
+            GROUP BY y, m
+            ORDER BY y, m
+        """;
+
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, months - 1);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    String key = rs.getInt("y") + "-" + rs.getInt("m");
+                    countByMonth.put(key, rs.getInt("total_orders"));
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        LocalDate current = LocalDate.now();
+        for (int i = months - 1; i >= 0; i--) {
+            LocalDate month = current.minusMonths(i);
+            String key = month.getYear() + "-" + month.getMonthValue();
+            counts.add(countByMonth.getOrDefault(key, 0));
+        }
+        return counts;
+    }
+
+    public Map<String, Integer> getOrderStatusCounts() {
+        Map<String, Integer> statusCounts = new LinkedHashMap<>();
+        String sql = """
+            SELECT os.description AS status, COUNT(*) AS total
+            FROM orders o
+            JOIN order_status os ON o.status_id = os.id
+            GROUP BY os.description
+            ORDER BY total DESC
+        """;
+
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                statusCounts.put(rs.getString("status"), rs.getInt("total"));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return statusCounts;
     }
 
     public List<Order> getAllOrders() {
@@ -411,32 +475,40 @@ public class OrderDAO {
 
     public List<Double> getMonthlyRevenueData(int months) {
         List<Double> revenues = new ArrayList<>();
+        Map<String, Double> revenueMap = new HashMap<>();
         String sql = """
-            SELECT COALESCE(SUM(o.total_amount), 0) as revenue
+            SELECT YEAR(o.order_date) AS y,
+                   MONTH(o.order_date) AS m,
+                   COALESCE(SUM(o.total_amount), 0) AS revenue
             FROM orders o
             JOIN order_status os ON o.status_id = os.id
             WHERE os.description = 'Hoàn thành'
-            AND o.order_date >= DATE_SUB(CURDATE(), INTERVAL ? MONTH)
-            AND o.order_date < DATE_SUB(CURDATE(), INTERVAL ? MONTH) + INTERVAL 1 MONTH
+              AND o.order_date >= DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL ? MONTH), '%Y-%m-01')
+              AND o.order_date < DATE_ADD(DATE_FORMAT(CURDATE(), '%Y-%m-01'), INTERVAL 1 MONTH)
+            GROUP BY y, m
+            ORDER BY y, m
         """;
 
-        for (int i = months - 1; i >= 0; i--) {
-            try (Connection conn = DBContext.getConnection();
-                 PreparedStatement ps = conn.prepareStatement(sql)) {
-                ps.setInt(1, i + 1);
-                ps.setInt(2, i);
-                try (ResultSet rs = ps.executeQuery()) {
-                    if (rs.next()) {
-                        revenues.add(rs.getDouble("revenue"));
-                    } else {
-                        revenues.add(0.0);
-                    }
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, months - 1);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    String key = rs.getInt("y") + "-" + rs.getInt("m");
+                    revenueMap.put(key, rs.getDouble("revenue"));
                 }
-            } catch (Exception e) {
-                e.printStackTrace();
-                revenues.add(0.0);
             }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
+
+        LocalDate today = LocalDate.now();
+        for (int i = months - 1; i >= 0; i--) {
+            LocalDate month = today.minusMonths(i);
+            String key = month.getYear() + "-" + month.getMonthValue();
+            revenues.add(revenueMap.getOrDefault(key, 0.0));
+        }
+
         return revenues;
     }
 

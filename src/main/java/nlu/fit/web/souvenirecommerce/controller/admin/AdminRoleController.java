@@ -12,6 +12,8 @@ import nlu.fit.web.souvenirecommerce.model.PermissionGroup;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import nlu.fit.web.souvenirecommerce.exception.RoleExistsException;
+import nlu.fit.web.souvenirecommerce.exception.PermissionNotFoundException;
 
 @WebServlet("/admin/roles")
 public class AdminRoleController extends HttpServlet {
@@ -107,9 +109,17 @@ public class AdminRoleController extends HttpServlet {
                 }
             }
         } catch (Exception e) {
-            e.printStackTrace();
-            req.getSession().setAttribute("message", "Có lỗi xảy ra: " + e.getMessage());
-            req.getSession().setAttribute("messageType", "error");
+            if (e instanceof RoleExistsException) {
+                req.getSession().setAttribute("message", "Tên nhóm quyền đã tồn tại!");
+                req.getSession().setAttribute("messageType", "error");
+            } else if (e instanceof PermissionNotFoundException) {
+                req.getSession().setAttribute("message", "Có quyền không hợp lệ (một hoặc nhiều permissions không tồn tại).");
+                req.getSession().setAttribute("messageType", "error");
+            } else {
+                e.printStackTrace();
+                req.getSession().setAttribute("message", "Có lỗi xảy ra: " + e.getMessage());
+                req.getSession().setAttribute("messageType", "error");
+            }
         }
 
         resp.sendRedirect(req.getContextPath() + "/admin/roles");

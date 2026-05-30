@@ -32,8 +32,14 @@ public class User extends BaseEntity {
     @Column(name = "last_name", length = 50, nullable = false)
     private String lastName;
 
+    @Column(name = "full_name", length = 100, nullable = false)
+    private String fullName;
+
     @Column(nullable = false, unique = true)
     private String email;
+
+    @Column(name = "password", nullable = false)
+    private String password;
 
     @Column(length = 20, nullable = false)
     private String phone;
@@ -87,8 +93,18 @@ public class User extends BaseEntity {
                         && p.getAction().equals(action));
     }
 
+    @PrePersist
+    @PreUpdate
+    private void syncFullName() {
+        String first = firstName == null ? "" : firstName.trim();
+        String last = lastName == null ? "" : lastName.trim();
+        this.fullName = (first + " " + last).trim();
+    }
+
     public String getFullName() {
-        return (firstName + " " + lastName).trim();
+        return fullName != null && !fullName.isBlank()
+                ? fullName
+                : (firstName + " " + lastName).trim();
     }
 
     public String getGender(){

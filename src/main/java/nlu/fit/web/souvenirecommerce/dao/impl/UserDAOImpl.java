@@ -475,6 +475,20 @@ public class UserDAOImpl {
         }
     }
 
+    public int getNewCustomerCount(int days) {
+        try (var session = HibernateUtil.getSessionFactory().openSession()) {
+            LocalDateTime since = LocalDateTime.now().minusDays(days);
+            Long count = session.createQuery("""
+                    select count(u.id) from User u
+                    join u.roles r
+                    where lower(r.name) = 'customer' and u.createdAt >= :since
+                    """, Long.class)
+                    .setParameter("since", since)
+                    .uniqueResult();
+            return count != null ? count.intValue() : 0;
+        }
+    }
+
     private void rollback(Transaction tx) {
         if (tx != null) {
             try {
