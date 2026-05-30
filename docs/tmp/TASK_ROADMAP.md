@@ -177,7 +177,7 @@
 
 ### 1.4 User Authentication API
 - [ ] **1.4.1** REST API Endpoints
-  - [ ] POST /api/auth/register - User registration
+  - [ ] POST /api/auth/signup - User registration
   - [ ] POST /api/auth/login - User login
   - [ ] POST /api/auth/logout - User logout
   - [ ] POST /api/auth/forgot-password - Forgot password

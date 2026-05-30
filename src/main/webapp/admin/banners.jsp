@@ -37,9 +37,11 @@
         <div class="admin-content">
             <div class="content-header">
                 <h1>Quản lý Banner</h1>
-                <button class="btn-primary" onclick="openAddModal()">
-                    <i class="fas fa-plus"></i> Thêm banner mới
-                </button>
+                <c:if test="${canCreateBanner}">
+                    <button class="btn-primary" onclick="openAddModal()">
+                        <i class="fas fa-plus"></i> Thêm banner mới
+                    </button>
+                </c:if>
             </div>
 
             <div class="card">
@@ -71,23 +73,27 @@
                                     </c:choose>
                                 </p>
                                 <div class="action-buttons" style="margin-top: 12px;">
-                                    <button class="btn-icon btn-edit" onclick="openEditModal(${banner.id}, '${banner.title}', ${banner.position}, ${banner.status}, '${pageContext.request.contextPath}/${banner.imageUrl}')" title="Sửa">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                    <form action="${pageContext.request.contextPath}/admin/banner" method="post" style="display: inline;">
-                                        <input type="hidden" name="action" value="toggle">
-                                        <input type="hidden" name="id" value="${banner.id}">
-                                        <button class="btn-icon" style="background: ${banner.status ? '#f59e0b' : '#10b981'};" title="${banner.status ? 'Ẩn' : 'Hiện'}">
-                                            <i class="fas fa-${banner.status ? 'eye-slash' : 'eye'}"></i>
+                                    <c:if test="${canUpdateBanner}">
+                                        <button class="btn-icon btn-edit" onclick="openEditModal(${banner.id}, '${banner.title}', ${banner.position}, ${banner.status}, '${pageContext.request.contextPath}/${banner.imageUrl}')" title="Sửa">
+                                            <i class="fas fa-edit"></i>
                                         </button>
-                                    </form>
-                                    <form action="${pageContext.request.contextPath}/admin/banner" method="post" style="display: inline;" onsubmit="return confirm('Bạn có chắc muốn xóa banner này?');">
-                                        <input type="hidden" name="action" value="delete">
-                                        <input type="hidden" name="id" value="${banner.id}">
-                                        <button class="btn-icon btn-delete" title="Xóa">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </form>
+                                        <form action="${pageContext.request.contextPath}/admin/banner" method="post" style="display: inline;">
+                                            <input type="hidden" name="action" value="toggle">
+                                            <input type="hidden" name="id" value="${banner.id}">
+                                            <button class="btn-icon" style="background: ${banner.status ? '#f59e0b' : '#10b981'};" title="${banner.status ? 'Ẩn' : 'Hiện'}">
+                                                <i class="fas fa-${banner.status ? 'eye-slash' : 'eye'}"></i>
+                                            </button>
+                                        </form>
+                                    </c:if>
+                                    <c:if test="${canDeleteBanner}">
+                                        <form action="${pageContext.request.contextPath}/admin/banner" method="post" style="display: inline;" onsubmit="return confirm('Bạn có chắc muốn xóa banner này?');">
+                                            <input type="hidden" name="action" value="delete">
+                                            <input type="hidden" name="id" value="${banner.id}">
+                                            <button class="btn-icon btn-delete" title="Xóa">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    </c:if>
                                 </div>
                             </div>
                         </div>
