@@ -1,15 +1,16 @@
 package nlu.fit.web.souvenirecommerce.legacy.dao.impl;
 
-import nlu.fit.web.souvenirecommerce.legacy.dao.IOAuthAccountEntityIDAO;
+import nlu.fit.web.souvenirecommerce.common.base.AbsBaseRepository;
+import nlu.fit.web.souvenirecommerce.legacy.dao.IOAuthAccountEntityIRepository;
 import nlu.fit.web.souvenirecommerce.model.entity.OAuthAccount;
 import nlu.fit.web.souvenirecommerce.core.config.HibernateUtil;
 
 import java.util.List;
 import java.util.Optional;
 
-public class OAuthAccountIDAOImpl extends AbstractHibernateIDAO<Long, OAuthAccount> implements IOAuthAccountEntityIDAO {
+public class OAuthAccountIRepositoryImpl extends AbsBaseRepository<Long, OAuthAccount> implements IOAuthAccountEntityIRepository {
 
-    public OAuthAccountIDAOImpl() {
+    public OAuthAccountIRepositoryImpl() {
         super(OAuthAccount.class);
     }
 

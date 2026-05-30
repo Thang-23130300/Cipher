@@ -1,6 +1,7 @@
 package nlu.fit.web.souvenirecommerce.legacy.dao.impl;
 
-import nlu.fit.web.souvenirecommerce.legacy.dao.ISessionEntityIDAO;
+import nlu.fit.web.souvenirecommerce.common.base.AbsBaseRepository;
+import nlu.fit.web.souvenirecommerce.legacy.dao.ISessionEntityIRepository;
 import nlu.fit.web.souvenirecommerce.model.entity.UserSession;
 import nlu.fit.web.souvenirecommerce.core.config.HibernateUtil;
 
@@ -8,7 +9,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-public class SessionDAOImpl extends AbstractHibernateIDAO<String, UserSession> implements ISessionEntityIDAO {
+public class SessionDAOImpl extends AbsBaseRepository<String, UserSession> implements ISessionEntityIRepository {
 
     public SessionDAOImpl() {
         super(UserSession.class);

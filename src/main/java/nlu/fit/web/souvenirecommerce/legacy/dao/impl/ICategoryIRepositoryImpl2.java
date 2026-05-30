@@ -1,6 +1,7 @@
 package nlu.fit.web.souvenirecommerce.legacy.dao.impl;
 
-import nlu.fit.web.souvenirecommerce.legacy.dao.ICategoryEntityIDAO;
+import nlu.fit.web.souvenirecommerce.common.base.AbsBaseRepository;
+import nlu.fit.web.souvenirecommerce.legacy.dao.ICategoryEntityIRepository;
 import nlu.fit.web.souvenirecommerce.model.entity.Category;
 import nlu.fit.web.souvenirecommerce.core.config.HibernateUtil;
 import org.hibernate.Transaction;
@@ -9,9 +10,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-public class ICategoryIDAOImpl2 extends AbstractHibernateIDAO<Long, Category> implements ICategoryEntityIDAO {
+public class ICategoryIRepositoryImpl2 extends AbsBaseRepository<Long, Category> implements ICategoryEntityIRepository {
 
-    public ICategoryIDAOImpl2() {
+    public ICategoryIRepositoryImpl2() {
         super(Category.class);
     }
 

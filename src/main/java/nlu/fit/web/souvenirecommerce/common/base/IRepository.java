@@ -1,9 +1,9 @@
-package nlu.fit.web.souvenirecommerce.legacy.dao;
+package nlu.fit.web.souvenirecommerce.common.base;
 
 import java.util.List;
 import java.util.Optional;
 
-public interface IDAO<K, T> {
+public interface IRepository<K, T> {
 
     Optional<T> save(T t);
 

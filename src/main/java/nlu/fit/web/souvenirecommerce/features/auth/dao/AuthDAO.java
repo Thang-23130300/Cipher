@@ -1,7 +1,7 @@
 package nlu.fit.web.souvenirecommerce.features.auth.dao;
 
 import nlu.fit.web.souvenirecommerce.legacy.dao.IUserDAO;
-import nlu.fit.web.souvenirecommerce.legacy.dao.impl.AbstractHibernateIDAO;
+import nlu.fit.web.souvenirecommerce.common.base.AbsBaseRepository;
 import nlu.fit.web.souvenirecommerce.common.enums.Gender;
 import nlu.fit.web.souvenirecommerce.common.enums.VerificationCodePurpose;
 import nlu.fit.web.souvenirecommerce.model.entity.OAuthAccount;
@@ -17,9 +17,8 @@ import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
-public class AuthDAO extends AbstractHibernateIDAO<Long, User> implements IUserDAO {
+public class AuthDAO extends AbsBaseRepository<Long, User> implements IUserDAO {
 
     public AuthDAO() {
         super(User.class);
@@ -344,5 +343,11 @@ public class AuthDAO extends AbstractHibernateIDAO<Long, User> implements IUserD
     private String normalizeName(String value, String fallback) {
         if (value == null || value.isBlank()) return fallback;
         return value.trim();
+    }
+
+    private void rollback(Transaction transaction) {
+        if (transaction != null && transaction.isActive()) {
+            transaction.rollback();
+        }
     }
 }

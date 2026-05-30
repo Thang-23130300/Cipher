@@ -1,15 +1,16 @@
 package nlu.fit.web.souvenirecommerce.legacy.dao.impl;
 
-import nlu.fit.web.souvenirecommerce.legacy.dao.IProductEntityIDAO;
+import nlu.fit.web.souvenirecommerce.common.base.AbsBaseRepository;
+import nlu.fit.web.souvenirecommerce.legacy.dao.IProductEntityIRepository;
 import nlu.fit.web.souvenirecommerce.model.entity.Product;
 import nlu.fit.web.souvenirecommerce.core.config.HibernateUtil;
 
 import java.util.List;
 import java.util.Optional;
 
-public class ProductIDAOImpl2 extends AbstractHibernateIDAO<Long, Product> implements IProductEntityIDAO {
+public class ProductIRepositoryImpl2 extends AbsBaseRepository<Long, Product> implements IProductEntityIRepository {
 
-    public ProductIDAOImpl2() {
+    public ProductIRepositoryImpl2() {
         super(Product.class);
     }
 

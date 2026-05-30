@@ -69,6 +69,8 @@ public class HibernateUtil {
         configuration.setProperty("hibernate.show_sql", props.getProperty("hibernate.show_sql", "true"));
         configuration.setProperty("hibernate.format_sql", props.getProperty("hibernate.format_sql", "true"));
         configuration.setProperty("hibernate.highlight_sql", props.getProperty("hibernate.highlight_sql", "true"));
+        configuration.setProperty("hibernate.current_session_context_class",
+                props.getProperty("hibernate.current_session_context_class", "thread"));
 
         configuration.setProperty("hibernate.hikari.poolName", props.getProperty("hibernate.hikari.poolName", "SouvenirHibernatePool"));
         configuration.setProperty("hibernate.hikari.minimumIdle", props.getProperty("hibernate.hikari.minimumIdle", "2"));

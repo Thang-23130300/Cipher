@@ -1,10 +1,11 @@
 package nlu.fit.web.souvenirecommerce.legacy.dao;
 
+import nlu.fit.web.souvenirecommerce.common.base.IRepository;
 import nlu.fit.web.souvenirecommerce.model.entity.UserCredential;
 
 import java.util.Optional;
 
-public interface IUserCredentialIDAO extends IDAO<Long, UserCredential> {
+public interface IUserCredentialIRepository extends IRepository<Long, UserCredential> {
 
     Optional<UserCredential> findByVerificationToken(String token);
 
