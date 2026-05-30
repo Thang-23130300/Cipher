@@ -35,6 +35,7 @@ public class HibernateUtil {
         configuration.addAnnotatedClass(UserSession.class);
         configuration.addAnnotatedClass(User.class);
         configuration.addAnnotatedClass(UserCredential.class);
+        configuration.addAnnotatedClass(VerificationCode.class);
         configuration.addAnnotatedClass(Address.class);
     }
 

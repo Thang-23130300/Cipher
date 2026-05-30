@@ -29,10 +29,11 @@
 
                 <div class="avatar-container">
                     <c:choose>
-                        <c:when test="${not empty sessionScope.userInSession.avatar}">
-                            <img src="${pageContext.request.contextPath}/assets/image/Avatar/${sessionScope.userInSession.avatar}"
+                        <c:when test="${not empty sessionScope.userInSession.avatarUrl}">
+                            <img src="${sessionScope.userInSession.avatarUrl}"
                                  class="avatar-img"
-                                 style="width:80px;height:80px;border-radius:50%;object-fit:cover;">
+                                 style="width:80px;height:80px;border-radius:50%;object-fit:cover;"
+                                 alt="Avatar">
                         </c:when>
                         <c:otherwise>
                             <i class="fa-solid fa-user-circle avatar-placeholder"></i>
@@ -60,8 +61,9 @@
 
                     <button type="button"
                             class="btn-change-avatar"
-                            onclick="triggerAvatarUpload()">
-                        Thay đổi ảnh
+                            onclick="triggerAvatarUpload()"
+                            style="margin-top: 10px; padding: 8px 16px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                        <i class="fa-solid fa-camera"></i> Thay đổi ảnh
                     </button>
                 </form>
             </div>
@@ -95,7 +97,18 @@
         <!-- ===== CONTENT ===== -->
         <main class="account-content">
 
-            <!-- PROFILE -->
+            <!-- MESSAGE DISPLAY -->
+            <c:if test="${not empty sessionScope.profileMessage}">
+                <div class="alert alert-${sessionScope.profileMessageType eq 'success' ? 'success' : 'danger'}"
+                     style="padding: 12px 15px; margin-bottom: 20px; border-radius: 4px;
+                            background-color: ${sessionScope.profileMessageType eq 'success' ? '#d4edda' : '#f8d7da'};
+                            color: ${sessionScope.profileMessageType eq 'success' ? '#155724' : '#721c24'};
+                            border: 1px solid ${sessionScope.profileMessageType eq 'success' ? '#c3e6cb' : '#f5c6cb'};">
+                    ${sessionScope.profileMessage}
+                </div>
+                <c:remove var="profileMessage" scope="session"/>
+                <c:remove var="profileMessageType" scope="session"/>
+            </c:if>
             <div class="profile-card">
                 <h2>Thông tin cá nhân</h2>
 
@@ -247,6 +260,32 @@
 
     document.getElementById('avatarInput').addEventListener('change', function () {
         if (this.files.length > 0) {
+            const file = this.files[0];
+
+            // Validate file type
+            if (!file.type.startsWith('image/')) {
+                alert('Vui lòng chọn một tệp hình ảnh');
+                return;
+            }
+
+            // Validate file size (5MB)
+            const maxSize = 5 * 1024 * 1024;
+            if (file.size > maxSize) {
+                alert('Hình ảnh không được vượt quá 5MB');
+                return;
+            }
+
+            // Show preview
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const avatarImg = document.querySelector('.avatar-img');
+                if (avatarImg) {
+                    avatarImg.src = e.target.result;
+                }
+            };
+            reader.readAsDataURL(file);
+
+            // Submit form
             document.getElementById('avatarForm').submit();
         }
     });

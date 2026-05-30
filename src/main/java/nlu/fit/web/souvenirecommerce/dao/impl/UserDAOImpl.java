@@ -1,646 +1,515 @@
 package nlu.fit.web.souvenirecommerce.dao.impl;
 
-import nlu.fit.web.souvenirecommerce.model.Address;
-import nlu.fit.web.souvenirecommerce.model.User;
-import nlu.fit.web.souvenirecommerce.util.DBContext;
+import nlu.fit.web.souvenirecommerce.enums.Gender;
+import nlu.fit.web.souvenirecommerce.model.entity.Address;
+import nlu.fit.web.souvenirecommerce.model.entity.Role;
+import nlu.fit.web.souvenirecommerce.model.entity.User;
+import nlu.fit.web.souvenirecommerce.model.entity.UserCredential;
+import nlu.fit.web.souvenirecommerce.util.HibernateUtil;
 import nlu.fit.web.souvenirecommerce.util.PasswordUtil;
+import org.hibernate.Transaction;
 
-import java.sql.Connection;
-import java.sql.DatabaseMetaData;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
+import java.util.Optional;
+import java.util.Set;
 
 public class UserDAOImpl {
 
     public User login(String loginDetail, String password) {
-        String sql = "SELECT * FROM users WHERE (email = ? OR phone = ?) AND status = 'Active'";
-
-        try (Connection conn = new DBContext().getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setString(1, loginDetail.trim());
-            ps.setString(2, loginDetail.trim());
-            ResultSet rs = ps.executeQuery();
-
-            if (rs.next() && PasswordUtil.checkPassword(password, rs.getString("password"))) {
-                return mapUser(rs);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
+        if (loginDetail == null || loginDetail.isBlank() || password == null || password.isBlank()) return null;
+        String hql = """
+                select distinct u from User u
+                left join fetch u.credentials
+                left join fetch u.roles
+                where (lower(u.email) = lower(:login) or u.phone = :login) and u.isActive = true
+                """;
+        try (var session = HibernateUtil.getSessionFactory().openSession()) {
+            return session.createQuery(hql, User.class)
+                    .setParameter("login", loginDetail.trim())
+                    .uniqueResultOptional()
+                    .filter(u -> u.getCredentials() != null
+                            && PasswordUtil.checkPassword(password, u.getCredentials().getPasswordHash()))
+                    .orElse(null);
         }
-        return null;
     }
 
     public boolean register(String email, String password, String fullName, String phone) {
-        String sql = "INSERT INTO users (full_name, email, password, phone, status, role, avatar) " +
-                "VALUES (?, ?, ?, ?, 'Active', 'User', 'default-avatar.png')";
-
-        try (Connection conn = new DBContext().getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setString(1, fullName);
-            ps.setString(2, email);
-            ps.setString(3, PasswordUtil.hashPassword(password));
-            ps.setString(4, phone);
-            return ps.executeUpdate() > 0;
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return false;
+        return insertUser(fullName, email, password, phone);
     }
 
     public boolean setResetCode(String accountInfo, String code) {
-        String sql = "UPDATE users SET reset_token = ?, token_expiry = DATE_ADD(NOW(), INTERVAL 5 MINUTE) " +
-                "WHERE email = ? OR phone = ?";
-
-        try (Connection conn = new DBContext().getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setString(1, code);
-            ps.setString(2, accountInfo.trim());
-            ps.setString(3, accountInfo.trim());
-            return ps.executeUpdate() > 0;
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return false;
-    }
-
-    public boolean verifyCode(String accountInfo, String code) {
-        String sql = "SELECT id FROM users WHERE (email = ? OR phone = ?) " +
-                "AND reset_token = ? AND token_expiry > NOW()";
-
-        try (Connection conn = new DBContext().getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setString(1, accountInfo.trim());
-            ps.setString(2, accountInfo.trim());
-            ps.setString(3, code);
-            return ps.executeQuery().next();
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return false;
-    }
-
-    public boolean resetPassword(String accountInfo, String newPassword) {
-        String sql = "UPDATE users SET password = ?, reset_token = NULL, token_expiry = NULL " +
-                "WHERE email = ? OR phone = ?";
-
-        try (Connection conn = new DBContext().getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setString(1, PasswordUtil.hashPassword(newPassword));
-            ps.setString(2, accountInfo.trim());
-            ps.setString(3, accountInfo.trim());
-            return ps.executeUpdate() > 0;
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return false;
-    }
-
-    public boolean checkPassword(int userId, String rawPassword) {
-        String sql = "SELECT password FROM users WHERE id = ?";
-
-        try (Connection conn = new DBContext().getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setInt(1, userId);
-            ResultSet rs = ps.executeQuery();
-            return rs.next() && PasswordUtil.checkPassword(rawPassword, rs.getString("password"));
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return false;
-    }
-
-    public boolean updatePasswordByUserId(int userId, String newPassword) {
-        String sql = "UPDATE users SET password = ? WHERE id = ?";
-
-        try (Connection conn = new DBContext().getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setString(1, PasswordUtil.hashPassword(newPassword));
-            ps.setInt(2, userId);
-            return ps.executeUpdate() > 0;
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return false;
-    }
-
-    public boolean updateProfile(int userId, String fullName, String phone, String gender, String dob) {
-        try (Connection conn = new DBContext().getConnection()) {
-            boolean hasGender = hasColumn(conn, "users", "gender");
-            boolean hasDob = hasColumn(conn, "users", "dob");
-            StringBuilder sql = new StringBuilder("UPDATE users SET full_name = ?, phone = ?");
-            if (hasGender) {
-                sql.append(", gender = ?");
+        if (accountInfo == null || accountInfo.isBlank() || code == null || code.isBlank()) return false;
+        Transaction tx = null;
+        try (var session = HibernateUtil.getSessionFactory().openSession()) {
+            tx = session.beginTransaction();
+            String hql = """
+                    select distinct u from User u
+                    left join fetch u.credentials
+                    where lower(u.email) = lower(:acc) or u.phone = :acc
+                    """;
+            User user = session.createQuery(hql, User.class)
+                    .setParameter("acc", accountInfo.trim())
+                    .uniqueResult();
+            if (user == null || user.getCredentials() == null) {
+                tx.rollback();
+                return false;
             }
-            if (hasDob) {
-                sql.append(", dob = ?");
-            }
-            sql.append(" WHERE id = ?");
-
-            try (PreparedStatement ps = conn.prepareStatement(sql.toString())) {
-                int index = 1;
-                ps.setString(index++, normalize(fullName));
-                ps.setString(index++, normalize(phone));
-                if (hasGender) {
-                    ps.setString(index++, normalize(gender));
-                }
-                if (hasDob) {
-                    ps.setString(index++, normalize(dob));
-                }
-                ps.setInt(index, userId);
-                return ps.executeUpdate() > 0;
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return false;
-    }
-
-    public boolean addAddress(int userId, String detail, String city, String district, String ward) {
-
-        if (detail == null || detail.isBlank()) return false;
-
-        try (Connection conn = new DBContext().getConnection()) {
-            boolean hasDefault = hasColumn(conn, "addresses", "is_default");
-            String checkSql = "SELECT COUNT(*) FROM addresses WHERE user_id = ?";
-            String insertSql = hasDefault
-                    ? "INSERT INTO addresses (user_id, address_detail, city, district, ward, is_default) VALUES (?, ?, ?, ?, ?, ?)"
-                    : "INSERT INTO addresses (user_id, address_detail, city, district, ward) VALUES (?, ?, ?, ?, ?)";
-
-            boolean isFirst = false;
-            try (PreparedStatement checkPs = conn.prepareStatement(checkSql)) {
-                checkPs.setInt(1, userId);
-                ResultSet rs = checkPs.executeQuery();
-                if (rs.next() && rs.getInt(1) == 0) {
-                    isFirst = true;
-                }
-            }
-
-            try (PreparedStatement ps = conn.prepareStatement(insertSql)) {
-                ps.setInt(1, userId);
-                ps.setString(2, detail);
-                ps.setString(3, city);
-                ps.setString(4, district);
-                ps.setString(5, ward);
-                if (hasDefault) {
-                    ps.setInt(6, isFirst ? 1 : 0);
-                }
-                return ps.executeUpdate() > 0;
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return false;
-    }
-
-    public Address getAddressById(int id) {
-        String sql = "SELECT * FROM addresses WHERE id = ?";
-        try (Connection conn = new DBContext().getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setInt(1, id);
-            ResultSet rs = ps.executeQuery();
-
-            if (rs.next()) {
-                Address addr = new Address();
-                addr.setId(rs.getInt("id"));
-                addr.setUserId(rs.getInt("user_id"));
-                addr.setAddressDetail(rs.getString("address_detail"));
-                addr.setWard(rs.getString("ward"));
-                addr.setDistrict(rs.getString("district"));
-                addr.setCity(rs.getString("city"));
-                addr.setIsDefault(hasColumn(rs, "is_default") ? rs.getInt("is_default") : 0);
-                return addr;
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-    public boolean deleteAddress(int addressId, int userId) {
-        String sql = "DELETE FROM addresses WHERE id = ? AND user_id = ?";
-
-        try (Connection conn = new DBContext().getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setInt(1, addressId);
-            ps.setInt(2, userId);
-            return ps.executeUpdate() > 0;
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return false;
-    }
-
-    public List<Address> getAddressesByUserId(int userId) {
-        List<Address> list = new ArrayList<>();
-
-        String sql = "SELECT * FROM addresses WHERE user_id = ?";
-
-        try (Connection conn = DBContext.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setInt(1, userId);
-            ResultSet rs = ps.executeQuery();
-
-            while (rs.next()) {
-                Address a = new Address();
-                a.setId(rs.getInt("id"));
-                a.setUserId(rs.getInt("user_id"));
-                a.setAddressDetail(rs.getString("address_detail"));
-                a.setWard(rs.getString("ward"));
-                a.setDistrict(rs.getString("district"));
-                a.setCity(rs.getString("city"));
-                a.setIsDefault(hasColumn(rs, "is_default") ? rs.getInt("is_default") : 0);
-                list.add(a);
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return list;
-    }
-
-
-    public boolean updateAddress(
-            int addressId,
-            int userId,
-            String detail,
-            String ward,
-            String district,
-            String city
-    ) {
-        String sql = "UPDATE addresses " +
-                "SET address_detail = ?, ward = ?, district = ?, city = ? " +
-                "WHERE id = ? AND user_id = ?";
-
-        try (Connection conn = new DBContext().getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setString(1, detail);
-            ps.setString(2, ward);
-            ps.setString(3, district);
-            ps.setString(4, city);
-            ps.setInt(5, addressId);
-            ps.setInt(6, userId);
-
-            return ps.executeUpdate() > 0;
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return false;
-    }
-
-    public boolean deleteAddress(int addressId) {
-        String sql = "DELETE FROM addresses WHERE id = ?";
-
-        try (Connection conn = new DBContext().getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setInt(1, addressId);
-            return ps.executeUpdate() > 0;
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return false;
-    }
-
-    public void setDefaultAddress(int userId, int addressId) {
-        String resetSql = "UPDATE addresses SET is_default = 0 WHERE user_id = ?";
-        String setSql   = "UPDATE addresses SET is_default = 1 WHERE id = ? AND user_id = ?";
-
-        try (Connection conn = new DBContext().getConnection()) {
-            if (!hasColumn(conn, "addresses", "is_default")) {
-                return;
-            }
-            conn.setAutoCommit(false);
-
-            try (PreparedStatement ps1 = conn.prepareStatement(resetSql);
-                 PreparedStatement ps2 = conn.prepareStatement(setSql)) {
-
-                ps1.setInt(1, userId);
-                ps1.executeUpdate();
-
-                ps2.setInt(1, addressId);
-                ps2.setInt(2, userId);
-                ps2.executeUpdate();
-
-                conn.commit();
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    public int getTotalCustomers() {
-        String sql = "SELECT COUNT(*) as total FROM users WHERE role = 'User'";
-        try (Connection conn = DBContext.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
-            if (rs.next()) {
-                return rs.getInt("total");
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return 0;
-    }
-
-    public List<User> getAllCustomers() {
-        List<User> list = new ArrayList<>();
-        String sql = "SELECT * FROM users WHERE role = 'User' ORDER BY id DESC";
-
-        try (Connection conn = DBContext.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
-
-            while (rs.next()) {
-                User user = new User();
-                user.setId(rs.getInt("id"));
-                user.setFullName(rs.getString("full_name"));
-                user.setEmail(rs.getString("email"));
-                user.setPhone(rs.getString("phone"));
-                user.setAvatar(rs.getString("avatar"));
-                user.setRole(rs.getString("role"));
-                user.setStatus(rs.getString("status"));
-                user.setCreatedAt(rs.getString("created_at"));
-                list.add(user);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return list;
-    }
-
-    public List<User> getAllUsers() {
-        List<User> list = new ArrayList<>();
-        String sql = "SELECT * FROM users ORDER BY id DESC";
-
-        try (Connection conn = DBContext.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
-
-            while (rs.next()) {
-                User user = new User();
-                user.setId(rs.getInt("id"));
-                user.setFullName(rs.getString("full_name"));
-                user.setEmail(rs.getString("email"));
-                user.setPhone(rs.getString("phone"));
-                user.setAvatar(rs.getString("avatar"));
-                user.setRole(rs.getString("role"));
-                user.setStatus(rs.getString("status"));
-                user.setCreatedAt(rs.getString("created_at"));
-                list.add(user);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return list;
-    }
-
-    public List<User> getCustomersWithPagination(int offset, int limit) {
-        List<User> list = new ArrayList<>();
-        String sql = "SELECT * FROM users WHERE role = 'User' ORDER BY id DESC LIMIT ? OFFSET ?";
-
-        try (Connection conn = DBContext.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setInt(1, limit);
-            ps.setInt(2, offset);
-            ResultSet rs = ps.executeQuery();
-
-            while (rs.next()) {
-                User user = new User();
-                user.setId(rs.getInt("id"));
-                user.setFullName(rs.getString("full_name"));
-                user.setEmail(rs.getString("email"));
-                user.setPhone(rs.getString("phone"));
-                user.setAvatar(rs.getString("avatar"));
-                user.setRole(rs.getString("role"));
-                user.setStatus(rs.getString("status"));
-                user.setCreatedAt(rs.getString("created_at"));
-                list.add(user);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return list;
-    }
-
-    public User getUserById(int id) {
-        String sql = "SELECT * FROM users WHERE id = ?";
-
-        try (Connection conn = DBContext.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setInt(1, id);
-            ResultSet rs = ps.executeQuery();
-
-            if (rs.next()) {
-                User user = new User();
-                user.setId(rs.getInt("id"));
-                user.setFullName(rs.getString("full_name"));
-                user.setEmail(rs.getString("email"));
-                user.setPhone(rs.getString("phone"));
-                user.setAvatar(rs.getString("avatar"));
-                user.setRole(rs.getString("role"));
-                user.setStatus(rs.getString("status"));
-                user.setCreatedAt(rs.getString("created_at"));
-                return user;
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-
-    public boolean updateUserStatus(int userId, String status) {
-        String sql = "UPDATE users SET status = ? WHERE id = ?";
-
-        try (Connection conn = DBContext.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setString(1, status);
-            ps.setInt(2, userId);
-            return ps.executeUpdate() > 0;
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return false;
-    }
-
-    public boolean insertUser(String fullName, String email, String password, String phone) {
-        String sql = "INSERT INTO users (full_name, email, password, phone, status, role, avatar) " +
-                "VALUES (?, ?, ?, ?, 'Active', 'User', 'default-avatar.png')";
-
-        try (Connection conn = new DBContext().getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setString(1, fullName);
-            ps.setString(2, email);
-            ps.setString(3, PasswordUtil.hashPassword(password));
-            ps.setString(4, phone);
-            return ps.executeUpdate() > 0;
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return false;
-    }
-
-    public boolean updateUser(int userId, String fullName, String email, String phone) {
-        String sql = "UPDATE users SET full_name = ?, email = ?, phone = ? WHERE id = ?";
-
-        try (Connection conn = DBContext.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setString(1, fullName);
-            ps.setString(2, email);
-            ps.setString(3, phone);
-            ps.setInt(4, userId);
-            return ps.executeUpdate() > 0;
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return false;
-    }
-
-    public boolean deleteUser(int userId) {
-        String sql = "DELETE FROM users WHERE id = ?";
-
-        try (Connection conn = DBContext.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setInt(1, userId);
-            return ps.executeUpdate() > 0;
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return false;
-    }
-    public boolean updateAvatar(int userId, String avatar) {
-        String sql = "UPDATE users SET avatar = ? WHERE id = ?";
-
-        try (Connection conn = DBContext.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setString(1, avatar);
-            ps.setInt(2, userId);
-
-            return ps.executeUpdate() > 0;
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return false;
-    }
-
-    private User mapUser(ResultSet rs) throws Exception {
-        User user = new User();
-        user.setId(rs.getInt("id"));
-        user.setFullName(rs.getString("full_name"));
-        user.setEmail(rs.getString("email"));
-        user.setPhone(rs.getString("phone"));
-        user.setAvatar(rs.getString("avatar"));
-        user.setRole(rs.getString("role"));
-        user.setStatus(rs.getString("status"));
-        user.setCreatedAt(rs.getString("created_at"));
-        if (hasColumn(rs, "gender")) {
-            user.setGender(rs.getString("gender"));
-        }
-        if (hasColumn(rs, "dob")) {
-            user.setDob(rs.getString("dob"));
-        }
-        return user;
-    }
-
-    private boolean hasColumn(Connection conn, String tableName, String columnName) {
-        try {
-            DatabaseMetaData metaData = conn.getMetaData();
-            try (ResultSet rs = metaData.getColumns(conn.getCatalog(), null, tableName, columnName)) {
-                if (rs.next()) {
-                    return true;
-                }
-            }
-            try (ResultSet rs = metaData.getColumns(conn.getCatalog(), null, tableName.toUpperCase(), columnName)) {
-                return rs.next();
-            }
-        } catch (Exception e) {
+            user.getCredentials().setResetCode(code);
+            user.getCredentials().setResetExpiresAt(LocalDateTime.now().plusMinutes(5));
+            session.merge(user.getCredentials());
+            tx.commit();
+            return true;
+        } catch (RuntimeException e) {
+            rollback(tx);
             return false;
         }
     }
 
-    private boolean hasColumn(ResultSet rs, String columnName) {
-        try {
-            ResultSetMetaData metaData = rs.getMetaData();
-            for (int i = 1; i <= metaData.getColumnCount(); i++) {
-                if (columnName.equalsIgnoreCase(metaData.getColumnLabel(i))) {
-                    return true;
-                }
-            }
-        } catch (Exception ignored) {
+    public boolean verifyCode(String accountInfo, String code) {
+        String hql = """
+                select count(uc.id) from UserCredential uc
+                join uc.user u
+                where (lower(u.email) = lower(:acc) or u.phone = :acc)
+                and uc.resetCode = :code
+                and uc.resetExpiresAt > :now
+                """;
+        try (var session = HibernateUtil.getSessionFactory().openSession()) {
+            Long count = session.createQuery(hql, Long.class)
+                    .setParameter("acc", accountInfo == null ? "" : accountInfo.trim())
+                    .setParameter("code", code)
+                    .setParameter("now", LocalDateTime.now())
+                    .uniqueResult();
+            return count != null && count > 0;
         }
-        return false;
+    }
+
+    public boolean resetPassword(String accountInfo, String newPassword) {
+        Transaction tx = null;
+        try (var session = HibernateUtil.getSessionFactory().openSession()) {
+            tx = session.beginTransaction();
+            String hql = """
+                    select uc from UserCredential uc
+                    join uc.user u
+                    where lower(u.email) = lower(:acc) or u.phone = :acc
+                    """;
+            UserCredential credential = session.createQuery(hql, UserCredential.class)
+                    .setParameter("acc", accountInfo == null ? "" : accountInfo.trim())
+                    .uniqueResult();
+            if (credential == null) {
+                tx.rollback();
+                return false;
+            }
+            credential.setPasswordHash(PasswordUtil.hashPassword(newPassword));
+            credential.setResetCode(null);
+            credential.setResetExpiresAt(null);
+            session.merge(credential);
+            tx.commit();
+            return true;
+        } catch (RuntimeException e) {
+            rollback(tx);
+            return false;
+        }
+    }
+
+    public boolean checkPassword(int userId, String rawPassword) {
+        String hql = "select uc.passwordHash from UserCredential uc where uc.user.id = :userId";
+        try (var session = HibernateUtil.getSessionFactory().openSession()) {
+            String hash = session.createQuery(hql, String.class).setParameter("userId", (long) userId).uniqueResult();
+            return hash != null && PasswordUtil.checkPassword(rawPassword, hash);
+        }
+    }
+
+    public boolean updatePasswordByUserId(int userId, String newPassword) {
+        return updatePassword(userId, newPassword);
+    }
+
+    public boolean updateProfile(int userId, String fullName, String phone, String gender, String dob) {
+        Transaction tx = null;
+        try (var session = HibernateUtil.getSessionFactory().openSession()) {
+            tx = session.beginTransaction();
+            User user = session.get(User.class, (long) userId);
+            if (user == null) {
+                tx.rollback();
+                return false;
+            }
+            applyFullName(user, fullName);
+            user.setPhone(normalize(phone));
+            if (gender != null && !gender.isBlank()) {
+                user.setGender(parseGender(gender));
+            }
+            if (dob != null && !dob.isBlank()) {
+                user.setDateOfBirth(LocalDate.parse(dob));
+            }
+            user.setUpdatedAt(LocalDateTime.now());
+            session.merge(user);
+            tx.commit();
+            return true;
+        } catch (RuntimeException e) {
+            rollback(tx);
+            return false;
+        }
+    }
+
+    public boolean addAddress(int userId, String detail, String city, String district, String ward) {
+        Transaction tx = null;
+        try (var session = HibernateUtil.getSessionFactory().openSession()) {
+            tx = session.beginTransaction();
+            User user = session.get(User.class, (long) userId);
+            if (user == null || detail == null || detail.isBlank()) {
+                tx.rollback();
+                return false;
+            }
+            Long count = session.createQuery("select count(a.id) from Address a where a.user.id = :uid", Long.class)
+                    .setParameter("uid", user.getId())
+                    .uniqueResult();
+            Address address = Address.builder()
+                    .user(user)
+                    .receiverName(user.getFullName())
+                    .receiverPhone(user.getPhone())
+                    .addressDetail(detail)
+                    .province(city == null ? "" : city)
+                    .district(district == null ? "" : district)
+                    .ward(ward == null ? "" : ward)
+                    .isDefault(count == null || count == 0)
+                    .build();
+            session.persist(address);
+            tx.commit();
+            return true;
+        } catch (RuntimeException e) {
+            rollback(tx);
+            return false;
+        }
+    }
+
+    public Address getAddressById(int id) {
+        try (var session = HibernateUtil.getSessionFactory().openSession()) {
+            return session.get(Address.class, (long) id);
+        }
+    }
+
+    public boolean deleteAddress(int addressId, int userId) {
+        Transaction tx = null;
+        try (var session = HibernateUtil.getSessionFactory().openSession()) {
+            tx = session.beginTransaction();
+            int updated = session.createMutationQuery("delete from Address a where a.id = :id and a.user.id = :uid")
+                    .setParameter("id", (long) addressId)
+                    .setParameter("uid", (long) userId)
+                    .executeUpdate();
+            tx.commit();
+            return updated > 0;
+        } catch (RuntimeException e) {
+            rollback(tx);
+            return false;
+        }
+    }
+
+    public List<Address> getAddressesByUserId(int userId) {
+        try (var session = HibernateUtil.getSessionFactory().openSession()) {
+            return session.createQuery("from Address a where a.user.id = :uid order by a.isDefault desc, a.id desc", Address.class)
+                    .setParameter("uid", (long) userId)
+                    .getResultList();
+        }
+    }
+
+    public boolean updateAddress(int addressId, int userId, String detail, String ward, String district, String city) {
+        Transaction tx = null;
+        try (var session = HibernateUtil.getSessionFactory().openSession()) {
+            tx = session.beginTransaction();
+            Address address = session.createQuery("from Address a where a.id = :id and a.user.id = :uid", Address.class)
+                    .setParameter("id", (long) addressId)
+                    .setParameter("uid", (long) userId)
+                    .uniqueResult();
+            if (address == null) {
+                tx.rollback();
+                return false;
+            }
+            address.setAddressDetail(normalize(detail));
+            address.setWard(normalize(ward));
+            address.setDistrict(normalize(district));
+            address.setProvince(normalize(city));
+            session.merge(address);
+            tx.commit();
+            return true;
+        } catch (RuntimeException e) {
+            rollback(tx);
+            return false;
+        }
+    }
+
+    public boolean deleteAddress(int addressId) {
+        Transaction tx = null;
+        try (var session = HibernateUtil.getSessionFactory().openSession()) {
+            tx = session.beginTransaction();
+            Address address = session.get(Address.class, (long) addressId);
+            if (address == null) {
+                tx.rollback();
+                return false;
+            }
+            session.remove(address);
+            tx.commit();
+            return true;
+        } catch (RuntimeException e) {
+            rollback(tx);
+            return false;
+        }
+    }
+
+    public void setDefaultAddress(int userId, int addressId) {
+        Transaction tx = null;
+        try (var session = HibernateUtil.getSessionFactory().openSession()) {
+            tx = session.beginTransaction();
+            session.createMutationQuery("update Address a set a.isDefault = false where a.user.id = :uid")
+                    .setParameter("uid", (long) userId)
+                    .executeUpdate();
+            session.createMutationQuery("update Address a set a.isDefault = true where a.id = :id and a.user.id = :uid")
+                    .setParameter("id", (long) addressId)
+                    .setParameter("uid", (long) userId)
+                    .executeUpdate();
+            tx.commit();
+        } catch (RuntimeException e) {
+            rollback(tx);
+        }
+    }
+
+    public int getTotalCustomers() {
+        String hql = """
+                select count(distinct u.id) from User u
+                join u.roles r
+                where lower(r.name) = 'customer'
+                """;
+        try (var session = HibernateUtil.getSessionFactory().openSession()) {
+            Long count = session.createQuery(hql, Long.class).uniqueResult();
+            return count == null ? 0 : count.intValue();
+        }
+    }
+
+    public List<User> getAllCustomers() {
+        String hql = """
+                select distinct u from User u
+                left join fetch u.roles r
+                where lower(r.name) = 'customer'
+                order by u.id desc
+                """;
+        try (var session = HibernateUtil.getSessionFactory().openSession()) {
+            return session.createQuery(hql, User.class).getResultList();
+        }
+    }
+
+    public List<User> getAllUsers() {
+        try (var session = HibernateUtil.getSessionFactory().openSession()) {
+            return session.createQuery("select distinct u from User u left join fetch u.roles order by u.id desc", User.class)
+                    .getResultList();
+        }
+    }
+
+    public List<User> getCustomersWithPagination(int offset, int limit) {
+        String hql = """
+                select distinct u from User u
+                join u.roles r
+                where lower(r.name) = 'customer'
+                order by u.id desc
+                """;
+        try (var session = HibernateUtil.getSessionFactory().openSession()) {
+            return session.createQuery(hql, User.class)
+                    .setFirstResult(Math.max(offset, 0))
+                    .setMaxResults(Math.max(limit, 1))
+                    .getResultList();
+        }
+    }
+
+    public User getUserById(int id) {
+        try (var session = HibernateUtil.getSessionFactory().openSession()) {
+            return session.createQuery("select distinct u from User u left join fetch u.roles where u.id = :id", User.class)
+                    .setParameter("id", (long) id)
+                    .uniqueResult();
+        }
+    }
+
+    public boolean updateUserStatus(int userId, String status) {
+        Transaction tx = null;
+        try (var session = HibernateUtil.getSessionFactory().openSession()) {
+            tx = session.beginTransaction();
+            User user = session.get(User.class, (long) userId);
+            if (user == null) {
+                tx.rollback();
+                return false;
+            }
+            user.setActive("Active".equalsIgnoreCase(status));
+            session.merge(user);
+            tx.commit();
+            return true;
+        } catch (RuntimeException e) {
+            rollback(tx);
+            return false;
+        }
+    }
+
+    public boolean insertUser(String fullName, String email, String password, String phone) {
+        Transaction tx = null;
+        try (var session = HibernateUtil.getSessionFactory().openSession()) {
+            tx = session.beginTransaction();
+            Long exists = session.createQuery("select count(u.id) from User u where lower(u.email) = lower(:email)", Long.class)
+                    .setParameter("email", email)
+                    .uniqueResult();
+            if (exists != null && exists > 0) {
+                tx.rollback();
+                return false;
+            }
+
+            User user = new User();
+            applyFullName(user, fullName);
+            user.setEmail(normalize(email));
+            user.setPhone(normalize(phone));
+            user.setGender(Gender.OTHER);
+            user.setAvatarUrl("default-avatar.png");
+            user.setActive(true);
+            user.setRoles(new HashSet<>());
+            session.persist(user);
+
+            UserCredential credential = UserCredential.builder()
+                    .user(user)
+                    .passwordHash(PasswordUtil.hashPassword(password))
+                    .emailVerified(true)
+                    .build();
+            user.setCredentials(credential);
+            session.persist(credential);
+
+            Optional<Role> customerRole = session.createQuery("from Role r where lower(r.name)= 'customer'", Role.class)
+                    .uniqueResultOptional();
+            customerRole.ifPresent(role -> {
+                Set<Role> roles = user.getRoles() == null ? new HashSet<>() : user.getRoles();
+                roles.add(role);
+                user.setRoles(roles);
+            });
+
+            tx.commit();
+            return true;
+        } catch (RuntimeException e) {
+            rollback(tx);
+            return false;
+        }
+    }
+
+    public boolean updateUser(int userId, String fullName, String email, String phone) {
+        Transaction tx = null;
+        try (var session = HibernateUtil.getSessionFactory().openSession()) {
+            tx = session.beginTransaction();
+            User user = session.get(User.class, (long) userId);
+            if (user == null) {
+                tx.rollback();
+                return false;
+            }
+            applyFullName(user, fullName);
+            user.setEmail(normalize(email));
+            user.setPhone(normalize(phone));
+            user.setUpdatedAt(LocalDateTime.now());
+            session.merge(user);
+            tx.commit();
+            return true;
+        } catch (RuntimeException e) {
+            rollback(tx);
+            return false;
+        }
+    }
+
+    public boolean deleteUser(int userId) {
+        Transaction tx = null;
+        try (var session = HibernateUtil.getSessionFactory().openSession()) {
+            tx = session.beginTransaction();
+            User user = session.get(User.class, (long) userId);
+            if (user == null) {
+                tx.rollback();
+                return false;
+            }
+            session.remove(user);
+            tx.commit();
+            return true;
+        } catch (RuntimeException e) {
+            rollback(tx);
+            return false;
+        }
+    }
+
+    public boolean updateAvatar(int userId, String avatar) {
+        Transaction tx = null;
+        try (var session = HibernateUtil.getSessionFactory().openSession()) {
+            tx = session.beginTransaction();
+            User user = session.get(User.class, (long) userId);
+            if (user == null) {
+                tx.rollback();
+                return false;
+            }
+            user.setAvatarUrl(avatar);
+            session.merge(user);
+            tx.commit();
+            return true;
+        } catch (RuntimeException e) {
+            rollback(tx);
+            return false;
+        }
+    }
+
+    public boolean updatePassword(int userId, String newPassword) {
+        Transaction tx = null;
+        try (var session = HibernateUtil.getSessionFactory().openSession()) {
+            tx = session.beginTransaction();
+            UserCredential credential = session.createQuery("from UserCredential uc where uc.user.id = :uid", UserCredential.class)
+                    .setParameter("uid", (long) userId)
+                    .uniqueResult();
+            if (credential == null) {
+                tx.rollback();
+                return false;
+            }
+            credential.setPasswordHash(PasswordUtil.hashPassword(newPassword));
+            session.merge(credential);
+            tx.commit();
+            return true;
+        } catch (RuntimeException e) {
+            rollback(tx);
+            return false;
+        }
+    }
+
+    private void rollback(Transaction tx) {
+        if (tx != null) {
+            try {
+                tx.rollback();
+            } catch (Exception ignored) {
+            }
+        }
+    }
+
+    private void applyFullName(User user, String fullName) {
+        String value = normalize(fullName);
+        if (value == null) {
+            user.setFirstName("");
+            user.setLastName("");
+            return;
+        }
+        String[] parts = value.split("\\s+");
+        if (parts.length == 1) {
+            user.setFirstName(parts[0]);
+            user.setLastName(parts[0]);
+            return;
+        }
+        user.setLastName(parts[parts.length - 1]);
+        user.setFirstName(String.join(" ", new ArrayList<>(List.of(parts)).subList(0, parts.length - 1)));
+    }
+
+    private Gender parseGender(String gender) {
+        try {
+            return Gender.valueOf(gender.trim().toUpperCase(Locale.ROOT));
+        } catch (Exception e) {
+            return Gender.OTHER;
+        }
     }
 
     private String normalize(String value) {
         return value == null || value.isBlank() ? null : value.trim();
     }
-
-    //check
-    public boolean updatePassword(int userId, String newPassword) {
-        String sql = "UPDATE users SET password = ? WHERE id = ?";
-        try (Connection conn = DBContext.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setString(1, newPassword);
-            ps.setInt(2, userId);
-            return ps.executeUpdate() > 0;
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return false;
-    }
-
-    // Kiểm tra email đã tồn tại chưa
-    public boolean emailExists(String email) {
-        String sql = "SELECT COUNT(*) as count FROM users WHERE LOWER(email) = LOWER(?)";
-
-        try (Connection conn = DBContext.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setString(1, email.trim());
-            ResultSet rs = ps.executeQuery();
-
-            if (rs.next()) {
-                return rs.getInt("count") > 0;
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return false;
-    }
-
 }

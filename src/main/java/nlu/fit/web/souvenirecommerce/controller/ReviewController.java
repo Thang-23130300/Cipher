@@ -7,7 +7,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import nlu.fit.web.souvenirecommerce.model.Review;
-import nlu.fit.web.souvenirecommerce.model.User;
+import nlu.fit.web.souvenirecommerce.model.entity.User;
 import nlu.fit.web.souvenirecommerce.service.ReviewService;
 
 import java.io.IOException;
@@ -86,7 +86,11 @@ public class ReviewController extends HttpServlet {
             return;
         }
 
-        int userId = ((User) session.getAttribute("user")).getId();
+        Long userId = ((User) session.getAttribute("user")).getId();
+        if (userId == null) {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            return;
+        }
 
         Long productId = parseLong(request.getParameter("productId"), -1L);
         int rating = parseInt(request.getParameter("rating"), 0);
@@ -97,14 +101,14 @@ public class ReviewController extends HttpServlet {
             return;
         }
 
-        if (!reviewService.canReview(userId, productId)) {
+        if (!reviewService.canReview(userId.intValue(), productId)) {
             response.setStatus(HttpServletResponse.SC_FORBIDDEN);
             return;
         }
 
 
         Review review = new Review();
-        review.setUserId(userId);
+        review.setUserId(userId.intValue());
         review.setProductId(productId);
         review.setRating(rating);
         review.setComment(comment);

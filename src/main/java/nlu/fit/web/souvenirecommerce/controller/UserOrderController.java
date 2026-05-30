@@ -9,7 +9,7 @@ import jakarta.servlet.http.HttpSession;
 import nlu.fit.web.souvenirecommerce.dao.OrderDAO;
 import nlu.fit.web.souvenirecommerce.model.Order;
 import nlu.fit.web.souvenirecommerce.model.OrderItem;
-import nlu.fit.web.souvenirecommerce.model.User;
+import nlu.fit.web.souvenirecommerce.model.entity.User;
 
 import java.io.IOException;
 import java.util.List;
@@ -56,41 +56,52 @@ public class UserOrderController extends HttpServlet {
     private void viewOrderList(HttpServletRequest request,
                                HttpServletResponse response,
                                User user)
-            throws ServletException, IOException {
+             throws ServletException, IOException {
 
-        List<Order> orderList = orderDAO.getOrdersByUserId(user.getId());
+         List<Order> orderList = orderDAO.getOrdersByUserId(user.getId().intValue());
 
-        request.setAttribute("orderList", orderList);
-        request.getRequestDispatcher("/user/userorder.jsp")
-                .forward(request, response);
-    }
+         request.setAttribute("orderList", orderList);
+         request.setAttribute("pageTitle", "Đơn hàng");
+         request.setAttribute("pageCss", "account/account-layout.css");
+         request.setAttribute("contentCss", "account/orders.css");
+         request.setAttribute("pageJs", "account/profile.js");
+         request.setAttribute("pageContent", "orders.jsp");
+         request.setAttribute("contentPage", "/WEB-INF/views/account/account_layout.jsp");
 
-    private void viewOrderDetail(HttpServletRequest request,
-                                 HttpServletResponse response,
-                                 User user)
-            throws ServletException, IOException {
+         request.getRequestDispatcher("/WEB-INF/layout/base.jsp").forward(request, response);
+     }
 
-        int orderId;
-        try {
-            orderId = Integer.parseInt(request.getParameter("id"));
-        } catch (NumberFormatException e) {
-            response.sendRedirect(request.getContextPath() + "/user/orders");
-            return;
-        }
+     private void viewOrderDetail(HttpServletRequest request,
+                                  HttpServletResponse response,
+                                  User user)
+             throws ServletException, IOException {
 
-        Order order = orderDAO.getOrderById(orderId);
+         int orderId;
+         try {
+             orderId = Integer.parseInt(request.getParameter("id"));
+         } catch (NumberFormatException e) {
+             response.sendRedirect(request.getContextPath() + "/user/orders");
+             return;
+         }
 
-        if (order == null || order.getUserId() != user.getId()) {
-            response.sendRedirect(request.getContextPath() + "/user/orders");
-            return;
-        }
+         Order order = orderDAO.getOrderById(orderId);
 
-        List<OrderItem> orderItems = orderDAO.getOrderItems(orderId);
+         if (order == null || user.getId() == null || order.getUserId() != user.getId().intValue()) {
+             response.sendRedirect(request.getContextPath() + "/user/orders");
+             return;
+         }
 
-        request.setAttribute("order", order);
-        request.setAttribute("orderItems", orderItems);
+         List<OrderItem> orderItems = orderDAO.getOrderItems(orderId);
 
-        request.getRequestDispatcher("/user/userorder.jsp")
-                .forward(request, response);
-    }
+         request.setAttribute("order", order);
+         request.setAttribute("orderItems", orderItems);
+         request.setAttribute("pageTitle", "Chi tiết đơn hàng");
+         request.setAttribute("pageCss", "account/account-layout.css");
+         request.setAttribute("contentCss", "account/orders.css");
+         request.setAttribute("pageJs", "account/profile.js");
+         request.setAttribute("pageContent", "orders.jsp");
+         request.setAttribute("contentPage", "/WEB-INF/views/account/account_layout.jsp");
+
+         request.getRequestDispatcher("/WEB-INF/layout/base.jsp").forward(request, response);
+     }
 }

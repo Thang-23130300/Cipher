@@ -139,6 +139,24 @@
                     </span>
                 </label>
 
+                <fieldset class="field gender-field">
+                    <legend>Giới tính</legend>
+                    <div class="gender-options">
+                        <label>
+                            <input type="radio" name="gender" value="MALE" checked>
+                            <span>Nam</span>
+                        </label>
+                        <label>
+                            <input type="radio" name="gender" value="FEMALE">
+                            <span>Nữ</span>
+                        </label>
+                        <label>
+                            <input type="radio" name="gender" value="OTHER">
+                            <span>Khác</span>
+                        </label>
+                    </div>
+                </fieldset>
+
                 <label class="field">
                     <span>Mật khẩu</span>
                     <span class="input-wrap password-wrap">

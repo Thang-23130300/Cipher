@@ -7,14 +7,17 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import lombok.extern.slf4j.Slf4j;
 import nlu.fit.web.souvenirecommerce.dao.IUserDAO;
 import nlu.fit.web.souvenirecommerce.auth.dao.AuthDAO;
+import nlu.fit.web.souvenirecommerce.enums.Gender;
 import nlu.fit.web.souvenirecommerce.util.EmailUtil;
 
 import java.io.IOException;
 import java.io.PrintWriter;
 
 @WebServlet(urlPatterns = {"/api/signup", "/signup"})
+@Slf4j
 public class SignupServlet extends HttpServlet {
     private IUserDAO userDAO;
 
@@ -33,52 +36,78 @@ public class SignupServlet extends HttpServlet {
         req.setCharacterEncoding("UTF-8");
 
         JsonObject jsonResponse = new JsonObject();
-        String email = EmailUtil.normalizeEmail(req.getParameter("email"));
-        String firstName = normalize(req.getParameter("firstName"));
-        String lastName = normalize(req.getParameter("lastName"));
-        String phone = normalize(req.getParameter("phone"));
-        String password = req.getParameter("password");
-        String confirmPassword = req.getParameter("confirmPassword");
-
-        String validationError = validate(email, firstName, lastName, phone, password, confirmPassword);
-        if (validationError != null) {
-            writeJson(resp, jsonResponse, "error", validationError);
-            return;
-        }
-
-        HttpSession session = req.getSession(false);
-        String verifiedEmail = session == null ? null : (String) session.getAttribute("signupVerifiedEmail");
-        if (!email.equals(verifiedEmail)) {
-            writeJson(resp, jsonResponse, "error", "Vui lòng xác thực email trước khi đăng ký");
-            return;
-        }
-
-        if (userDAO.hasEmailExist(email)) {
-            writeJson(resp, jsonResponse, "error", "Email này đã được đăng ký");
-            return;
-        }
-
         try {
-            boolean registered = userDAO.createUser(email, password, firstName, lastName, phone).isPresent();
-            if (!registered) {
-                writeJson(resp, jsonResponse, "error", "Không thể tạo tài khoản. Vui lòng thử lại");
+            String email = EmailUtil.normalizeEmail(req.getParameter("email"));
+            String firstName = normalize(req.getParameter("firstName"));
+            String lastName = normalize(req.getParameter("lastName"));
+            String phone = normalize(req.getParameter("phone"));
+            String gender = normalize(req.getParameter("gender"));
+            String password = req.getParameter("password");
+            String confirmPassword = req.getParameter("confirmPassword");
+
+            String validationError = validate(email, firstName, lastName, phone, gender, password, confirmPassword);
+            if (validationError != null) {
+                log.warn("Đăng ký thất bại do dữ liệu không hợp lệ: email={}, reason={}", email, validationError);
+                writeJson(resp, jsonResponse, "error", validationError);
                 return;
             }
-        } catch (RuntimeException e) {
-            e.printStackTrace();
-            writeJson(resp, jsonResponse, "error", "Không thể tạo tài khoản. Vui lòng thử lại");
-            return;
+
+            HttpSession session = req.getSession(false);
+            String verifiedEmail = session == null ? null : (String) session.getAttribute("signupVerifiedEmail");
+            if (!email.equals(verifiedEmail)) {
+                log.warn("Đăng ký thất bại do chưa xác thực email: email={}", email);
+                writeJson(resp, jsonResponse, "error", "Vui lòng xác thực email trước khi đăng ký");
+                return;
+            }
+
+            if (userDAO.hasEmailExist(email)) {
+                log.warn("Đăng ký thất bại do email đã tồn tại: email={}", email);
+                writeJson(resp, jsonResponse, "error", "Email này đã được đăng ký");
+                return;
+            }
+
+            try {
+                boolean registered = userDAO.createUser(email, password, firstName, lastName, phone, gender).isPresent();
+                if (!registered) {
+                    log.error("Đăng ký thất bại: createUser trả về rỗng cho email={}", email);
+                    writeJson(resp, jsonResponse, "error", "Không thể tạo tài khoản. Vui lòng thử lại");
+                    return;
+                }
+            } catch (Exception createUserError) {
+                log.error("Lỗi khi tạo tài khoản: email={}", email, createUserError);
+
+                String errorMsg = "Không thể tạo tài khoản. Vui lòng thử lại";
+                if (createUserError.getMessage() != null) {
+                    if (createUserError.getMessage().contains("Customer role")) {
+                        errorMsg = "Lỗi hệ thống: Role chưa được khởi tạo. Liên hệ admin";
+                    } else if (createUserError.getMessage().contains("Database") || createUserError.getMessage().contains("Connection")) {
+                        errorMsg = "Lỗi kết nối cơ sở dữ liệu. Vui lòng thử lại sau";
+                    }
+                }
+                writeJson(resp, jsonResponse, "error", errorMsg);
+                return;
+            }
+
+            if (session != null) {
+                session.removeAttribute("signupEmail");
+                session.removeAttribute("signupVerifiedEmail");
+            }
+
+            log.info("Đăng ký thành công: email={}", email);
+            writeJson(resp, jsonResponse, "success", "Tạo tài khoản thành công");
+        } catch (Exception e) {
+            log.error("Lỗi không mong muốn trong luồng đăng ký", e);
+            try {
+                writeJson(resp, jsonResponse, "error", "Có lỗi xảy ra. Vui lòng thử lại");
+            } catch (IOException ioError) {
+                log.error("Không thể ghi response JSON của đăng ký", ioError);
+            }
         }
-
-        session.removeAttribute("signupEmail");
-        session.removeAttribute("signupVerifiedEmail");
-
-        writeJson(resp, jsonResponse, "success", "Tạo tài khoản thành công");
 
         // Create UserSession and setAttributes
     }
 
-    private String validate(String email, String firstName, String lastName, String phone,
+    private String validate(String email, String firstName, String lastName, String phone, String gender,
                             String password, String confirmPassword) {
         if (email == null || email.isEmpty()) {
             return "Email không được để trống";
@@ -98,6 +127,16 @@ public class SignupServlet extends HttpServlet {
 
         if (phone == null || !phone.matches("^[0-9]{10,20}$")) {
             return "Số điện thoại phải từ 10-20 chữ số";
+        }
+
+        if (gender == null || gender.isBlank()) {
+            return "Vui lòng chọn giới tính";
+        }
+
+        try {
+            Gender.valueOf(gender.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            return "Giới tính không hợp lệ";
         }
 
         if (password == null || password.length() < 8) {

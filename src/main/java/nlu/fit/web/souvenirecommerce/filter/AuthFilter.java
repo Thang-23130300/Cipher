@@ -6,7 +6,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import nlu.fit.web.souvenirecommerce.dao.AuthorizationDAO;
-import nlu.fit.web.souvenirecommerce.model.User;
+import nlu.fit.web.souvenirecommerce.model.entity.User;
 import nlu.fit.web.souvenirecommerce.util.AuthorizationPolicy;
 import java.io.IOException;
 
@@ -49,9 +49,6 @@ public class AuthFilter implements Filter {
             String role;
 
             if (sessionUser instanceof User user) {
-                userId = user.getId();
-                role = user.getRole();
-            } else if (sessionUser instanceof nlu.fit.web.souvenirecommerce.model.entity.User user) {
                 userId = user.getId() == null ? 0 : user.getId();
                 role = user.getRoles() == null ? null : user.getRoles().stream()
                         .map(nlu.fit.web.souvenirecommerce.model.entity.Role::getName)

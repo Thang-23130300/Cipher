@@ -2,381 +2,256 @@ package nlu.fit.web.souvenirecommerce.dao;
 
 import nlu.fit.web.souvenirecommerce.model.PermissionGroup;
 import nlu.fit.web.souvenirecommerce.model.PermissionItem;
-import nlu.fit.web.souvenirecommerce.model.User;
-import nlu.fit.web.souvenirecommerce.util.DBContext;
+import nlu.fit.web.souvenirecommerce.model.entity.Permission;
+import nlu.fit.web.souvenirecommerce.model.entity.Role;
+import nlu.fit.web.souvenirecommerce.model.entity.User;
+import nlu.fit.web.souvenirecommerce.util.HibernateUtil;
+import org.hibernate.Transaction;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.Statement;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class AuthorizationDAO {
 
     public List<PermissionItem> getAllPermissions() {
-        List<PermissionItem> list = new ArrayList<>();
-        String sql = "SELECT id, resource, action, description FROM permissions ORDER BY resource, action";
-
-        try (Connection conn = DBContext.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
-            while (rs.next()) {
-                list.add(PermissionItem.builder()
-                        .id(rs.getLong("id"))
-                        .resource(rs.getString("resource"))
-                        .action(rs.getString("action"))
-                        .description(rs.getString("description"))
-                        .build());
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
+        try (var session = HibernateUtil.getSessionFactory().openSession()) {
+            return session.createQuery("from Permission p order by p.resource, p.action", Permission.class)
+                    .getResultList()
+                    .stream()
+                    .map(this::toPermissionItem)
+                    .toList();
         }
-        return list;
     }
 
     public List<PermissionGroup> getAllRoleGroups() {
-        List<PermissionGroup> groups = new ArrayList<>();
-        String sql = """
-                SELECT r.id,
-                       r.name,
-                       r.description,
-                       r.is_system,
-                       COUNT(DISTINCT ur.user_id) AS user_count
-                FROM roles r
-                LEFT JOIN user_roles ur ON ur.role_id = r.id
-                GROUP BY r.id, r.name, r.description, r.is_system
-                ORDER BY r.is_system DESC, r.name ASC
-                """;
-
-        try (Connection conn = DBContext.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
-            while (rs.next()) {
-                Long roleId = rs.getLong("id");
-                PermissionGroup group = PermissionGroup.builder()
-                        .id(roleId)
-                        .name(rs.getString("name"))
-                        .description(rs.getString("description"))
-                        .system(rs.getBoolean("is_system"))
-                        .userCount(rs.getInt("user_count"))
-                        .permissions(getPermissionsByRoleId(roleId))
-                        .users(getUsersByRoleId(roleId))
-                        .build();
-                groups.add(group);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
+        try (var session = HibernateUtil.getSessionFactory().openSession()) {
+            List<Role> roles = session.createQuery("""
+                    select distinct r from Role r
+                    left join fetch r.permissions
+                    order by r.isSystem desc, r.name asc
+                    """, Role.class).getResultList();
+            return roles.stream().map(this::toPermissionGroup).toList();
         }
-        return groups;
     }
 
     public PermissionGroup getRoleById(Long roleId) {
-        String sql = "SELECT id, name, description, is_system FROM roles WHERE id = ?";
-        try (Connection conn = DBContext.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setLong(1, roleId);
-            ResultSet rs = ps.executeQuery();
-            if (rs.next()) {
-                return PermissionGroup.builder()
-                        .id(rs.getLong("id"))
-                        .name(rs.getString("name"))
-                        .description(rs.getString("description"))
-                        .system(rs.getBoolean("is_system"))
-                        .permissions(getPermissionsByRoleId(roleId))
-                        .users(getUsersByRoleId(roleId))
-                        .build();
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
+        if (roleId == null) return null;
+        try (var session = HibernateUtil.getSessionFactory().openSession()) {
+            Role role = session.createQuery("""
+                    select distinct r from Role r
+                    left join fetch r.permissions
+                    where r.id = :id
+                    """, Role.class).setParameter("id", roleId).uniqueResult();
+            return role == null ? null : toPermissionGroup(role);
         }
-        return null;
     }
 
     public List<Long> getPermissionIdsByRoleId(Long roleId) {
-        List<Long> ids = new ArrayList<>();
-        String sql = "SELECT permission_id FROM role_permissions WHERE role_id = ? ORDER BY permission_id";
-
-        try (Connection conn = DBContext.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setLong(1, roleId);
-            ResultSet rs = ps.executeQuery();
-            while (rs.next()) {
-                ids.add(rs.getLong("permission_id"));
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
+        if (roleId == null) return List.of();
+        try (var session = HibernateUtil.getSessionFactory().openSession()) {
+            return session.createQuery("""
+                    select p.id from Role r join r.permissions p
+                    where r.id = :id
+                    order by p.id
+                    """, Long.class).setParameter("id", roleId).getResultList();
         }
-        return ids;
     }
 
     public List<Long> getUserIdsByRoleId(Long roleId) {
-        List<Long> ids = new ArrayList<>();
-        String sql = "SELECT user_id FROM user_roles WHERE role_id = ? ORDER BY user_id";
-
-        try (Connection conn = DBContext.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setLong(1, roleId);
-            ResultSet rs = ps.executeQuery();
-            while (rs.next()) {
-                ids.add(rs.getLong("user_id"));
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
+        if (roleId == null) return List.of();
+        try (var session = HibernateUtil.getSessionFactory().openSession()) {
+            return session.createQuery("""
+                    select u.id from User u join u.roles r
+                    where r.id = :id
+                    order by u.id
+                    """, Long.class).setParameter("id", roleId).getResultList();
         }
-        return ids;
     }
 
     public List<PermissionItem> getPermissionsByRoleId(Long roleId) {
-        List<PermissionItem> list = new ArrayList<>();
-        String sql = """
-                SELECT p.id, p.resource, p.action, p.description
-                FROM permissions p
-                INNER JOIN role_permissions rp ON rp.permission_id = p.id
-                WHERE rp.role_id = ?
-                ORDER BY p.resource, p.action
-                """;
-
-        try (Connection conn = DBContext.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setLong(1, roleId);
-            ResultSet rs = ps.executeQuery();
-            while (rs.next()) {
-                list.add(PermissionItem.builder()
-                        .id(rs.getLong("id"))
-                        .resource(rs.getString("resource"))
-                        .action(rs.getString("action"))
-                        .description(rs.getString("description"))
-                        .build());
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
+        if (roleId == null) return List.of();
+        try (var session = HibernateUtil.getSessionFactory().openSession()) {
+            return session.createQuery("""
+                    select p from Role r join r.permissions p
+                    where r.id = :id
+                    order by p.resource, p.action
+                    """, Permission.class).setParameter("id", roleId).getResultList().stream()
+                    .map(this::toPermissionItem).toList();
         }
-        return list;
     }
 
     public List<User> getUsersByRoleId(Long roleId) {
-        List<User> list = new ArrayList<>();
-        String sql = """
-                SELECT u.id, u.full_name, u.email, u.phone, u.avatar, u.status, u.role, u.created_at
-                FROM users u
-                INNER JOIN user_roles ur ON ur.user_id = u.id
-                WHERE ur.role_id = ?
-                ORDER BY u.full_name ASC
-                """;
-
-        try (Connection conn = DBContext.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setLong(1, roleId);
-            ResultSet rs = ps.executeQuery();
-            while (rs.next()) {
-                User user = new User();
-                user.setId(rs.getInt("id"));
-                user.setFullName(rs.getString("full_name"));
-                user.setEmail(rs.getString("email"));
-                user.setPhone(rs.getString("phone"));
-                user.setAvatar(rs.getString("avatar"));
-                user.setStatus(rs.getString("status"));
-                user.setRole(rs.getString("role"));
-                user.setCreatedAt(rs.getString("created_at"));
-                list.add(user);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
+        if (roleId == null) return List.of();
+        try (var session = HibernateUtil.getSessionFactory().openSession()) {
+            return session.createQuery("""
+                    select distinct u from User u
+                    join fetch u.roles r
+                    where r.id = :id
+                    order by u.firstName asc, u.lastName asc
+                    """, User.class).setParameter("id", roleId).getResultList();
         }
-        return list;
     }
 
     public boolean saveRole(Long roleId, String name, String description, List<Long> permissionIds) {
-        try (Connection conn = DBContext.getConnection()) {
-            conn.setAutoCommit(false);
-
-            Long savedRoleId = roleId != null ? roleId : insertRole(conn, name, description);
-            if (savedRoleId <= 0) {
-                conn.rollback();
+        Transaction tx = null;
+        try (var session = HibernateUtil.getSessionFactory().openSession()) {
+            tx = session.beginTransaction();
+            Role role = roleId == null ? new Role() : session.get(Role.class, roleId);
+            if (role == null) {
+                tx.rollback();
                 return false;
             }
-
-            if (roleId != null) {
-                if (!updateRoleMeta(conn, roleId, name, description)) {
-                    conn.rollback();
-                    return false;
-                }
+            role.setName(name);
+            role.setDescription(description);
+            if (roleId == null) {
+                role.setSystem(false);
             }
 
-            if (!replaceRolePermissions(conn, savedRoleId, permissionIds)) {
-                conn.rollback();
-                return false;
-            }
+            Set<Permission> permissions = permissionIds == null ? new LinkedHashSet<>() : permissionIds.stream()
+                    .filter(id -> id != null && id > 0)
+                    .map(id -> session.get(Permission.class, id))
+                    .filter(p -> p != null)
+                    .collect(Collectors.toCollection(LinkedHashSet::new));
+            role.setPermissions(permissions);
 
-            conn.commit();
+            if (roleId == null) {
+                session.persist(role);
+            } else {
+                session.merge(role);
+            }
+            tx.commit();
             return true;
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (RuntimeException e) {
+            rollback(tx);
+            return false;
         }
-        return false;
     }
 
     public boolean deleteRole(Long roleId) {
-        String checkSql = "SELECT is_system FROM roles WHERE id = ?";
-        String deleteSql = "DELETE FROM roles WHERE id = ?";
-
-        try (Connection conn = DBContext.getConnection()) {
-            conn.setAutoCommit(false);
-
-            boolean isSystem;
-            try (PreparedStatement checkPs = conn.prepareStatement(checkSql)) {
-                checkPs.setLong(1, roleId);
-                ResultSet rs = checkPs.executeQuery();
-                if (!rs.next()) {
-                    conn.rollback();
-                    return false;
-                }
-                isSystem = rs.getBoolean("is_system");
-            }
-
-            if (isSystem) {
-                conn.rollback();
+        if (roleId == null) return false;
+        Transaction tx = null;
+        try (var session = HibernateUtil.getSessionFactory().openSession()) {
+            tx = session.beginTransaction();
+            Role role = session.get(Role.class, roleId);
+            if (role == null || role.isSystem()) {
+                tx.rollback();
                 return false;
             }
-
-            try (PreparedStatement ps = conn.prepareStatement(deleteSql)) {
-                ps.setLong(1, roleId);
-                if (ps.executeUpdate() == 0) {
-                    conn.rollback();
-                    return false;
-                }
-            }
-
-            conn.commit();
+            role.setPermissions(new LinkedHashSet<>());
+            session.merge(role);
+            session.remove(role);
+            tx.commit();
             return true;
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (RuntimeException e) {
+            rollback(tx);
+            return false;
         }
-        return false;
     }
 
     public boolean assignUsersToRole(Long roleId, List<Long> userIds) {
-        String deleteSql = "DELETE FROM user_roles WHERE role_id = ?";
-        String insertSql = "INSERT INTO user_roles (user_id, role_id, assigned_by) VALUES (?, ?, ?)";
-
-        try (Connection conn = DBContext.getConnection()) {
-            conn.setAutoCommit(false);
-
-            try (PreparedStatement deletePs = conn.prepareStatement(deleteSql)) {
-                deletePs.setLong(1, roleId);
-                deletePs.executeUpdate();
+        if (roleId == null) return false;
+        Transaction tx = null;
+        try (var session = HibernateUtil.getSessionFactory().openSession()) {
+            tx = session.beginTransaction();
+            Role role = session.get(Role.class, roleId);
+            if (role == null) {
+                tx.rollback();
+                return false;
             }
 
-            if (userIds != null && !userIds.isEmpty()) {
-                try (PreparedStatement insertPs = conn.prepareStatement(insertSql)) {
-                    for (Long userId : userIds) {
-                        if (userId == null) {
-                            continue;
-                        }
-                        insertPs.setLong(1, userId);
-                        insertPs.setLong(2, roleId);
-                        insertPs.setObject(3, null);
-                        insertPs.addBatch();
-                    }
-                    insertPs.executeBatch();
+            List<User> currentUsers = session.createQuery("select distinct u from User u join fetch u.roles r where r.id = :rid", User.class)
+                    .setParameter("rid", roleId)
+                    .getResultList();
+            for (User user : currentUsers) {
+                if (user.getRoles() != null) {
+                    user.getRoles().removeIf(r -> roleId.equals(r.getId()));
+                    session.merge(user);
                 }
             }
 
-            conn.commit();
+            if (userIds != null) {
+                for (Long userId : userIds) {
+                    if (userId == null) continue;
+                    User user = session.createQuery("select distinct u from User u left join fetch u.roles where u.id = :uid", User.class)
+                            .setParameter("uid", userId)
+                            .uniqueResult();
+                    if (user == null) continue;
+                    if (user.getRoles() == null) {
+                        user.setRoles(new LinkedHashSet<>());
+                    }
+                    user.getRoles().add(role);
+                    session.merge(user);
+                }
+            }
+
+            tx.commit();
             return true;
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (RuntimeException e) {
+            rollback(tx);
+            return false;
         }
-        return false;
     }
 
     public boolean hasPermission(long userId, String resource, String action) {
-        String sql = """
-                SELECT 1
-                FROM user_roles ur
-                INNER JOIN role_permissions rp ON rp.role_id = ur.role_id
-                INNER JOIN permissions p ON p.id = rp.permission_id
-                WHERE ur.user_id = ? AND p.resource = ? AND p.action = ?
-                LIMIT 1
-                """;
-
-        try (Connection conn = DBContext.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setLong(1, userId);
-            ps.setString(2, resource);
-            ps.setString(3, action);
-            ResultSet rs = ps.executeQuery();
-            return rs.next();
-        } catch (Exception e) {
-            e.printStackTrace();
+        try (var session = HibernateUtil.getSessionFactory().openSession()) {
+            Long count = session.createQuery("""
+                    select count(p.id) from User u
+                    join u.roles r
+                    join r.permissions p
+                    where u.id = :uid and p.resource = :res and p.action = :act
+                    """, Long.class)
+                    .setParameter("uid", userId)
+                    .setParameter("res", resource)
+                    .setParameter("act", action)
+                    .uniqueResult();
+            return count != null && count > 0;
         }
-        return false;
-    }
-
-    private Long insertRole(Connection conn, String name, String description) throws Exception {
-        String sql = "INSERT INTO roles (name, description, is_system) VALUES (?, ?, false)";
-        try (PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            ps.setString(1, name);
-            ps.setString(2, description);
-            int affected = ps.executeUpdate();
-            if (affected == 0) {
-                return -1L;
-            }
-            try (ResultSet rs = ps.getGeneratedKeys()) {
-                if (rs.next()) {
-                    return rs.getLong(1);
-                }
-            }
-        }
-        return -1L;
-    }
-
-    private boolean updateRoleMeta(Connection conn, Long roleId, String name, String description) throws Exception {
-        String sql = "UPDATE roles SET name = ?, description = ? WHERE id = ?";
-        try (PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, name);
-            ps.setString(2, description);
-            ps.setLong(3, roleId);
-            return ps.executeUpdate() > 0;
-        }
-    }
-
-    private boolean replaceRolePermissions(Connection conn, Long roleId, List<Long> permissionIds) throws Exception {
-        try (PreparedStatement deletePs = conn.prepareStatement("DELETE FROM role_permissions WHERE role_id = ?")) {
-            deletePs.setLong(1, roleId);
-            deletePs.executeUpdate();
-        }
-
-        if (permissionIds == null || permissionIds.isEmpty()) {
-            return true;
-        }
-
-        try (PreparedStatement insertPs = conn.prepareStatement(
-                "INSERT INTO role_permissions (role_id, permission_id) VALUES (?, ?)")) {
-            Set<Long> distinctIds = new HashSet<>(permissionIds);
-            for (Long permissionId : distinctIds) {
-                if (permissionId == null) {
-                    continue;
-                }
-                insertPs.setLong(1, roleId);
-                insertPs.setLong(2, permissionId);
-                insertPs.addBatch();
-            }
-            insertPs.executeBatch();
-        }
-        return true;
     }
 
     public Map<Long, List<Long>> getUserIdsByRoleIds(List<Long> roleIds) {
         Map<Long, List<Long>> result = new LinkedHashMap<>();
+        if (roleIds == null) return result;
         for (Long roleId : roleIds) {
             result.put(roleId, getUserIdsByRoleId(roleId));
         }
         return result;
+    }
+
+    private PermissionItem toPermissionItem(Permission permission) {
+        return PermissionItem.builder()
+                .id(permission.getId())
+                .resource(permission.getResource())
+                .action(permission.getAction())
+                .description(permission.getDescription())
+                .build();
+    }
+
+    private PermissionGroup toPermissionGroup(Role role) {
+        List<PermissionItem> permissions = role.getPermissions() == null ? new ArrayList<>() :
+                role.getPermissions().stream().map(this::toPermissionItem).toList();
+        List<User> users = getUsersByRoleId(role.getId());
+        return PermissionGroup.builder()
+                .id(role.getId())
+                .name(role.getName())
+                .description(role.getDescription())
+                .system(role.isSystem())
+                .permissions(permissions)
+                .users(users)
+                .userCount(users.size())
+                .build();
+    }
+
+    private void rollback(Transaction tx) {
+        if (tx != null) {
+            try {
+                tx.rollback();
+            } catch (Exception ignored) {
+            }
+        }
     }
 }
