@@ -66,6 +66,11 @@
                 <span>Đăng nhập</span>
             </button>
 
+            <a href="${googleAuthUrl}" class="secondary-button">
+                <i class="fa-brands fa-google"></i>
+                <span>Đăng nhập bằng Google</span>
+            </a>
+
             <a href="${pageContext.request.contextPath}/signup" class="secondary-button">
                 <i class="fa fa-user-plus"></i>
                 <span>Tạo tài khoản mới</span>

@@ -35,9 +35,11 @@
         <div class="admin-content">
             <div class="content-header">
                 <h1>Quản lý sản phẩm</h1>
-                <button class="btn-primary" onclick="openAddModal()">
-                    <i class="fas fa-plus"></i> Thêm sản phẩm mới
-                </button>
+                <c:if test="${canCreateProduct}">
+                    <button class="btn-primary" onclick="openAddModal()">
+                        <i class="fas fa-plus"></i> Thêm sản phẩm mới
+                    </button>
+                </c:if>
             </div>
 
             <c:if test="${not empty searchQuery}">
@@ -106,16 +108,20 @@
                                 </td>
                                 <td>
                                     <div class="action-buttons">
-                                        <button class="btn-icon btn-edit" onclick="openEditModal(${p.id}, '${p.name}', '${p.description}', ${p.categoryId}, ${p.originalPrice}, '${p.imageUrl}', ${p.stockQuantity}, ${p.discountPercent}, ${p.salePrice != null ? p.salePrice : 0})" title="Sửa">
-                                            <i class="fas fa-edit"></i>
-                                        </button>
-                                        <form action="${pageContext.request.contextPath}/admin/products" method="post" style="display: inline;" onsubmit="return confirm('Bạn có chắc muốn xóa sản phẩm này?');">
-                                            <input type="hidden" name="action" value="delete">
-                                            <input type="hidden" name="id" value="${p.id}">
-                                            <button class="btn-icon btn-delete" title="Xóa">
-                                                <i class="fas fa-trash"></i>
+                                        <c:if test="${canUpdateProduct}">
+                                            <button class="btn-icon btn-edit" onclick="openEditModal(${p.id}, '${p.name}', '${p.description}', ${p.categoryId}, ${p.originalPrice}, '${p.imageUrl}', ${p.stockQuantity}, ${p.discountPercent}, ${p.salePrice != null ? p.salePrice : 0})" title="Sửa">
+                                                <i class="fas fa-edit"></i>
                                             </button>
-                                        </form>
+                                        </c:if>
+                                        <c:if test="${canDeleteProduct}">
+                                            <form action="${pageContext.request.contextPath}/admin/products" method="post" style="display: inline;" onsubmit="return confirm('Bạn có chắc muốn xóa sản phẩm này?');">
+                                                <input type="hidden" name="action" value="delete">
+                                                <input type="hidden" name="id" value="${p.id}">
+                                                <button class="btn-icon btn-delete" title="Xóa">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </form>
+                                        </c:if>
                                     </div>
                                 </td>
                             </tr>

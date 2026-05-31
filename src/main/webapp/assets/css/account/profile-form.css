@@ -1,0 +1,392 @@
+/* Profile Form Styles - Specific to profile.jsp */
+
+/* Form Table */
+.address-form .form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.profile-panel .form-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    table-layout: fixed;
+    margin: 0 0 18px;
+    overflow: hidden;
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    background: var(--surface-default);
+}
+
+.profile-panel .form-table tr {
+    border-bottom: 1px solid var(--border-subtle);
+}
+
+.profile-panel .form-table tr:last-child {
+    border-bottom: none;
+}
+
+.profile-panel .form-table th,
+.profile-panel .form-table td {
+    padding: 14px 16px;
+    vertical-align: middle;
+    text-align: left;
+}
+
+.profile-panel .form-table tbody tr td {
+    border-bottom: 1px solid var(--border-subtle);
+}
+
+.profile-panel .form-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.profile-panel .form-table th {
+    width: 190px;
+    background: var(--surface-subtle);
+    border-bottom: 1px solid var(--border-subtle);
+}
+
+.profile-panel .form-table th label,
+.profile-panel .form-table th span {
+    color: var(--text-strong);
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.profile-panel .form-table td {
+    min-width: 0;
+    background: var(--surface-default);
+}
+
+.profile-panel .form-table tr:last-child th,
+.profile-panel .form-table tr:last-child td {
+    border-bottom: none;
+}
+
+.profile-form .form-table td input[type="text"],
+.profile-form .form-table td input[type="email"],
+.profile-form .form-table td input[type="tel"],
+.profile-form .form-table td input[type="date"] {
+    width: 100%;
+    min-height: 42px;
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-sm);
+    background: var(--surface-subtle);
+    color: var(--text-default);
+    padding: 8px 12px;
+    font-size: 15px;
+    outline: none;
+    transition: all 0.2s ease;
+}
+
+.profile-form .form-table td input[type="date"] {
+    max-width: 260px;
+}
+
+.profile-form .form-table td input:focus {
+    border-color: var(--brand-primary);
+    box-shadow: var(--focus-ring);
+    background: var(--surface-default);
+}
+
+.profile-form .form-table td input:disabled {
+    color: var(--text-subtle);
+    background: var(--surface-muted);
+}
+
+/* Gender Options */
+.profile-form .gender-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.profile-form .gender-options label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 38px;
+    padding: 0 12px;
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-sm);
+    background: var(--surface-subtle);
+    color: var(--text-default);
+    cursor: pointer;
+    font-weight: 650;
+    transition: all 0.2s ease;
+}
+
+.profile-form .gender-options label:hover {
+    border-color: var(--brand-primary);
+    background: var(--surface-default);
+}
+
+.profile-form .gender-options input {
+    accent-color: var(--brand-primary);
+}
+
+/* Form Fields */
+.profile-form .field {
+    display: grid;
+    gap: 8px;
+    min-width: 0;
+}
+
+.profile-form .field--full {
+    grid-column: 1 / -1;
+}
+
+.profile-form .field span,
+.profile-form .gender-field legend {
+    color: var(--text-strong);
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.profile-form .field input {
+    width: 100%;
+    min-height: 42px;
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-sm);
+    background: var(--surface-subtle);
+    color: var(--text-default);
+    padding: 8px 12px;
+    font-size: 15px;
+    outline: none;
+    transition: all 0.2s ease;
+}
+
+.profile-form .field input:focus {
+    border-color: var(--brand-primary);
+    box-shadow: var(--focus-ring);
+    background: var(--surface-default);
+}
+
+.profile-form .field input:disabled {
+    color: var(--text-subtle);
+    background: var(--surface-muted);
+}
+
+/* Gender Field */
+.gender-field {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 16px;
+    align-items: center;
+}
+
+.gender-field legend {
+    width: 100%;
+    margin-bottom: 2px;
+}
+
+.gender-field label {
+    min-height: 34px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-default);
+    cursor: pointer;
+}
+
+.gender-field input {
+    accent-color: var(--brand-primary);
+}
+
+/* Address Section */
+.address-list {
+    display: grid;
+    gap: 12px;
+}
+
+.address-card {
+    display: flex;
+    justify-content: space-between;
+    gap: 18px;
+    padding: 16px;
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    background: var(--surface-subtle);
+}
+
+.address-card__main {
+    min-width: 0;
+}
+
+.address-card__title {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+}
+
+.address-card__title strong {
+    color: var(--text-strong);
+}
+
+.address-card__title span {
+    border: 1px solid var(--brand-accent);
+    border-radius: var(--radius-sm);
+    color: var(--brand-accent);
+    padding: 3px 7px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.address-card p {
+    color: var(--text-soft);
+    overflow-wrap: anywhere;
+}
+
+.address-card__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-content: start;
+    justify-content: flex-end;
+    gap: 10px;
+    min-width: 140px;
+}
+
+.address-card__actions a {
+    color: var(--brand-primary);
+    font-weight: 700;
+    font-size: 14px;
+}
+
+.address-card__actions a:hover {
+    color: var(--brand-primary);
+    text-decoration: underline;
+}
+
+.address-card__actions .danger-link {
+    color: var(--danger);
+}
+
+/* Avatar Section Styles */
+.avatar-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 32px 22px;
+}
+
+.avatar-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+}
+
+.avatar-image,
+.avatar-placeholder {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid var(--border-subtle);
+    background: var(--surface-subtle);
+}
+
+.avatar-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 48px;
+    color: var(--text-soft);
+}
+
+.avatar-actions {
+    display: flex;
+    gap: 12px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .profile-panel .form-table th {
+        width: auto;
+        min-width: 130px;
+    }
+}
+
+@media (max-width: 640px) {
+    .form-table {
+        border: 0;
+        border-radius: 0;
+        background: transparent;
+        overflow: visible;
+    }
+
+    .form-table,
+    .form-table tbody,
+    .form-table tr,
+    .form-table th,
+    .form-table td {
+        display: block;
+        width: 100%;
+    }
+
+    .form-table tr {
+        margin-bottom: 12px;
+        padding: 0;
+        border: 0;
+    }
+
+    .form-table th {
+        min-width: 0;
+        padding: 0 0 7px;
+        border: 0;
+        background: transparent;
+        width: 100%;
+    }
+
+    .form-table td {
+        padding: 0;
+        border: 0;
+    }
+
+    .form-table td input[type="date"] {
+        max-width: none;
+    }
+
+    .gender-options {
+        display: grid;
+        grid-template-columns: 1fr;
+    }
+
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .panel-header--split,
+    .address-card {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .address-card__actions {
+        justify-content: flex-start;
+        min-width: 0;
+    }
+
+    .avatar-section {
+        padding: 24px 16px;
+    }
+
+    .avatar-image,
+    .avatar-placeholder {
+        width: 90px;
+        height: 90px;
+    }
+
+    .avatar-placeholder {
+        font-size: 36px;
+    }
+}
+

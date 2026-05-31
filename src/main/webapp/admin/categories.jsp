@@ -38,9 +38,11 @@
         <div class="admin-content">
             <div class="content-header">
                 <h1>Quản lý danh mục</h1>
-                <button class="btn-primary" onclick="openAddModal()">
-                    <i class="fas fa-plus"></i> Thêm danh mục mới
-                </button>
+                <c:if test="${canCreateCategory}">
+                    <button class="btn-primary" onclick="openAddModal()">
+                        <i class="fas fa-plus"></i> Thêm danh mục mới
+                    </button>
+                </c:if>
             </div>
 
             <c:if test="${not empty message}">
@@ -64,9 +66,12 @@
                             <div class="category-info">
                                 <div class="category-name">${cat.name}</div>
                                 <div class="action-buttons">
+                                    <c:if test="${canUpdateCategory}">
                                     <button class="btn-icon btn-edit" onclick="openEditModal(${cat.id}, '${cat.name}', '${cat.image}')" title="Sửa">
                                         <i class="fas fa-edit"></i>
                                     </button>
+                                </c:if>
+                                <c:if test="${canDeleteCategory}">
                                     <form action="${pageContext.request.contextPath}/admin/categories" method="post" style="display: inline;" onsubmit="return confirm('Bạn có chắc muốn xóa danh mục này?');">
                                         <input type="hidden" name="action" value="delete">
                                         <input type="hidden" name="id" value="${cat.id}">
@@ -74,6 +79,7 @@
                                             <i class="fas fa-trash"></i>
                                         </button>
                                     </form>
+                                </c:if>
                                 </div>
                             </div>
                         </div>

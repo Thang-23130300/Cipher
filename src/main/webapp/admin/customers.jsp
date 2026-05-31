@@ -35,9 +35,11 @@
         <div class="admin-content">
             <div class="content-header">
                 <h1>Quản lý khách hàng</h1>
-                <button class="btn-primary" onclick="openAddModal()">
-                    <i class="fas fa-plus"></i> Thêm khách hàng mới
-                </button>
+                <c:if test="${canCreateCustomer}">
+                    <button class="btn-primary" onclick="openAddModal()">
+                        <i class="fas fa-plus"></i> Thêm khách hàng mới
+                    </button>
+                </c:if>
             </div>
 
             <c:if test="${not empty message}">
@@ -84,24 +86,28 @@
                                 <td>${customer.createdAt}</td>
                                 <td>
                                     <div class="action-buttons">
-                                        <button class="btn-icon btn-edit" onclick="openEditModal(${customer.id}, '${customer.fullName}', '${customer.email}', '${customer.phone}')" title="Sửa">
-                                            <i class="fas fa-edit"></i>
-                                        </button>
-                                        <form action="${pageContext.request.contextPath}/admin/customers" method="post" style="display: inline;">
-                                            <input type="hidden" name="action" value="toggleStatus">
-                                            <input type="hidden" name="id" value="${customer.id}">
-                                            <input type="hidden" name="currentStatus" value="${customer.status}">
-                                            <button class="btn-icon" style="background: ${customer.status == 'Active' ? '#f59e0b' : '#10b981'};" title="${customer.status == 'Active' ? 'Cấm' : 'Mở cấm'}">
-                                                <i class="fas fa-${customer.status == 'Active' ? 'ban' : 'check'}"></i>
+                                        <c:if test="${canUpdateCustomer}">
+                                            <button class="btn-icon btn-edit" onclick="openEditModal(${customer.id}, '${customer.fullName}', '${customer.email}', '${customer.phone}')" title="Sửa">
+                                                <i class="fas fa-edit"></i>
                                             </button>
-                                        </form>
-                                        <form action="${pageContext.request.contextPath}/admin/customers" method="post" style="display: inline;" onsubmit="return confirm('Bạn có chắc muốn xóa khách hàng này?');">
-                                            <input type="hidden" name="action" value="delete">
-                                            <input type="hidden" name="id" value="${customer.id}">
-                                            <button class="btn-icon btn-delete" title="Xóa">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
-                                        </form>
+                                            <form action="${pageContext.request.contextPath}/admin/customers" method="post" style="display: inline;">
+                                                <input type="hidden" name="action" value="toggleStatus">
+                                                <input type="hidden" name="id" value="${customer.id}">
+                                                <input type="hidden" name="currentStatus" value="${customer.status}">
+                                                <button class="btn-icon" style="background: ${customer.status == 'Active' ? '#f59e0b' : '#10b981'};" title="${customer.status == 'Active' ? 'Cấm' : 'Mở cấm'}">
+                                                    <i class="fas fa-${customer.status == 'Active' ? 'ban' : 'check'}"></i>
+                                                </button>
+                                            </form>
+                                        </c:if>
+                                        <c:if test="${canDeleteCustomer}">
+                                            <form action="${pageContext.request.contextPath}/admin/customers" method="post" style="display: inline;" onsubmit="return confirm('Bạn có chắc muốn xóa khách hàng này?');">
+                                                <input type="hidden" name="action" value="delete">
+                                                <input type="hidden" name="id" value="${customer.id}">
+                                                <button class="btn-icon btn-delete" title="Xóa">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </form>
+                                        </c:if>
                                     </div>
                                 </td>
                             </tr>

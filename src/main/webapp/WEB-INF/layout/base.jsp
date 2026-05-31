@@ -43,6 +43,10 @@
     <link rel="stylesheet"
           href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
+    <!-- Account Common CSS - shared by all account pages -->
+    <link rel="stylesheet"
+          href="${pageContext.request.contextPath}/assets/css/account/account-common.css">
+
     <!-- ================= PAGE CSS ================= -->
 
     <c:if test="${not empty pageCss}">
