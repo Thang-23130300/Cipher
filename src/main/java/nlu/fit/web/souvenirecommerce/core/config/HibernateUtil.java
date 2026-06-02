@@ -38,6 +38,8 @@ public class HibernateUtil {
         configuration.addAnnotatedClass(UserCredential.class);
         configuration.addAnnotatedClass(VerificationCode.class);
         configuration.addAnnotatedClass(Address.class);
+        configuration.addAnnotatedClass(Province.class);
+        configuration.addAnnotatedClass(Ward.class);
     }
 
     public static SessionFactory getSessionFactory() {

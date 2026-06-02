@@ -28,9 +28,9 @@ public abstract class AbsBaseService<K, T> implements IService<K, T> {
     }
 
     @Override
-    public void update(T entity) {
+    public Optional<T> update(T entity) {
         log.info("Request to update entity: {}", entityName(entity));
-        requireRepository().update(entity);
+        return requireRepository().update(entity);
     }
 
     @Override
@@ -59,16 +59,10 @@ public abstract class AbsBaseService<K, T> implements IService<K, T> {
         return all != null ? all.size() : 0;
     }
 
-    /**
-     * Setter cho repository (để dễ dàng mock trong tests)
-     */
     public void setRepository(IRepository<K, T> repository) {
         this.repository = repository;
     }
 
-    /**
-     * Getter cho repository
-     */
     public IRepository<K, T> getRepository() {
         return repository;
     }

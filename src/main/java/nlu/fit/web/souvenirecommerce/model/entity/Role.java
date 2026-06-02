@@ -2,6 +2,7 @@ package nlu.fit.web.souvenirecommerce.model.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import nlu.fit.web.souvenirecommerce.common.base.AbsBaseEntity;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 
@@ -16,7 +17,7 @@ import java.util.Set;
 @Builder
 @SQLDelete(sql = "UPDATE roles SET deleted_at = CURRENT_TIMESTAMP WHERE id = ?")
 @SQLRestriction("deleted_at IS NULL")
-public class Role extends BaseEntity {
+public class Role extends AbsBaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
