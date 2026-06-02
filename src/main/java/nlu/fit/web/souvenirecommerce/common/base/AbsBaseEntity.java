@@ -1,4 +1,4 @@
-package nlu.fit.web.souvenirecommerce.model.entity;
+package nlu.fit.web.souvenirecommerce.common.base;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.MappedSuperclass;

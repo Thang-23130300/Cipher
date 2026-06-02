@@ -2,6 +2,7 @@ package nlu.fit.web.souvenirecommerce.model.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import nlu.fit.web.souvenirecommerce.common.base.AbsBaseEntity;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 
@@ -37,6 +38,14 @@ public class Address extends AbsBaseEntity {
 
     @Column(nullable = false, length = 100)
     private String province;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "province_code")
+    private Province provinceEntity;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "ward_code")
+    private Ward wardEntity;
 
     @Column(name = "is_default", nullable = false)
     private boolean isDefault;

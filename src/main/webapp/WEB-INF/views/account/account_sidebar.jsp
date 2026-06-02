@@ -9,7 +9,7 @@
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 
-<c:set var="currentUser" value="${sessionScope.currentUser}"/>
+<c:set var="currentUser" value="${not empty sessionScope.currentUser ? sessionScope.currentUser : sessionScope.userInSession}"/>
 
 <aside class="account-sidebar" aria-label="Tài khoản">
   <div class="account-user">
@@ -59,10 +59,10 @@
       <i class="fa-solid fa-receipt"></i>
       <span>Đơn hàng</span>
     </a>
-    <a href="${pageContext.request.contextPath}/user/review"
-       class="${requestScope.pageTitle eq 'Đánh giá' ? 'is-active' : ''}">
-      <i class="fa-solid fa-star"></i>
-      <span>Đánh giá</span>
+    <a href="${pageContext.request.contextPath}/user/address"
+       class="${requestScope.pageTitle eq 'Địa chỉ' ? 'is-active' : ''}">
+      <i class="fa-solid fa-location-dot"></i>
+      <span>Địa chỉ</span>
     </a>
     <a href="${pageContext.request.contextPath}/user/change-password"
        class="${requestScope.pageTitle eq 'Đổi mật khẩu' ? 'is-active' : ''}">
