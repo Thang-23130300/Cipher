@@ -10,8 +10,6 @@ import java.util.Optional;
 
 public class ProfileDao {
 
-
-
     /**
      * Fetches a User entity based on the provided email address, including related
      * entities such as credentials, roles, OAuth accounts, and addresses.

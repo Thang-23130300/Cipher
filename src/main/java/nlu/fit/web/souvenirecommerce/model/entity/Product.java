@@ -14,7 +14,7 @@ import org.hibernate.annotations.SQLRestriction;
 @Table(name = "products")
 @SQLDelete(sql = "UPDATE products SET deleted_at = CURRENT_TIMESTAMP WHERE id = ?")
 @SQLRestriction("deleted_at IS NULL")
-public class Product extends BaseEntity {
+public class Product extends AbsBaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

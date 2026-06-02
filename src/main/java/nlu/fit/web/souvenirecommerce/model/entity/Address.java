@@ -14,7 +14,7 @@ import org.hibernate.annotations.SQLRestriction;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Address extends BaseEntity {
+public class Address extends AbsBaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

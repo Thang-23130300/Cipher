@@ -14,7 +14,7 @@ public interface IRepository<K, T> {
 
     Optional<T> save(T t);
 
-    void update(T t);
+    Optional<T> update(T t);
 
     List<T> findAll();
 

@@ -7,12 +7,13 @@ import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
 @MappedSuperclass
 @Getter
 @Setter
-public abstract class BaseEntity {
+public abstract class AbsBaseEntity implements Serializable {
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)

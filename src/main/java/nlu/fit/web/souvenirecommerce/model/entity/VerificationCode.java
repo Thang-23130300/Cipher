@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class VerificationCode extends BaseEntity {
+public class VerificationCode extends AbsBaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

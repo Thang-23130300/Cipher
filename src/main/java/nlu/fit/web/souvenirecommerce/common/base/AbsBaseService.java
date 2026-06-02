@@ -28,9 +28,9 @@ public abstract class AbsBaseService<K, T> implements IService<K, T> {
     }
 
     @Override
-    public void update(T entity) {
+    public Optional<T> update(T entity) {
         log.info("Request to update entity: {}", entityName(entity));
-        requireRepository().update(entity);
+        return requireRepository().update(entity);
     }
 
     @Override

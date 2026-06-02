@@ -4,29 +4,39 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.MultipartConfig;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
+import nlu.fit.web.souvenirecommerce.common.utils.ApplicationLoader;
 import nlu.fit.web.souvenirecommerce.model.entity.User;
 import nlu.fit.web.souvenirecommerce.features.product.service.CloudinaryService;
 import nlu.fit.web.souvenirecommerce.core.config.HibernateUtil;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Map;
 
-@WebServlet(urlPatterns = "/user/account/change-avatar")
+@WebServlet(urlPatterns = "/user/upload-avatar/old")
 @MultipartConfig(
         fileSizeThreshold = 1024 * 1024,
         maxFileSize = 5 * 1024 * 1024,
         maxRequestSize = 10 * 1024 * 1024
 )
 public class ChangeAvatarServlet extends HttpServlet {
+    private static final String UPLOAD_DIR = ApplicationLoader.get("path.folder.avatar");
+
+    @Override
+    public void init() throws ServletException {
+        File uploadDir = new File(UPLOAD_DIR);
+        if (!uploadDir.exists()){
+            boolean mkdir =  uploadDir.mkdirs();
+        }
+    }
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         HttpSession session = req.getSession(false);
 
-        // Check if user is logged in
-        if (session == null || session.getAttribute("currentUser") == null) {
+        if (session == null || session.getAttribute("userDto") == null) {
             resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             resp.getWriter().write("{\"error\": \"Unauthorized\"}");
             return;
@@ -44,15 +54,12 @@ public class ChangeAvatarServlet extends HttpServlet {
                 return;
             }
 
-            // Get file bytes
             byte[] fileBytes = filePart.getInputStream().readAllBytes();
 
-            // Upload to Cloudinary
             Map<String, String> uploadResult = CloudinaryService.uploadImage(fileBytes, "avatar");
             String newAvatarUrl = uploadResult.get("url");
             String newPublicId = uploadResult.get("public_id");
 
-            // Delete old avatar if exists
             if (currentUser.getAvatarPublicId() != null && !currentUser.getAvatarPublicId().isEmpty()) {
                 try {
                     CloudinaryService.deleteImage(currentUser.getAvatarPublicId());
@@ -61,19 +68,17 @@ public class ChangeAvatarServlet extends HttpServlet {
                 }
             }
 
-            // Update User entity in database
             Session hibernateSession = HibernateUtil.getSessionFactory().openSession();
             Transaction transaction = hibernateSession.beginTransaction();
 
             try {
-                User userToUpdate = hibernateSession.get(User.class, currentUser.getId());
+                User userToUpdate = hibernateSession.find(User.class, currentUser.getId());
                 if (userToUpdate != null) {
                     userToUpdate.setAvatarUrl(newAvatarUrl);
                     userToUpdate.setAvatarPublicId(newPublicId);
                     hibernateSession.merge(userToUpdate);
                     transaction.commit();
 
-                    // Update session user
                     currentUser.setAvatarUrl(newAvatarUrl);
                     currentUser.setAvatarPublicId(newPublicId);
                     session.setAttribute("currentUser", currentUser);

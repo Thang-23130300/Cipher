@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
 @Builder
 @SQLDelete(sql = "UPDATE user_credentials SET deleted_at = CURRENT_TIMESTAMP WHERE user_id = ?")
 @SQLRestriction("deleted_at IS NULL")
-public class UserCredential extends BaseEntity {
+public class UserCredential extends AbsBaseEntity {
 
     @Id
     private Long id;

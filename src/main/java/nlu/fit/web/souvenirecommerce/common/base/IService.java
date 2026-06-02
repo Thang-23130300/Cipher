@@ -13,7 +13,7 @@ public interface IService<K, T> {
 
     Optional<T> save(T entity);
 
-    void update(T entity);
+    Optional<T> update(T entity);
 
     List<T> findAll();
 
