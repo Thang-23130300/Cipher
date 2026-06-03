@@ -13,7 +13,7 @@ import java.io.IOException;
 import java.util.List;
 
 @WebServlet("/user/address/*")
-public class UserAddressController extends HttpServlet {
+public class AddressController extends HttpServlet {
 
     private final AddressService addressService = new AddressService();
 
