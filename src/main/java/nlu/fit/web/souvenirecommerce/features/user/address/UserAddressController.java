@@ -1,4 +1,4 @@
-package nlu.fit.web.souvenirecommerce.features.user.controller;
+package nlu.fit.web.souvenirecommerce.features.user.address;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -6,7 +6,6 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-import nlu.fit.web.souvenirecommerce.features.user.profile.service.AddressService;
 import nlu.fit.web.souvenirecommerce.model.entity.User;
 import nlu.fit.web.souvenirecommerce.model.entity.Ward;
 

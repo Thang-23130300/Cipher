@@ -39,6 +39,9 @@ public class Address extends AbsBaseEntity {
     @Column(nullable = false, length = 100)
     private String province;
 
+    @Column(nullable = false, length = 100)
+    private String city;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "province_code")
     private Province provinceEntity;

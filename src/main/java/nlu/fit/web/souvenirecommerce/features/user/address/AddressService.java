@@ -1,6 +1,5 @@
-package nlu.fit.web.souvenirecommerce.features.user.profile.service;
+package nlu.fit.web.souvenirecommerce.features.user.address;
 
-import nlu.fit.web.souvenirecommerce.features.user.profile.repository.AddressRepository;
 import nlu.fit.web.souvenirecommerce.features.user.profile.repository.ProfileRepository;
 import nlu.fit.web.souvenirecommerce.model.entity.Address;
 import nlu.fit.web.souvenirecommerce.model.entity.Province;
@@ -42,13 +41,15 @@ public class AddressService {
         if (selectedWard.getProvince() == null || !selectedProvince.getCode().equals(selectedWard.getProvince().getCode())) {
             return false;
         }
+        String provinceName = displayName(selectedProvince.getFullName(), selectedProvince.getName());
 
         Address address = Address.builder()
                 .user(user)
                 .receiverName(user.getFullName())
                 .receiverPhone(user.getPhone())
                 .addressDetail(addressDetail.trim())
-                .province(displayName(selectedProvince.getFullName(), selectedProvince.getName()))
+                .province(provinceName)
+                .city(provinceName)
                 .district("")
                 .ward(displayName(selectedWard.getFullName(), selectedWard.getName()))
                 .provinceEntity(selectedProvince)
