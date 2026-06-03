@@ -122,6 +122,16 @@ public class AdminSettingsController extends HttpServlet {
                 settings.put("shipping_ghn", req.getParameter("shippingGhn") != null ? "true" : "false");
                 settings.put("shipping_ghtk", req.getParameter("shippingGhtk") != null ? "true" : "false");
                 settings.put("shipping_jnt", req.getParameter("shippingJnt") != null ? "true" : "false");
+                // Additional main website settings
+                settings.put("default_language", req.getParameter("defaultLanguage") != null ? req.getParameter("defaultLanguage") : "");
+                settings.put("default_currency", req.getParameter("defaultCurrency") != null ? req.getParameter("defaultCurrency") : "");
+                settings.put("items_per_page", req.getParameter("itemsPerPage") != null ? req.getParameter("itemsPerPage") : "");
+                settings.put("tax_rate", req.getParameter("taxRate") != null ? req.getParameter("taxRate") : "");
+                settings.put("maintenance_mode", req.getParameter("maintenanceMode") != null ? "true" : "false");
+                settings.put("site_logo_url", req.getParameter("siteLogoUrl") != null ? req.getParameter("siteLogoUrl") : "");
+                settings.put("meta_description", req.getParameter("metaDescription") != null ? req.getParameter("metaDescription") : "");
+                settings.put("social_facebook", req.getParameter("socialFacebook") != null ? req.getParameter("socialFacebook") : "");
+                settings.put("social_instagram", req.getParameter("socialInstagram") != null ? req.getParameter("socialInstagram") : "");
 
                 if (settingsDAO.updateMultipleSettings(settings)) {
                     session.setAttribute("message", "Cập nhật cài đặt hệ thống thành công!");
