@@ -1,85 +1,167 @@
 package nlu.fit.web.souvenirecommerce.features.dashboard.controller;
 
+import com.google.gson.Gson;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import nlu.fit.web.souvenirecommerce.legacy.dao.CategoryDAO;
-import nlu.fit.web.souvenirecommerce.model.entity.Category;
+import nlu.fit.web.souvenirecommerce.features.product.dto.CategoryAdminDTO;
+import nlu.fit.web.souvenirecommerce.features.product.service.ICategoryService;
+import nlu.fit.web.souvenirecommerce.features.product.service.impl.CategoryServiceImpl;
+import nlu.fit.web.souvenirecommerce.common.utils.GsonUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 @WebServlet("/admin/categories")
 public class AdminCategoryController extends HttpServlet {
+    private static final Logger log = LoggerFactory.getLogger(AdminCategoryController.class);
+    private static final Gson gson = GsonUtil.getGson();
 
-    private CategoryDAO categoryDAO;
+    private ICategoryService categoryService;
 
     @Override
     public void init() {
-        categoryDAO = new CategoryDAO();
+        categoryService = new CategoryServiceImpl();
     }
 
+    /**
+     * GET: Display category management page with all categories
+     */
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        req.setAttribute("categories", categoryDAO.getAllCategories());
-        req.getRequestDispatcher("/admin/categories.jsp").forward(req, resp);
+        try {
+            log.info("GET /admin/categories - Loading category management page");
+            
+            // Fetch all categories with product counts
+            var categories = categoryService.getAllCategoriesForAdmin();
+            
+            req.setAttribute("categories", categories);
+            req.setAttribute("canCreateCategory", true);
+            req.setAttribute("canUpdateCategory", true);
+            req.setAttribute("canDeleteCategory", true);
+
+            log.info("Successfully loaded {} categories", categories.size());
+            req.getRequestDispatcher("/admin/categories.jsp").forward(req, resp);
+        } catch (Exception e) {
+            log.error("GET /admin/categories failed", e);
+            req.setAttribute("message", "Lỗi tải trang: " + e.getMessage());
+            req.setAttribute("messageType", "error");
+            throw new RuntimeException("Failed to load category management page", e);
+        }
     }
 
+    /**
+     * POST: Handle category CRUD operations (add, edit, delete)
+     * Supports both form submission and AJAX JSON requests
+     */
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         req.setCharacterEncoding("UTF-8");
+        resp.setContentType("application/json");
+        
         String action = req.getParameter("action");
+        Map<String, Object> response = new HashMap<>();
 
         try {
+            log.info("POST /admin/categories - Action: {}", action);
+
             if ("add".equals(action)) {
-                Category category = new Category();
-                category.setCategoryName(req.getParameter("name"));
-                category.setImage(req.getParameter("imageUrl"));
-
-                if (categoryDAO.insertCategory(category)) {
-                    req.setAttribute("message", "Thêm danh mục thành công!");
-                    req.setAttribute("messageType", "success");
-                } else {
-                    req.setAttribute("message", "Thêm danh mục thất bại!");
-                    req.setAttribute("messageType", "error");
-                }
-
+                handleAddCategory(req, resp, response);
             } else if ("edit".equals(action)) {
-                Category category = new Category();
-                category.setId(Long.parseLong(req.getParameter("id")));
-                category.setCategoryName(req.getParameter("name"));
-                category.setImage(req.getParameter("imageUrl"));
-
-                if (categoryDAO.updateCategory(category)) {
-                    req.setAttribute("message", "Cập nhật danh mục thành công!");
-                    req.setAttribute("messageType", "success");
-                } else {
-                    req.setAttribute("message", "Cập nhật danh mục thất bại!");
-                    req.setAttribute("messageType", "error");
-                }
-
+                handleEditCategory(req, resp, response);
             } else if ("delete".equals(action)) {
-                long id = Long.parseLong(req.getParameter("id"));
-                int productCount = categoryDAO.getProductCountByCategory(id);
-
-                if (productCount > 0) {
-                    req.setAttribute("message", "Không thể xóa danh mục có " + productCount + " sản phẩm!");
-                    req.setAttribute("messageType", "error");
-                } else if (categoryDAO.deleteCategory(id)) {
-                    req.setAttribute("message", "Xóa danh mục thành công!");
-                    req.setAttribute("messageType", "success");
-                } else {
-                    req.setAttribute("message", "Xóa danh mục thất bại!");
-                    req.setAttribute("messageType", "error");
-                }
+                handleDeleteCategory(req, resp, response);
+            } else {
+                response.put("success", false);
+                response.put("message", "Unknown action");
+                resp.getWriter().write(gson.toJson(response));
             }
+        } catch (IllegalArgumentException e) {
+            log.warn("POST /admin/categories validation error: {}", e.getMessage());
+            response.put("success", false);
+            response.put("message", e.getMessage());
+            resp.getWriter().write(gson.toJson(response));
+            throw new RuntimeException("Category operation validation failed: " + e.getMessage(), e);
         } catch (Exception e) {
-            e.printStackTrace();
-            req.setAttribute("message", "Có lỗi xảy ra: " + e.getMessage());
-            req.setAttribute("messageType", "error");
+            log.error("POST /admin/categories failed for action: {}", action, e);
+            response.put("success", false);
+            response.put("message", "Lỗi: " + e.getMessage());
+            resp.getWriter().write(gson.toJson(response));
+            throw new RuntimeException("Category operation failed", e);
+        }
+    }
+
+    /**
+     * Handle add category operation
+     */
+    private void handleAddCategory(HttpServletRequest req, HttpServletResponse resp, Map<String, Object> response) throws IOException {
+        String name = req.getParameter("name");
+        String image = req.getParameter("imageUrl");
+
+        log.info("Adding new category: name={}", name);
+
+        CategoryAdminDTO dto = new CategoryAdminDTO();
+        dto.setCategoryName(name);
+        dto.setImage(image);
+
+        CategoryAdminDTO created = categoryService.createCategory(dto);
+        
+        response.put("success", true);
+        response.put("message", "Thêm danh mục thành công!");
+        response.put("data", created);
+        
+        resp.getWriter().write(gson.toJson(response));
+        log.info("Category created successfully: id={}", created.getId());
+    }
+
+    /**
+     * Handle edit category operation
+     */
+    private void handleEditCategory(HttpServletRequest req, HttpServletResponse resp, Map<String, Object> response) throws IOException {
+        long id = Long.parseLong(req.getParameter("id"));
+        String name = req.getParameter("name");
+        String image = req.getParameter("imageUrl");
+
+        log.info("Updating category: id={}, name={}", id, name);
+
+        CategoryAdminDTO dto = new CategoryAdminDTO();
+        dto.setCategoryName(name);
+        dto.setImage(image);
+
+        CategoryAdminDTO updated = categoryService.updateCategory(id, dto);
+        
+        response.put("success", true);
+        response.put("message", "Cập nhật danh mục thành công!");
+        response.put("data", updated);
+        
+        resp.getWriter().write(gson.toJson(response));
+        log.info("Category updated successfully: id={}", id);
+    }
+
+    /**
+     * Handle delete category operation
+     */
+    private void handleDeleteCategory(HttpServletRequest req, HttpServletResponse resp, Map<String, Object> response) throws IOException {
+        long id = Long.parseLong(req.getParameter("id"));
+
+        log.info("Deleting category: id={}", id);
+
+        // Check if can delete
+        if (!categoryService.canDeleteCategory(id)) {
+            throw new IllegalArgumentException("Không thể xóa danh mục đang có sản phẩm");
         }
 
-        resp.sendRedirect(req.getContextPath() + "/admin/categories");
+        categoryService.deleteCategory(id);
+        
+        response.put("success", true);
+        response.put("message", "Xóa danh mục thành công!");
+        
+        resp.getWriter().write(gson.toJson(response));
+        log.info("Category deleted successfully: id={}", id);
     }
 }
