@@ -28,7 +28,7 @@ public class LoginServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         HttpSession session = req.getSession(false);
-        if (session != null && session.getAttribute("currentUser") != null) {
+        if (session != null && session.getAttribute("userDto") != null) {
             resp.sendRedirect(req.getContextPath() + "/home");
             return;
         }
@@ -97,6 +97,7 @@ public class LoginServlet extends HttpServlet {
         session.setAttribute("userInSession", user);
         session.setAttribute("user", user);
         session.setAttribute("authUser", user);
+        session.setAttribute("userDto", user);
     }
 
     private String buildGoogleAuthUrl() {

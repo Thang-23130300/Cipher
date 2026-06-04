@@ -147,7 +147,7 @@ public class ProfileServlet extends HttpServlet {
 
         // Save to database
         ProfileService profileService = new ProfileService();
-        profileService.updateProfile(currentUser);
+        currentUser = profileService.update(currentUser).get();
 
         // Update session with all attribute names (consistent with LoginServlet)
         session.setAttribute("currentUser", currentUser);
@@ -243,7 +243,7 @@ public class ProfileServlet extends HttpServlet {
 
             // Save to database
             ProfileService profileService = new ProfileService();
-            profileService.updateProfile(currentUser);
+            profileService.update(currentUser);
 
             // Update session
             session.setAttribute("currentUser", currentUser);
