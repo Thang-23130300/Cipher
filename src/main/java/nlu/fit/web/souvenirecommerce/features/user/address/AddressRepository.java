@@ -4,6 +4,7 @@ import nlu.fit.web.souvenirecommerce.common.base.AbsBaseRepository;
 import nlu.fit.web.souvenirecommerce.model.entity.Address;
 
 import java.util.List;
+import java.util.Optional;
 
 public class AddressRepository extends AbsBaseRepository<Long, Address> {
 
@@ -16,6 +17,17 @@ public class AddressRepository extends AbsBaseRepository<Long, Address> {
                 .createQuery("from Address a where a.user.id = :userId order by a.isDefault desc, a.id desc", Address.class)
                 .setParameter("userId", userId)
                 .getResultList();
+    }
+
+    public Optional<Address> findByIdAndUserId(Long addressId, Long userId) {
+        if (addressId == null || userId == null) {
+            return Optional.empty();
+        }
+        return getSession()
+                .createQuery("from Address a where a.id = :addressId and a.user.id = :userId", Address.class)
+                .setParameter("addressId", addressId)
+                .setParameter("userId", userId)
+                .uniqueResultOptional();
     }
 
     public long countByUserId(Long userId) {

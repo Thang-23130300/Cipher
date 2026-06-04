@@ -1,7 +1,6 @@
 package nlu.fit.web.souvenirecommerce.core.filters;
 
 import jakarta.servlet.*;
-import jakarta.servlet.annotation.WebFilter;
 import nlu.fit.web.souvenirecommerce.core.config.HibernateUtil;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
@@ -10,7 +9,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
-@WebFilter("/*")
 public class TransactionFilter implements Filter {
 
     private static final Logger log = LoggerFactory.getLogger(TransactionFilter.class);

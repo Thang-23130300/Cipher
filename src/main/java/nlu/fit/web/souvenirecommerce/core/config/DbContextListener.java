@@ -2,13 +2,16 @@ package nlu.fit.web.souvenirecommerce.core.config;
 
 import jakarta.servlet.ServletContextEvent;
 import jakarta.servlet.ServletContextListener;
-import jakarta.servlet.annotation.WebListener;
 import lombok.extern.slf4j.Slf4j;
+import com.mysql.cj.jdbc.AbandonedConnectionCleanupThread;
 import nlu.fit.web.souvenirecommerce.legacy.utils.DBContext;
-import nlu.fit.web.souvenirecommerce.core.config.HibernateUtil;
 import org.hibernate.Session;
 
-@WebListener
+import java.sql.Driver;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+import java.util.Enumeration;
+
 @Slf4j
 public class DbContextListener implements ServletContextListener {
 
@@ -17,6 +20,7 @@ public class DbContextListener implements ServletContextListener {
         String contextPath = sce.getServletContext().getContextPath();
         log.info("Application starting: contextPath={}", contextPath);
 
+        SchemaMigrationRunner.runBeforeHibernate();
         HibernateUtil.getSessionFactory();
         log.info("Hibernate SessionFactory initialized");
 
@@ -30,12 +34,9 @@ public class DbContextListener implements ServletContextListener {
         String contextPath = sce.getServletContext().getContextPath();
         log.info("Application stopping: contextPath={}", contextPath);
 
-        if (HibernateUtil.getSessionFactory() != null){
-            HibernateUtil.shutdown();
-            log.info("Hibernate SessionFactory destroyed");
-        }
-        DBContext.shutdown();
-        log.info("JDBC HikariDataSource destroyed");
+        shutdownHibernate();
+        shutdownLegacyJdbc();
+        cleanupJdbcDrivers();
         log.info("Application stopped: contextPath={}", contextPath);
     }
 
@@ -54,6 +55,49 @@ public class DbContextListener implements ServletContextListener {
             }
         } catch (Exception e) {
             log.error("Error verifying roles", e);
+        }
+    }
+
+    private void shutdownHibernate() {
+        try {
+            if (HibernateUtil.getSessionFactory() != null) {
+                HibernateUtil.shutdown();
+                log.info("Hibernate SessionFactory destroyed");
+            }
+        } catch (Throwable e) {
+            log.warn("Hibernate SessionFactory was not available during shutdown", e);
+        }
+    }
+
+    private void shutdownLegacyJdbc() {
+        try {
+            DBContext.shutdown();
+            log.info("JDBC HikariDataSource destroyed");
+        } catch (Throwable e) {
+            log.warn("JDBC HikariDataSource was not available during shutdown", e);
+        }
+    }
+
+    private void cleanupJdbcDrivers() {
+        try {
+            AbandonedConnectionCleanupThread.checkedShutdown();
+        } catch (Throwable e) {
+            log.warn("Could not stop MySQL abandoned connection cleanup thread", e);
+        }
+
+        ClassLoader webappClassLoader = Thread.currentThread().getContextClassLoader();
+        Enumeration<Driver> drivers = DriverManager.getDrivers();
+        while (drivers.hasMoreElements()) {
+            Driver driver = drivers.nextElement();
+            if (driver.getClass().getClassLoader() != webappClassLoader) {
+                continue;
+            }
+            try {
+                DriverManager.deregisterDriver(driver);
+                log.info("Deregistered JDBC driver {}", driver);
+            } catch (SQLException e) {
+                log.warn("Could not deregister JDBC driver {}", driver, e);
+            }
         }
     }
 }

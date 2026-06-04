@@ -26,27 +26,37 @@ public class AddressService {
     }
 
     public boolean addAddress(User user, String addressDetail, Integer provinceCode, Integer wardCode) {
+        return createAddress(user, user == null ? null : user.getFullName(), user == null ? null : user.getPhone(),
+                addressDetail, provinceCode, wardCode).isPresent();
+    }
+
+    public Optional<Address> createAddress(User user,
+                                           String receiverName,
+                                           String receiverPhone,
+                                           String addressDetail,
+                                           Integer provinceCode,
+                                           Integer wardCode) {
         if (user == null || user.getId() == null || isBlank(addressDetail)) {
-            return false;
+            return Optional.empty();
         }
 
         Optional<Province> province = profileRepository.findProvinceByCode(provinceCode);
         Optional<Ward> ward = profileRepository.findWardByCode(wardCode);
         if (province.isEmpty() || ward.isEmpty()) {
-            return false;
+            return Optional.empty();
         }
 
         Province selectedProvince = province.get();
         Ward selectedWard = ward.get();
         if (selectedWard.getProvince() == null || !selectedProvince.getCode().equals(selectedWard.getProvince().getCode())) {
-            return false;
+            return Optional.empty();
         }
         String provinceName = displayName(selectedProvince.getFullName(), selectedProvince.getName());
 
         Address address = Address.builder()
                 .user(user)
-                .receiverName(user.getFullName())
-                .receiverPhone(user.getPhone())
+                .receiverName(firstNotBlank(receiverName, user.getFullName()))
+                .receiverPhone(firstNotBlank(receiverPhone, user.getPhone()))
                 .addressDetail(addressDetail.trim())
                 .province(provinceName)
                 .city(provinceName)
@@ -56,7 +66,11 @@ public class AddressService {
                 .wardEntity(selectedWard)
                 .isDefault(addressRepository.countByUserId(user.getId()) == 0)
                 .build();
-        return addressRepository.save(address).isPresent();
+        return addressRepository.save(address);
+    }
+
+    public Optional<Address> getUserAddress(Long userId, Long addressId) {
+        return addressRepository.findByIdAndUserId(addressId, userId);
     }
 
     public boolean setDefaultAddress(Long userId, Long addressId) {
@@ -79,5 +93,9 @@ public class AddressService {
 
     private boolean isBlank(String value) {
         return value == null || value.trim().isEmpty();
+    }
+
+    private String firstNotBlank(String preferred, String fallback) {
+        return isBlank(preferred) ? fallback : preferred.trim();
     }
 }
