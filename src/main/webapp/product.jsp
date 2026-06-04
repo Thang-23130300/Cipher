@@ -14,14 +14,23 @@
 
                 <div class="product-left-wrapper">
                     <div class="product-gallery">
-                        <img src="${data.product.image}" alt="${data.product.name}">
-                        <button type="button" class="btn-zoom">🔍</button>
+                        <c:url var="productDetailImage" value="${data.product.image}"/>
+
+                        <img class="product-main-image"
+                             src="${productDetailImage}"
+                             alt="${data.product.name}">
+
+                        <button type="button" class="btn-zoom">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                        </button>
                     </div>
 
                     <div class="store-note-block-left">
                         <p class="store-note-title">
-                            <i class="fa-solid fa-box"></i> Lưu ý từ cửa hàng
+                            <i class="fa-solid fa-box"></i>
+                            Lưu ý từ cửa hàng
                         </p>
+
                         <p class="store-note-text">
                             Với đơn hàng số lượng lớn (từ 20 sản phẩm trở lên),
                             vui lòng liên hệ hotline hoặc Zalo INOLA để nhận báo giá ưu đãi.
@@ -29,15 +38,23 @@
                     </div>
                 </div>
 
-                <!-- RIGHT -->
                 <div class="product-right">
 
                     <h1 class="product-title">${data.product.name}</h1>
 
                     <div class="product-meta">
-                        <span class="rating">⭐ ${data.avgRating}</span>
-                        <span class="sold">Đã bán ${data.product.totalSold}</span>
-                        <span class="stock">Còn ${data.product.stockQuantity} sản phẩm</span>
+                        <span class="rating">
+                            <i class="fa-solid fa-star"></i>
+                            ${data.avgRating}
+                        </span>
+
+                        <span class="sold">
+                            Đã bán ${data.product.totalSold}
+                        </span>
+
+                        <span class="stock">
+                            Còn ${data.product.stockQuantity} sản phẩm
+                        </span>
                     </div>
 
                     <div class="product-price">
@@ -46,13 +63,16 @@
                                 <span class="old-price">
                                     <fmt:formatNumber value="${data.product.originalPrice}"/> ₫
                                 </span>
+
                                 <span class="sale-price">
                                     <fmt:formatNumber value="${data.discountedPrice}"/> ₫
                                 </span>
+
                                 <span class="discount">
                                     -${data.promotion.discountPercent}%
                                 </span>
                             </c:when>
+
                             <c:otherwise>
                                 <span class="normal-price">
                                     <fmt:formatNumber value="${data.product.originalPrice}"/> ₫
@@ -61,24 +81,29 @@
                         </c:choose>
                     </div>
 
-                    <p class="short-description">
-                        ${data.product.shortDescription}
-                    </p>
+                    <c:if test="${not empty data.product.shortDescription}">
+                        <p class="short-description">
+                                ${data.product.shortDescription}
+                        </p>
+                    </c:if>
 
                     <form action="${pageContext.request.contextPath}/cart/add"
                           method="post"
                           class="buy-form">
+
                         <input type="hidden" name="productId" value="${data.product.id}">
 
                         <div class="quantity-actions">
                             <div class="quantity-control">
                                 <button type="button" class="qty-btn minus">-</button>
+
                                 <input type="number"
                                        name="quantity"
                                        class="qty-input"
                                        value="1"
                                        min="1"
                                        max="${data.product.stockQuantity}">
+
                                 <button type="button" class="qty-btn plus">+</button>
                             </div>
 
@@ -95,11 +120,12 @@
                             MUA NGAY
                         </button>
 
-
                     </form>
+
                 </div>
 
             </div>
+
         </div>
     </section>
 
@@ -112,23 +138,27 @@
                 <h2 class="info-title">THÔNG TIN CHI TIẾT</h2>
             </div>
 
-            <div class="description-content">
-                ${data.product.description}
-            </div>
+            <c:if test="${not empty data.product.description}">
+                <div class="description-content">
+                        ${data.product.description}
+                </div>
+            </c:if>
 
             <c:if test="${not empty data.specifications}">
                 <table class="spec-table">
+                    <tbody>
                     <c:forEach var="spec" items="${data.specifications}">
                         <tr>
                             <td class="spec-name">${spec.specName}</td>
-                            <td>${spec.specValue}</td>
+                            <td class="spec-value">${spec.specValue}</td>
                         </tr>
                     </c:forEach>
+                    </tbody>
                 </table>
             </c:if>
 
             <c:if test="${empty data.specifications}">
-                <p class="text-muted text-center">Chưa có thông tin.</p>
+                <p class="empty-text">Chưa có thông tin chi tiết.</p>
             </c:if>
 
         </div>
@@ -146,6 +176,7 @@
                 <div class="review-mleft">
                     <div class="review-summary-block">
                         <p class="average-rating">${data.avgRating}</p>
+
                         <p class="review-count">
                             Dựa trên ${data.totalReviews} đánh giá
                         </p>
@@ -158,19 +189,22 @@
                                        value="${data.totalReviews > 0
                                                ? (count * 100 / data.totalReviews)
                                                : 0}"/>
+
                                 <div class="rating-row">
                                     <span>${star}</span>
                                     <i class="fa-solid fa-star"></i>
+
                                     <div class="rating-bar">
                                         <span style="width:${percent}%"></span>
                                     </div>
+
                                     <span>${percent}%</span>
                                 </div>
                             </c:forEach>
                         </div>
                     </div>
 
-                    <button class="review-action-btn">
+                    <button type="button" class="review-action-btn">
                         Đánh giá sản phẩm
                     </button>
                 </div>
@@ -178,21 +212,24 @@
                 <div class="review-mright">
 
                     <div class="review-filter-bar">
-                        <button class="filter-btn active" data-rating="">Tất cả</button>
-                        <button class="filter-btn" data-rating="5">5 ★</button>
-                        <button class="filter-btn" data-rating="4">4 ★</button>
-                        <button class="filter-btn" data-rating="3">3 ★</button>
-                        <button class="filter-btn" data-rating="2">2 ★</button>
-                        <button class="filter-btn" data-rating="1">1 ★</button>
+                        <button type="button" class="filter-btn active" data-rating="">Tất cả</button>
+                        <button type="button" class="filter-btn" data-rating="5">5 ★</button>
+                        <button type="button" class="filter-btn" data-rating="4">4 ★</button>
+                        <button type="button" class="filter-btn" data-rating="3">3 ★</button>
+                        <button type="button" class="filter-btn" data-rating="2">2 ★</button>
+                        <button type="button" class="filter-btn" data-rating="1">1 ★</button>
 
                         <select class="sort-select">
-                            <option>Mới nhất</option>
-                            <option>Cũ nhất</option>
+                            <option value="newest">Mới nhất</option>
+                            <option value="oldest">Cũ nhất</option>
                         </select>
                     </div>
 
                     <div id="reviewContainer"></div>
-                    <button id="loadMoreReview" type="button">Xem thêm</button>
+
+                    <button id="loadMoreReview" type="button">
+                        Xem thêm
+                    </button>
 
                 </div>
 
@@ -219,17 +256,18 @@
 
 <div class="image-modal" id="imageModal">
     <div class="modal-overlay"></div>
+
     <div class="modal-content">
         <img id="zoomImage" src="" alt="Zoom image">
-        <button class="modal-close">&times;</button>
+        <button type="button" class="modal-close">&times;</button>
     </div>
 </div>
 
-<div class="review-modal" id="reviewModal" >
+<div class="review-modal" id="reviewModal">
     <div class="review-overlay"></div>
 
     <div class="review-box">
-        <button class="review-close">&times;</button>
+        <button type="button" class="review-close">&times;</button>
 
         <h3>Đánh giá sản phẩm</h3>
 
@@ -243,8 +281,7 @@
 
         <textarea id="reviewText"
                   maxlength="700"
-                  placeholder="Viết nhận xét của bạn (tối đa 700 ký tự)">
-        </textarea>
+                  placeholder="Viết nhận xét của bạn (tối đa 700 ký tự)"></textarea>
 
         <button type="button" class="submit-review">
             Gửi đánh giá
