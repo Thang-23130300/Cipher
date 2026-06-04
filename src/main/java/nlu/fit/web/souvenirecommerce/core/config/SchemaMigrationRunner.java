@@ -30,6 +30,7 @@ public final class SchemaMigrationRunner {
         try (Connection connection = DriverManager.getConnection(url, username, password);
              Statement statement = connection.createStatement()) {
             migrateUserPasswordColumn(connection, statement);
+            ensureUniqueUserPhone(connection, statement);
         } catch (SQLException e) {
             throw new IllegalStateException("Database schema migration failed", e);
         }
@@ -57,6 +58,36 @@ public final class SchemaMigrationRunner {
         log.info("Dropped legacy users.password column");
     }
 
+    private static void ensureUniqueUserPhone(Connection connection, Statement statement) throws SQLException {
+        if (!tableExists(connection, "users") || !columnExists(connection, "users", "phone")) {
+            return;
+        }
+        if (indexExists(connection, "users", "uk_users_phone")) {
+            return;
+        }
+        if (hasDuplicateUserPhones(connection)) {
+            log.warn("Cannot create unique index users.phone because duplicate phone numbers exist. Clean duplicate users.phone values first.");
+            return;
+        }
+
+        statement.executeUpdate("create unique index uk_users_phone on users (phone)");
+        log.info("Created unique index uk_users_phone on users.phone");
+    }
+
+    private static boolean hasDuplicateUserPhones(Connection connection) throws SQLException {
+        try (Statement statement = connection.createStatement();
+             var resultSet = statement.executeQuery("""
+                     select phone
+                     from users
+                     where phone is not null and phone <> ''
+                     group by phone
+                     having count(*) > 1
+                     limit 1
+                     """)) {
+            return resultSet.next();
+        }
+    }
+
     private static boolean tableExists(Connection connection, String tableName) throws SQLException {
         try (var resultSet = connection.getMetaData().getTables(connection.getCatalog(), null, tableName, new String[]{"TABLE"})) {
             return resultSet.next();
@@ -66,6 +97,17 @@ public final class SchemaMigrationRunner {
     private static boolean columnExists(Connection connection, String tableName, String columnName) throws SQLException {
         try (var resultSet = connection.getMetaData().getColumns(connection.getCatalog(), null, tableName, columnName)) {
             return resultSet.next();
+        }
+    }
+
+    private static boolean indexExists(Connection connection, String tableName, String indexName) throws SQLException {
+        try (var resultSet = connection.getMetaData().getIndexInfo(connection.getCatalog(), null, tableName, false, false)) {
+            while (resultSet.next()) {
+                if (indexName.equalsIgnoreCase(resultSet.getString("INDEX_NAME"))) {
+                    return true;
+                }
+            }
+            return false;
         }
     }
 

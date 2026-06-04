@@ -67,6 +67,12 @@ public class SignupServlet extends HttpServlet {
                 return;
             }
 
+            if (authService.hasPhoneExist(phone)) {
+                log.warn("Đăng ký thất bại do số điện thoại đã tồn tại: phone={}", phone);
+                writeJson(resp, jsonResponse, "error", "Số điện thoại này đã được đăng ký");
+                return;
+            }
+
             try {
                 boolean registered = authService.createUser(email, password, firstName, lastName, phone, gender).isPresent();
                 if (!registered) {
