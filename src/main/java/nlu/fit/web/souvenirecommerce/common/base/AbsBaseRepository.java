@@ -36,9 +36,10 @@ public abstract class AbsBaseRepository<K, T> implements IRepository<K, T> {
     }
 
     @Override
-    public void update(T entity) {
+    public Optional<T> update(T entity) {
         try {
-            getSession().merge(entity);
+            T merged = (T) getSession().merge(entity);
+            return Optional.of(merged);
         } catch (RuntimeException e) {
             log.error("Repository update failed for entity={}", simpleName(entity), e);
             throw e;

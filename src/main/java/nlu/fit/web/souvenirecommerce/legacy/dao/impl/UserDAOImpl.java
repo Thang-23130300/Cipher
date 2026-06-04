@@ -155,7 +155,7 @@ public class UserDAOImpl {
         }
     }
 
-    public boolean addAddress(int userId, String detail, String city, String district, String ward) {
+    public boolean addAddress(int userId, String detail, String province, String district, String ward) {
         Transaction tx = null;
         try (var session = HibernateUtil.getSessionFactory().openSession()) {
             tx = session.beginTransaction();
@@ -172,7 +172,7 @@ public class UserDAOImpl {
                     .receiverName(user.getFullName())
                     .receiverPhone(user.getPhone())
                     .addressDetail(detail)
-                    .province(city == null ? "" : city)
+                    .province(province == null ? "" : province)
                     .district(district == null ? "" : district)
                     .ward(ward == null ? "" : ward)
                     .isDefault(count == null || count == 0)
@@ -216,7 +216,7 @@ public class UserDAOImpl {
         }
     }
 
-    public boolean updateAddress(int addressId, int userId, String detail, String ward, String district, String city) {
+    public boolean updateAddress(int addressId, int userId, String detail, String ward, String district, String province) {
         Transaction tx = null;
         try (var session = HibernateUtil.getSessionFactory().openSession()) {
             tx = session.beginTransaction();
@@ -231,7 +231,7 @@ public class UserDAOImpl {
             address.setAddressDetail(normalize(detail));
             address.setWard(normalize(ward));
             address.setDistrict(normalize(district));
-            address.setProvince(normalize(city));
+            address.setProvince(normalize(province));
             session.merge(address);
             tx.commit();
             return true;

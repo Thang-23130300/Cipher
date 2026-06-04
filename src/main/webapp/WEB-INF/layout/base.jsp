@@ -59,6 +59,11 @@
               href="${pageContext.request.contextPath}/assets/css/${contentCss}">
     </c:if>
 
+    <c:if test="${requestScope.enableSelect2}">
+        <link rel="stylesheet"
+              href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css">
+    </c:if>
+
 </head>
 
 <body>
@@ -86,6 +91,10 @@
 <script src="${pageContext.request.contextPath}/assets/js/common.js"></script>
 
 <script src="${pageContext.request.contextPath}/assets/js/header.js?v=2"></script>
+
+<c:if test="${requestScope.enableSelect2}">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
+</c:if>
 
 <!-- ================= PAGE JS ================= -->
 

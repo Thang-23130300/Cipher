@@ -32,6 +32,7 @@ public class LoginGoogleServlet extends HttpServlet {
                 session.invalidate();
             }
             session = req.getSession(true);
+            session.setAttribute("userDto", user);
             session.setAttribute("currentUser", user);
             session.setAttribute("userInSession", user);
             session.setAttribute("user", user);

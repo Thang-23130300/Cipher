@@ -1,26 +1,29 @@
 package nlu.fit.web.souvenirecommerce.features.user.controller;
 
+import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-import nlu.fit.web.souvenirecommerce.legacy.dao.impl.UserDAOImpl;
+import nlu.fit.web.souvenirecommerce.features.user.profile.service.AddressService;
 import nlu.fit.web.souvenirecommerce.model.entity.User;
+import nlu.fit.web.souvenirecommerce.model.entity.Ward;
 
 import java.io.IOException;
+import java.util.List;
 
 @WebServlet("/user/address/*")
 public class UserAddressController extends HttpServlet {
 
-    private final UserDAOImpl dao = new UserDAOImpl();
+    private final AddressService addressService = new AddressService();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
-            throws IOException {
+            throws ServletException, IOException {
 
         HttpSession session = request.getSession(false);
-        User user = (session != null) ? (User) session.getAttribute("userInSession") : null;
+        User user = getCurrentUser(session);
 
         if (user == null) {
             response.sendRedirect(request.getContextPath() + "/login");
@@ -28,22 +31,31 @@ public class UserAddressController extends HttpServlet {
         }
 
         String path = request.getPathInfo();
-        if (path == null) {
-            response.sendRedirect(request.getContextPath() + "/user/profile");
+        if (path == null || "/".equals(path)) {
+            showAddressPage(request, response, user, false);
             return;
         }
 
         try {
             switch (path) {
+                case "/add" -> {
+                    showAddressPage(request, response, user, true);
+                    return;
+                }
+
+                case "/wards" -> {
+                    writeWardsJson(request, response);
+                    return;
+                }
 
                 case "/default" -> {
-                    int id = Integer.parseInt(request.getParameter("id"));
-                    if (user.getId() != null) dao.setDefaultAddress(user.getId().intValue(), id);
+                    Long id = parseLong(request.getParameter("id"));
+                    addressService.setDefaultAddress(user.getId(), id);
                 }
 
                 case "/delete" -> {
-                    int id = Integer.parseInt(request.getParameter("id"));
-                    if (user.getId() != null) dao.deleteAddress(id, user.getId().intValue()); // SIẾT USER
+                    Long id = parseLong(request.getParameter("id"));
+                    addressService.deleteAddress(user.getId(), id);
                 }
 
                 default -> {
@@ -54,7 +66,7 @@ public class UserAddressController extends HttpServlet {
             // user sửa URL → bỏ qua
         }
 
-        response.sendRedirect(request.getContextPath() + "/user/profile");
+        response.sendRedirect(request.getContextPath() + "/user/address");
     }
 
     @Override
@@ -62,7 +74,7 @@ public class UserAddressController extends HttpServlet {
             throws IOException {
 
         HttpSession session = request.getSession(false);
-        User user = (session != null) ? (User) session.getAttribute("userInSession") : null;
+        User user = getCurrentUser(session);
 
         if (user == null) {
             response.sendRedirect(request.getContextPath() + "/login");
@@ -71,7 +83,7 @@ public class UserAddressController extends HttpServlet {
 
         String path = request.getPathInfo();
         if (path == null) {
-            response.sendRedirect(request.getContextPath() + "/user/profile");
+            response.sendRedirect(request.getContextPath() + "/user/address");
             return;
         }
 
@@ -79,26 +91,26 @@ public class UserAddressController extends HttpServlet {
             switch (path) {
 
                 case "/add" -> {
-                    if (user.getId() != null) dao.addAddress(
-                            user.getId().intValue(),
-                            request.getParameter("addressDetail"),
-                            request.getParameter("city"),
-                            request.getParameter("district"),
-                            request.getParameter("ward")
-                    );
+                    if (user.getId() != null) {
+                        String detail = request.getParameter("addressDetail");
+                        Integer provinceCode = parseInteger(request.getParameter("provinceCode"));
+                        Integer wardCode = parseInteger(request.getParameter("wardCode"));
+
+                        boolean added = addressService.addAddress(user, detail, provinceCode, wardCode);
+                        if (!added) {
+                            session.setAttribute("profileMessage", "Vui lòng chọn đầy đủ tỉnh/thành phố, phường/xã và nhập địa chỉ chi tiết");
+                            session.setAttribute("profileMessageType", "error");
+                            response.sendRedirect(request.getContextPath() + "/user/address/add");
+                            return;
+                        }
+                        session.setAttribute("profileMessage", "Thêm địa chỉ thành công!");
+                        session.setAttribute("profileMessageType", "success");
+                    }
                 }
 
                 case "/edit" -> {
-                    // CHƯA DÙNG – giữ sẵn để gộp edit sau
-                    int id = Integer.parseInt(request.getParameter("id"));
-                    if (user.getId() != null) dao.updateAddress(
-                            id,
-                            user.getId().intValue(),
-                            request.getParameter("addressDetail"),
-                            request.getParameter("ward"),
-                            request.getParameter("district"),
-                            request.getParameter("city")
-                    );
+                    response.sendRedirect(request.getContextPath() + "/user/address");
+                    return;
                 }
 
                 default -> {
@@ -109,6 +121,116 @@ public class UserAddressController extends HttpServlet {
             // user sửa URL → bỏ qua
         }
 
-        response.sendRedirect(request.getContextPath() + "/user/profile");
+        response.sendRedirect(request.getContextPath() + "/user/address");
+    }
+
+    private void showAddressPage(HttpServletRequest request, HttpServletResponse response, User user, boolean addMode)
+            throws ServletException, IOException {
+        if (user.getId() != null) {
+            request.setAttribute("listAddr", addressService.getUserAddresses(user.getId()));
+        }
+        request.setAttribute("addressMode", addMode ? "add" : "list");
+        request.setAttribute("provinceOptions", addressService.getProvinces());
+        request.setAttribute("pageTitle", "Địa chỉ");
+        request.setAttribute("pageCss", "account/account-layout.css");
+        request.setAttribute("contentCss", "account/profile-form.css");
+        request.setAttribute("pageJs", "account/profile.js");
+        request.setAttribute("enableSelect2", true);
+        request.setAttribute("pageContent", "addresses.jsp");
+        request.setAttribute("contentPage", "/WEB-INF/views/account/account_layout.jsp");
+
+        request.getRequestDispatcher("/WEB-INF/layout/base.jsp").forward(request, response);
+    }
+
+    private void writeWardsJson(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        Integer provinceCode = parseInteger(request.getParameter("provinceCode"));
+        String keyword = request.getParameter("q");
+        List<Ward> wards = addressService.getWardsByProvinceCode(provinceCode);
+
+        response.setContentType("application/json;charset=UTF-8");
+        StringBuilder json = new StringBuilder("{\"results\":[");
+        int resultCount = 0;
+        for (Ward ward : wards) {
+            String text = ward.getFullName() == null || ward.getFullName().isBlank()
+                    ? ward.getName()
+                    : ward.getFullName();
+            if (!matchesKeyword(text, keyword)) {
+                continue;
+            }
+            if (resultCount > 0) {
+                json.append(',');
+            }
+            resultCount++;
+            json.append("{\"id\":\"")
+                    .append(ward.getCode())
+                    .append("\",\"text\":\"")
+                    .append(escapeJson(text))
+                    .append("\"}");
+        }
+        json.append("]}");
+        response.getWriter().write(json.toString());
+    }
+
+    private boolean matchesKeyword(String text, String keyword) {
+        return keyword == null
+                || keyword.isBlank()
+                || (text != null && text.toLowerCase().contains(keyword.trim().toLowerCase()));
+    }
+
+    private Integer parseInteger(String value) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+        try {
+            return Integer.valueOf(value);
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
+    private Long parseLong(String value) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+        try {
+            return Long.valueOf(value);
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
+    private String escapeJson(String value) {
+        if (value == null) {
+            return "";
+        }
+        return value
+                .replace("\\", "\\\\")
+                .replace("\"", "\\\"")
+                .replace("\n", "\\n")
+                .replace("\r", "\\r");
+    }
+
+    private User getCurrentUser(HttpSession session) {
+        if (session == null) {
+            return null;
+        }
+
+        Object user = session.getAttribute("userInSession");
+        if (user instanceof User) {
+            return (User) user;
+        }
+
+        user = session.getAttribute("user");
+        if (user instanceof User) {
+            return (User) user;
+        }
+
+        user = session.getAttribute("currentUser");
+        if (user instanceof User) {
+            return (User) user;
+        }
+
+        user = session.getAttribute("authUser");
+        return user instanceof User ? (User) user : null;
     }
 }
