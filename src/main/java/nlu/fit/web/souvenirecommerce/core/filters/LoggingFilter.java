@@ -1,7 +1,6 @@
 package nlu.fit.web.souvenirecommerce.core.filters;
 
 import jakarta.servlet.*;
-import jakarta.servlet.annotation.WebFilter;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import nlu.fit.web.souvenirecommerce.model.entity.User;
@@ -12,7 +11,6 @@ import org.slf4j.MDC;
 import java.io.IOException;
 import java.util.UUID;
 
-@WebFilter("/*")
 public class LoggingFilter implements Filter {
     private static final Logger log = LoggerFactory.getLogger(LoggingFilter.class);
 

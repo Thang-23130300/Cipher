@@ -38,9 +38,6 @@ public class User extends AbsBaseEntity {
     @Column(nullable = false, unique = true)
     private String email;
 
-    @Column(name = "password", nullable = false)
-    private String password;
-
     @Column(length = 20, nullable = false)
     private String phone;
 
@@ -79,12 +76,6 @@ public class User extends AbsBaseEntity {
 
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
     private Set<VerificationCode> verificationCodes;
-
-    @Column(name="created_at", updatable = false, nullable = false)
-    private LocalDateTime createdAt = LocalDateTime.now();
-
-    @Column(name="updated_at")
-    private LocalDateTime updatedAt;
 
     public boolean hasPermission(String resource, String action) {
         return roles.stream()

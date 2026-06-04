@@ -1,133 +1,147 @@
-/* Profile Form Styles - Specific to profile.jsp */
+/* Profile Form Styles - Shared by profile.jsp and addresses.jsp */
 
-/* Form Table */
-.address-form .form-grid {
+.profile-form .form-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 16px;
 }
 
-.profile-panel .form-table {
-    width: 100%;
-    border-collapse: separate;
-    border-spacing: 0;
-    table-layout: fixed;
-    margin: 0 0 18px;
-    overflow: hidden;
-    border: 1px solid var(--border-subtle);
-    border-radius: var(--radius-md);
-    background: var(--surface-default);
+.profile-panel--split .panel-header {
+    margin-bottom: 16px;
 }
 
-.profile-panel .form-table tr {
+.profile-panel--split .profile-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 260px;
+    gap: 24px;
+    align-items: start;
+}
+
+.profile-panel--split .profile-info {
+    display: grid;
+    gap: 18px;
+}
+
+.profile-static {
+    display: grid;
+    grid-template-columns: 160px 1fr;
+    gap: 12px;
+    align-items: center;
+    padding-bottom: 12px;
     border-bottom: 1px solid var(--border-subtle);
 }
 
-.profile-panel .form-table tr:last-child {
-    border-bottom: none;
-}
-
-.profile-panel .form-table th,
-.profile-panel .form-table td {
-    padding: 14px 16px;
-    vertical-align: middle;
-    text-align: left;
-}
-
-.profile-panel .form-table tbody tr td {
-    border-bottom: 1px solid var(--border-subtle);
-}
-
-.profile-panel .form-table tbody tr:last-child td {
-    border-bottom: none;
-}
-
-.profile-panel .form-table th {
-    width: 190px;
-    background: var(--surface-subtle);
-    border-bottom: 1px solid var(--border-subtle);
-}
-
-.profile-panel .form-table th label,
-.profile-panel .form-table th span {
-    color: var(--text-strong);
+.profile-static__label {
+    color: var(--text-soft);
     font-size: 14px;
-    font-weight: 700;
+    font-weight: 600;
 }
 
-.profile-panel .form-table td {
-    min-width: 0;
+.profile-static__value {
+    color: var(--text-strong);
+    font-weight: 600;
+}
+
+.profile-form--list .form-grid {
+    grid-template-columns: 1fr;
+    gap: 14px;
+}
+
+.profile-form--list .field {
+    grid-template-columns: 160px 1fr;
+    align-items: center;
+}
+
+.profile-form--list .field span,
+.profile-form--list .gender-field legend {
+    color: var(--text-soft);
+    font-weight: 600;
+}
+
+.profile-form--list .field input {
     background: var(--surface-default);
 }
 
-.profile-panel .form-table tr:last-child th,
-.profile-panel .form-table tr:last-child td {
-    border-bottom: none;
+.profile-form--list .gender-field {
+    display: grid;
+    grid-template-columns: 160px 1fr;
+    gap: 12px;
+    align-items: start;
 }
 
-.profile-form .form-table td input[type="text"],
-.profile-form .form-table td input[type="email"],
-.profile-form .form-table td input[type="tel"],
-.profile-form .form-table td input[type="date"] {
-    width: 100%;
-    min-height: 42px;
-    border: 1px solid var(--border-default);
-    border-radius: var(--radius-sm);
-    background: var(--surface-subtle);
+.profile-form--list .gender-field label {
+    min-height: 32px;
+}
+
+.profile-form--list .gender-field label span {
     color: var(--text-default);
-    padding: 8px 12px;
-    font-size: 15px;
-    outline: none;
-    transition: all 0.2s ease;
+    font-weight: 500;
 }
 
-.profile-form .form-table td input[type="date"] {
-    max-width: 260px;
+.profile-panel--split .profile-avatar {
+    padding-left: 20px;
+    border-left: 1px solid var(--border-subtle);
+    display: grid;
+    gap: 14px;
+    justify-items: center;
+    text-align: center;
 }
 
-.profile-form .form-table td input:focus {
-    border-color: var(--brand-primary);
-    box-shadow: var(--focus-ring);
-    background: var(--surface-default);
-}
-
-.profile-form .form-table td input:disabled {
-    color: var(--text-subtle);
+.profile-avatar__image {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 1px solid var(--border-default);
     background: var(--surface-muted);
+    display: grid;
+    place-items: center;
+    color: var(--text-subtle);
+    font-size: 42px;
 }
 
-/* Gender Options */
-.profile-form .gender-options {
-    display: flex;
-    flex-wrap: wrap;
+.profile-avatar__image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.profile-avatar__form {
+    display: grid;
     gap: 8px;
+    justify-items: center;
 }
 
-.profile-form .gender-options label {
+.profile-avatar__file {
     display: inline-flex;
     align-items: center;
-    gap: 8px;
-    min-height: 38px;
-    padding: 0 12px;
+    justify-content: center;
+    min-height: 36px;
+    padding: 0 14px;
     border: 1px solid var(--border-default);
     border-radius: var(--radius-sm);
-    background: var(--surface-subtle);
-    color: var(--text-default);
-    cursor: pointer;
-    font-weight: 650;
-    transition: all 0.2s ease;
-}
-
-.profile-form .gender-options label:hover {
-    border-color: var(--brand-primary);
     background: var(--surface-default);
+    color: var(--text-default);
+    font-weight: 600;
+    cursor: pointer;
 }
 
-.profile-form .gender-options input {
-    accent-color: var(--brand-primary);
+.profile-avatar__file:hover {
+    border-color: var(--brand-primary);
+    color: var(--brand-primary);
+    box-shadow: var(--focus-ring);
 }
 
-/* Form Fields */
+.profile-avatar__file input {
+    display: none;
+}
+
+.profile-avatar__hint {
+    color: var(--text-subtle);
+    font-size: 13px;
+    line-height: 1.4;
+}
+
 .profile-form .field {
     display: grid;
     gap: 8px;
@@ -148,7 +162,7 @@
 .profile-form .field input,
 .profile-form .field select {
     width: 100%;
-    min-height: 42px;
+    min-height: 38px;
     border: 1px solid var(--border-default);
     border-radius: var(--radius-sm);
     background: var(--surface-subtle);
@@ -173,7 +187,7 @@
 }
 
 .profile-form .select2-container .select2-selection--single {
-    min-height: 42px;
+    min-height: 38px;
     border: 1px solid var(--border-default);
     border-radius: var(--radius-sm);
     background: var(--surface-subtle);
@@ -184,15 +198,14 @@
 .profile-form .select2-container--default .select2-selection--single .select2-selection__rendered {
     color: var(--text-default);
     padding-left: 12px;
-    line-height: 40px;
+    line-height: 36px;
 }
 
 .profile-form .select2-container--default .select2-selection--single .select2-selection__arrow {
-    min-height: 40px;
+    min-height: 36px;
 }
 
-/* Gender Field */
-.gender-field {
+.profile-form .gender-field {
     margin: 0;
     padding: 0;
     border: 0;
@@ -202,12 +215,12 @@
     align-items: center;
 }
 
-.gender-field legend {
+.profile-form .gender-field legend {
     width: 100%;
     margin-bottom: 2px;
 }
 
-.gender-field label {
+.profile-form .gender-field label {
     min-height: 34px;
     display: inline-flex;
     align-items: center;
@@ -216,7 +229,7 @@
     cursor: pointer;
 }
 
-.gender-field input {
+.profile-form .gender-field input {
     accent-color: var(--brand-primary);
 }
 
@@ -329,60 +342,27 @@
     gap: 12px;
 }
 
-/* Responsive */
-@media (max-width: 768px) {
-    .profile-panel .form-table th {
-        width: auto;
-        min-width: 130px;
-    }
-}
-
 @media (max-width: 640px) {
-    .form-table {
-        border: 0;
-        border-radius: 0;
-        background: transparent;
-        overflow: visible;
-    }
-
-    .form-table,
-    .form-table tbody,
-    .form-table tr,
-    .form-table th,
-    .form-table td {
-        display: block;
-        width: 100%;
-    }
-
-    .form-table tr {
-        margin-bottom: 12px;
-        padding: 0;
-        border: 0;
-    }
-
-    .form-table th {
-        min-width: 0;
-        padding: 0 0 7px;
-        border: 0;
-        background: transparent;
-        width: 100%;
-    }
-
-    .form-table td {
-        padding: 0;
-        border: 0;
-    }
-
-    .form-table td input[type="date"] {
-        max-width: none;
-    }
-
-    .gender-options {
-        display: grid;
+    .profile-form .form-grid {
         grid-template-columns: 1fr;
     }
 
-    .form-grid {
+    .profile-panel--split .profile-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .profile-panel--split .profile-avatar {
+        padding-left: 0;
+        border-left: 0;
+        border-top: 1px solid var(--border-subtle);
+        padding-top: 16px;
+        justify-items: start;
+        text-align: left;
+    }
+
+    .profile-static,
+    .profile-form--list .field,
+    .profile-form--list .gender-field {
         grid-template-columns: 1fr;
     }
 

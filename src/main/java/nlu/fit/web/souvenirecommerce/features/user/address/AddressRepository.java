@@ -1,9 +1,10 @@
-package nlu.fit.web.souvenirecommerce.features.user.profile.repository;
+package nlu.fit.web.souvenirecommerce.features.user.address;
 
 import nlu.fit.web.souvenirecommerce.common.base.AbsBaseRepository;
 import nlu.fit.web.souvenirecommerce.model.entity.Address;
 
 import java.util.List;
+import java.util.Optional;
 
 public class AddressRepository extends AbsBaseRepository<Long, Address> {
 
@@ -16,6 +17,17 @@ public class AddressRepository extends AbsBaseRepository<Long, Address> {
                 .createQuery("from Address a where a.user.id = :userId order by a.isDefault desc, a.id desc", Address.class)
                 .setParameter("userId", userId)
                 .getResultList();
+    }
+
+    public Optional<Address> findByIdAndUserId(Long addressId, Long userId) {
+        if (addressId == null || userId == null) {
+            return Optional.empty();
+        }
+        return getSession()
+                .createQuery("from Address a where a.id = :addressId and a.user.id = :userId", Address.class)
+                .setParameter("addressId", addressId)
+                .setParameter("userId", userId)
+                .uniqueResultOptional();
     }
 
     public long countByUserId(Long userId) {
@@ -35,9 +47,22 @@ public class AddressRepository extends AbsBaseRepository<Long, Address> {
         return updated > 0;
     }
 
+    /**
+     * Sets an address as the user's default address.
+     * <p>
+     * All other addresses of the user will be marked as non-default.
+     *
+     * @param addressId the address to set as default
+     * @param userId    the owner of the address
+     * @return true if the address exists and was updated, otherwise false
+     */
     public boolean setDefault(Long addressId, Long userId) {
         int exists = getSession()
-                .createQuery("select count(a.id) from Address a where a.id = :addressId and a.user.id = :userId", Long.class)
+                .createQuery("" +
+                        "select count(a.id) " +
+                        "from Address a " +
+                        "where a.id = :addressId " +
+                        "and a.user.id = :userId", Long.class)
                 .setParameter("addressId", addressId)
                 .setParameter("userId", userId)
                 .uniqueResult()
@@ -47,14 +72,23 @@ public class AddressRepository extends AbsBaseRepository<Long, Address> {
         }
 
         getSession()
-                .createMutationQuery("update Address a set a.isDefault = false where a.user.id = :userId")
+                .createMutationQuery(
+                        "update Address a " +
+                                "set a.isDefault = false " +
+                                "where a.user.id = :userId")
                 .setParameter("userId", userId)
                 .executeUpdate();
+
         getSession()
-                .createMutationQuery("update Address a set a.isDefault = true where a.id = :addressId and a.user.id = :userId")
+                .createMutationQuery(
+                        "update Address a " +
+                                "set a.isDefault = true " +
+                                "where a.id = :addressId " +
+                                "and a.user.id = :userId")
                 .setParameter("addressId", addressId)
                 .setParameter("userId", userId)
                 .executeUpdate();
+
         return true;
     }
 }

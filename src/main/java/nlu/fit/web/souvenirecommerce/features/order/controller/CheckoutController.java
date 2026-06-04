@@ -6,126 +6,158 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import nlu.fit.web.souvenirecommerce.common.enums.PaymentMethod;
 import nlu.fit.web.souvenirecommerce.features.cart.model.Cart;
-import nlu.fit.web.souvenirecommerce.features.cart.model.CartItem;
-import nlu.fit.web.souvenirecommerce.legacy.dao.OrderDAO;
+import nlu.fit.web.souvenirecommerce.features.order.dto.CheckoutException;
+import nlu.fit.web.souvenirecommerce.features.order.dto.CheckoutRequest;
+import nlu.fit.web.souvenirecommerce.features.order.dto.CheckoutResult;
+import nlu.fit.web.souvenirecommerce.features.order.service.CheckoutService;
 import nlu.fit.web.souvenirecommerce.model.entity.User;
 
 import java.io.IOException;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 
 @WebServlet("/checkout")
 public class CheckoutController extends HttpServlet {
+    private final CheckoutService checkoutService = new CheckoutService();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        HttpSession session = request.getSession(false);
+        User user = getCurrentUser(session);
 
-        HttpSession session = request.getSession();
-        Cart cart = (Cart) session.getAttribute("cart");
+        if (user == null) {
+            HttpSession newSession = request.getSession();
+            newSession.setAttribute("redirectAfterLogin", request.getContextPath() + "/checkout");
+            response.sendRedirect(request.getContextPath() + "/login");
+            return;
+        }
 
-        // Check if cart is empty
+        Cart cart = getCart(session);
         if (cart == null || cart.totalQuantity() == 0) {
             response.sendRedirect(request.getContextPath() + "/cart");
             return;
         }
 
-        // Forward to checkout page
+        prepareCheckoutPage(request, user);
         request.getRequestDispatcher("/checkout.jsp").forward(request, response);
     }
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-
         request.setCharacterEncoding("UTF-8");
         response.setCharacterEncoding("UTF-8");
 
-        HttpSession session = request.getSession();
-        Cart cart = (Cart) session.getAttribute("cart");
-        User user = (User) session.getAttribute("user");
+        HttpSession session = request.getSession(false);
+        User user = getCurrentUser(session);
+        if (user == null) {
+            response.sendRedirect(request.getContextPath() + "/login");
+            return;
+        }
 
+        Cart cart = getCart(session);
         if (cart == null || cart.totalQuantity() == 0) {
             response.sendRedirect(request.getContextPath() + "/cart");
             return;
         }
 
-        // Get form data
-        String fullName = request.getParameter("fullName");
-        String phone = request.getParameter("phone");
-        String email = request.getParameter("email");
-        String address = request.getParameter("address");
-        String province = request.getParameter("province");
-        String district = request.getParameter("district");
-        String note = request.getParameter("note");
-        String paymentMethod = request.getParameter("paymentMethod");
-
         try {
-            OrderDAO orderDAO = new OrderDAO();
-
-            // Get user ID (default to 1 if not logged in - guest user)
-            int userId = (user != null && user.getId() != null) ? user.getId().intValue() : 1;
-
-            // Create address record
-            String fullAddress = address + ", " + district + ", " + province;
-            int addressId = orderDAO.createAddress(userId, address, province, district, "");
-
-            if (addressId == -1) {
-                // Address creation failed
-                request.setAttribute("error", "Không thể tạo địa chỉ giao hàng");
-                request.getRequestDispatcher("/checkout.jsp").forward(request, response);
-                return;
-            }
-
-            // Get or create order status (Pending)
-            int statusId = orderDAO.getOrCreateOrderStatus("Đang xử lý");
-
-            // Create order
-            double totalAmount = cart.total();
-            int orderId = orderDAO.createOrder(userId, addressId, totalAmount, statusId);
-
-            if (orderId == -1) {
-                // Order creation failed
-                request.setAttribute("error", "Không thể tạo đơn hàng");
-                request.getRequestDispatcher("/checkout.jsp").forward(request, response);
-                return;
-            }
-
-            // Create order details for each cart item
-            for (CartItem item : cart.getItems()) {
-                orderDAO.createOrderDetail(
-                        orderId,
-                        item.getProduct().getId(),
-                        item.getQuantity(),
-                        item.getPrice()
-                );
-            }
-
-            // Generate order code
-            String orderCode = generateOrderCode(orderId);
-            session.setAttribute("lastOrderCode", orderCode);
-            session.setAttribute("lastOrderId", orderId);
-
-            // Clear cart after successful order
+            CheckoutResult result = checkoutService.checkout(user, cart, buildCheckoutRequest(request));
             cart.removeAllItems();
             session.setAttribute("cart", cart);
+            session.setAttribute("lastOrderCode", result.getOrderCode());
+            session.setAttribute("lastOrderId", result.getOrder().getId());
 
-            // Redirect to success page
+            if (result.requiresExternalPayment()) {
+                response.sendRedirect(result.getPaymentUrl());
+                return;
+            }
             response.sendRedirect(request.getContextPath() + "/order-success");
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            request.setAttribute("error", "Đã xảy ra lỗi khi xử lý đơn hàng");
+        } catch (CheckoutException e) {
+            request.setAttribute("error", e.getMessage());
+            prepareCheckoutPage(request, user);
             request.getRequestDispatcher("/checkout.jsp").forward(request, response);
         }
     }
 
-    private String generateOrderCode(int orderId) {
-        // Generate order code format: ORD-YYYYMMDD-XXXXX
-        LocalDateTime now = LocalDateTime.now();
-        String dateStr = now.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-        String orderIdStr = String.format("%05d", orderId);
-        return "ORD-" + dateStr + "-" + orderIdStr;
+    private void prepareCheckoutPage(HttpServletRequest request, User user) {
+        request.setAttribute("currentUser", user);
+        request.setAttribute("savedAddresses", checkoutService.getUserAddresses(user.getId()));
+        request.setAttribute("provinceOptions", checkoutService.getProvinces());
+    }
+
+    private CheckoutRequest buildCheckoutRequest(HttpServletRequest request) {
+        return CheckoutRequest.builder()
+                .savedAddressId(parseLong(request.getParameter("savedAddressId")))
+                .receiverName(request.getParameter("receiverName"))
+                .receiverPhone(request.getParameter("receiverPhone"))
+                .addressDetail(request.getParameter("addressDetail"))
+                .provinceCode(parseInteger(request.getParameter("provinceCode")))
+                .wardCode(parseInteger(request.getParameter("wardCode")))
+                .note(request.getParameter("note"))
+                .paymentMethod(parsePaymentMethod(request.getParameter("paymentMethod")))
+                .build();
+    }
+
+    private PaymentMethod parsePaymentMethod(String value) {
+        if (value == null || value.isBlank()) {
+            return PaymentMethod.COD;
+        }
+        try {
+            return PaymentMethod.valueOf(value);
+        } catch (IllegalArgumentException e) {
+            return PaymentMethod.COD;
+        }
+    }
+
+    private Integer parseInteger(String value) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+        try {
+            return Integer.valueOf(value);
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
+    private Long parseLong(String value) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+        try {
+            return Long.valueOf(value);
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
+    private Cart getCart(HttpSession session) {
+        if (session == null) {
+            return null;
+        }
+        Object cart = session.getAttribute("cart");
+        return cart instanceof Cart ? (Cart) cart : null;
+    }
+
+    private User getCurrentUser(HttpSession session) {
+        if (session == null) {
+            return null;
+        }
+        Object user = session.getAttribute("userInSession");
+        if (user instanceof User) {
+            return (User) user;
+        }
+        user = session.getAttribute("user");
+        if (user instanceof User) {
+            return (User) user;
+        }
+        user = session.getAttribute("currentUser");
+        if (user instanceof User) {
+            return (User) user;
+        }
+        user = session.getAttribute("authUser");
+        return user instanceof User ? (User) user : null;
     }
 }

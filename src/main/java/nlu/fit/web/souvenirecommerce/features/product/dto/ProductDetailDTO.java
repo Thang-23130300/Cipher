@@ -1,9 +1,10 @@
 package nlu.fit.web.souvenirecommerce.features.product.dto;
 
 import lombok.*;
-import nlu.fit.web.souvenirecommerce.legacy.model.*;
 import nlu.fit.web.souvenirecommerce.model.entity.Category;
 import nlu.fit.web.souvenirecommerce.model.entity.Product;
+import nlu.fit.web.souvenirecommerce.model.entity.ProductSpecification;
+import nlu.fit.web.souvenirecommerce.model.entity.Promotion;
 
 import java.util.List;
 import java.util.Map;
