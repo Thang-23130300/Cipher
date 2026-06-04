@@ -2,7 +2,7 @@ package nlu.fit.web.souvenirecommerce.model.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import nlu.fit.web.souvenirecommerce.common.enums.EmailType;
+import nlu.fit.web.souvenirecommerce.common.base.AbsBaseEntity;
 import nlu.fit.web.souvenirecommerce.common.enums.Gender;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
@@ -20,7 +20,7 @@ import java.util.Set;
 @Builder
 @SQLDelete(sql = "UPDATE users SET deleted_at = CURRENT_TIMESTAMP WHERE id = ?")
 @SQLRestriction("deleted_at IS NULL")
-public class User extends BaseEntity {
+public class User extends AbsBaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

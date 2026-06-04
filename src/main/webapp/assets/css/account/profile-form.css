@@ -145,7 +145,8 @@
     font-weight: 700;
 }
 
-.profile-form .field input {
+.profile-form .field input,
+.profile-form .field select {
     width: 100%;
     min-height: 42px;
     border: 1px solid var(--border-default);
@@ -158,15 +159,36 @@
     transition: all 0.2s ease;
 }
 
-.profile-form .field input:focus {
+.profile-form .field input:focus,
+.profile-form .field select:focus {
     border-color: var(--brand-primary);
     box-shadow: var(--focus-ring);
     background: var(--surface-default);
 }
 
-.profile-form .field input:disabled {
+.profile-form .field input:disabled,
+.profile-form .field select:disabled {
     color: var(--text-subtle);
     background: var(--surface-muted);
+}
+
+.profile-form .select2-container .select2-selection--single {
+    min-height: 42px;
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-sm);
+    background: var(--surface-subtle);
+    display: flex;
+    align-items: center;
+}
+
+.profile-form .select2-container--default .select2-selection--single .select2-selection__rendered {
+    color: var(--text-default);
+    padding-left: 12px;
+    line-height: 40px;
+}
+
+.profile-form .select2-container--default .select2-selection--single .select2-selection__arrow {
+    min-height: 40px;
 }
 
 /* Gender Field */
@@ -389,4 +411,3 @@
         font-size: 36px;
     }
 }
-

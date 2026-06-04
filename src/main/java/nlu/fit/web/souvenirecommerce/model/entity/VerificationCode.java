@@ -2,6 +2,7 @@ package nlu.fit.web.souvenirecommerce.model.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import nlu.fit.web.souvenirecommerce.common.base.AbsBaseEntity;
 import nlu.fit.web.souvenirecommerce.common.enums.VerificationCodePurpose;
 
 import java.time.LocalDateTime;
@@ -13,7 +14,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class VerificationCode extends BaseEntity {
+public class VerificationCode extends AbsBaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

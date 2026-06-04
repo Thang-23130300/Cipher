@@ -2,6 +2,7 @@ package nlu.fit.web.souvenirecommerce.model.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import nlu.fit.web.souvenirecommerce.common.base.AbsBaseEntity;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 
@@ -16,7 +17,7 @@ import java.time.LocalDateTime;
 @Builder
 @SQLDelete(sql = "UPDATE user_credentials SET deleted_at = CURRENT_TIMESTAMP WHERE user_id = ?")
 @SQLRestriction("deleted_at IS NULL")
-public class UserCredential extends BaseEntity {
+public class UserCredential extends AbsBaseEntity {
 
     @Id
     private Long id;
