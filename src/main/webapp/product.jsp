@@ -256,7 +256,10 @@
                         </div>
                     </div>
 
-                    <button type="button" class="review-action-btn">
+                    <button type="button"
+                            class="review-action-btn"
+                            data-logged-in="${isLoggedIn}"
+                            data-can-review="${canReview}">
                         Đánh giá sản phẩm
                     </button>
                 </div>
