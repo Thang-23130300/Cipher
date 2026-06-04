@@ -11,6 +11,7 @@
 <div class="account-heading">
     <div>
         <h1>Hồ sơ của tôi</h1>
+        <p>Quản lý thông tin hồ sơ để bảo mật tài khoản</p>
     </div>
 </div>
 
@@ -20,50 +21,44 @@
     </div>
 </c:if>
 
-<section class="profile-panel" aria-labelledby="profile-info-title">
+<section class="profile-panel profile-panel--split" aria-labelledby="profile-info-title">
     <div class="panel-header">
         <h2 id="profile-info-title">Thông tin cá nhân</h2>
     </div>
 
-    <form class="profile-form" action="${pageContext.request.contextPath}/user/profile" method="post">
-        <input type="hidden" name="action" value="update_profile">
+    <div class="profile-grid">
+        <div class="profile-info">
+            <div class="profile-static">
+                <span class="profile-static__label">Tên đăng nhập</span>
+                <span class="profile-static__value"><c:out value="${currentUser.email}"/></span>
+            </div>
 
-        <table class="form-table">
-            <tbody>
-            <tr>
-                <th><label for="lastName">Họ và tên đệm</label></th>
-                <td>
-                    <input type="text" id="lastName" name="lastName" value="${currentUser.lastName}" required maxlength="50">
-                </td>
-            </tr>
-            <tr>
-                <th><label for="firstName">Tên</label></th>
-                <td>
-                    <input type="text" id="firstName" name="firstName" value="${currentUser.firstName}" required maxlength="50">
-                </td>
-            </tr>
-            <tr>
-                <th><label id="email-label">Email</label></th>
-                <td>
-                    <input type="email" aria-labelledby="email-label" value="${currentUser.email}" disabled>
-                </td>
-            </tr>
-            <tr>
-                <th><label for="phone">Số điện thoại</label></th>
-                <td>
-                    <input type="tel" id="phone" name="phone" value="${fn:escapeXml(currentUser.phone)}" required maxlength="20">
-                </td>
-            </tr>
-            <tr>
-                <th><label for="dob">Ngày sinh</label></th>
-                <td>
-                    <input type="date" id="dob" name="dob" value="${currentUser.dateOfBirth}">
-                </td>
-            </tr>
-            <tr>
-                <th><span>Giới tính</span></th>
-                <td>
-                    <div class="gender-options">
+            <form class="profile-form profile-form--list" action="${pageContext.request.contextPath}/user/profile" method="post">
+                <input type="hidden" name="action" value="update_profile">
+
+                <div class="form-grid">
+                    <label class="field">
+                        <span>Họ và tên đệm</span>
+                        <input type="text" id="lastName" name="lastName" value="${currentUser.lastName}" required maxlength="50">
+                    </label>
+                    <label class="field">
+                        <span>Tên</span>
+                        <input type="text" id="firstName" name="firstName" value="${currentUser.firstName}" required maxlength="50">
+                    </label>
+                    <label class="field">
+                        <span>Email</span>
+                        <input type="email" value="${currentUser.email}" disabled>
+                    </label>
+                    <label class="field">
+                        <span>Số điện thoại</span>
+                        <input type="tel" id="phone" name="phone" value="${fn:escapeXml(currentUser.phone)}" required maxlength="20">
+                    </label>
+                    <label class="field">
+                        <span>Ngày sinh</span>
+                        <input type="date" id="dob" name="dob" value="${currentUser.dateOfBirth}">
+                    </label>
+                    <fieldset class="gender-field field--full">
+                        <legend>Giới tính</legend>
                         <label>
                             <input type="radio" name="gender" value="Nam" ${currentUser.gender == 'MALE' ? 'checked' : ''}>
                             <span>Nam</span>
@@ -76,17 +71,45 @@
                             <input type="radio" name="gender" value="Khác" ${currentUser.gender == 'OTHER' ? 'checked' : ''}>
                             <span>Khác</span>
                         </label>
-                    </div>
-                </td>
-            </tr>
-            </tbody>
-        </table>
+                    </fieldset>
+                </div>
 
-        <div class="form-actions">
-            <button class="primary-button" type="submit">
-                <i class="fa-solid fa-floppy-disk"></i>
-                <span>Lưu</span>
-            </button>
+                <div class="form-actions">
+                    <button class="primary-button" type="submit">
+                        <span>Lưu</span>
+                    </button>
+                </div>
+            </form>
         </div>
-    </form>
+
+        <aside class="profile-avatar" aria-label="Ảnh đại diện">
+            <div class="profile-avatar__image">
+                <c:choose>
+                    <c:when test="${not empty currentUser.avatarUrl && currentUser.avatarUrl ne 'default-avatarUrl.png' && fn:startsWith(currentUser.avatarUrl, 'http')}">
+                        <img src="${currentUser.avatarUrl}" alt="Ảnh đại diện của ${currentUser.fullName}">
+                    </c:when>
+                    <c:when test="${not empty currentUser.avatarUrl && currentUser.avatarUrl ne 'default-avatarUrl.png'}">
+                        <img src="${pageContext.request.contextPath}/assets/images/avatarUrl/${currentUser.avatarUrl}"
+                             alt="Ảnh đại diện của ${currentUser.fullName}">
+                    </c:when>
+                    <c:otherwise>
+                        <span aria-hidden="true"><i class="fa-solid fa-user"></i></span>
+                    </c:otherwise>
+                </c:choose>
+            </div>
+
+            <form class="profile-avatar__form"
+                  action="${pageContext.request.contextPath}/user/upload-avatar"
+                  method="post"
+                  enctype="multipart/form-data">
+                <label class="profile-avatar__file">
+                    <span>Chọn ảnh</span>
+                    <input type="file" name="avatarFile" accept="image/*" required>
+                </label>
+                <button class="secondary-button" type="submit">Tải lên</button>
+            </form>
+
+            <p class="profile-avatar__hint">Dung lượng file tối đa 5 MB<br>Định dạng: JPEG, PNG</p>
+        </aside>
+    </div>
 </section>

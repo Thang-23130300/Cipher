@@ -184,7 +184,7 @@
                     <select name="categoryId" id="categoryId" class="form-control" required>
                         <option value="">-- Chọn danh mục --</option>
                         <c:forEach items="${categories}" var="cat">
-                            <option value="${cat.id}">${cat.name}</option>
+                            <option value="${cat.id}">${cat.categoryName}</option>
                         </c:forEach>
                     </select>
                 </div>

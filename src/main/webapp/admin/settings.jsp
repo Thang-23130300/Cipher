@@ -244,6 +244,64 @@
                         </div>
 
                         <div class="settings-section">
+                            <h3>Tùy chọn chung</h3>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                                <div class="form-group">
+                                    <label>Ngôn ngữ mặc định</label>
+                                    <select name="defaultLanguage" class="form-control">
+                                        <option value="vi" ${settings.default_language == 'vi' ? 'selected' : ''}>Tiếng Việt</option>
+                                        <option value="en" ${settings.default_language == 'en' ? 'selected' : ''}>English</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Tiền tệ mặc định</label>
+                                    <select name="defaultCurrency" class="form-control">
+                                        <option value="VND" ${settings.default_currency == 'VND' ? 'selected' : ''}>VND</option>
+                                        <option value="USD" ${settings.default_currency == 'USD' ? 'selected' : ''}>USD</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Số mục trên trang</label>
+                                    <input type="number" min="1" name="itemsPerPage" class="form-control" value="${settings.items_per_page}">
+                                </div>
+                                <div class="form-group">
+                                    <label>Tỷ lệ thuế (%)</label>
+                                    <input type="number" step="0.01" min="0" name="taxRate" class="form-control" value="${settings.tax_rate}">
+                                </div>
+                                <div class="form-group">
+                                    <label>Chế độ bảo trì</label>
+                                    <label style="display:flex;align-items:center;gap:8px;"><input type="checkbox" name="maintenanceMode" ${settings.maintenance_mode == 'true' ? 'checked' : ''}> Bật chế độ bảo trì</label>
+                                </div>
+                                <div class="form-group">
+                                    <label>Logo (URL)</label>
+                                    <input type="text" name="siteLogoUrl" class="form-control" value="${settings.site_logo_url}">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="settings-section">
+                            <h3>SEO & Mô tả</h3>
+                            <div class="form-group">
+                                <label>Meta description</label>
+                                <textarea name="metaDescription" class="form-control" rows="3">${settings.meta_description}</textarea>
+                            </div>
+                        </div>
+
+                        <div class="settings-section">
+                            <h3>Mạng xã hội</h3>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                                <div class="form-group">
+                                    <label>Facebook</label>
+                                    <input type="text" name="socialFacebook" class="form-control" value="${settings.social_facebook}">
+                                </div>
+                                <div class="form-group">
+                                    <label>Instagram</label>
+                                    <input type="text" name="socialInstagram" class="form-control" value="${settings.social_instagram}">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="settings-section">
                             <h3>Cài đặt thanh toán</h3>
                             <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;">
                                 <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">

@@ -8,9 +8,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
-import nlu.fit.web.souvenirecommerce.features.auth.dao.SignupVerificationCodeDAO;
-import nlu.fit.web.souvenirecommerce.legacy.dao.IUserDAO;
-import nlu.fit.web.souvenirecommerce.features.auth.dao.AuthDAO;
+import nlu.fit.web.souvenirecommerce.features.auth.service.AuthService;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -18,8 +16,12 @@ import java.io.PrintWriter;
 @WebServlet("/api/signup/verify-code")
 @Slf4j
 public class VerifySignupCodeServlet extends HttpServlet {
-    private final IUserDAO userDAO = new AuthDAO();
-    private final SignupVerificationCodeDAO signupVerificationCodeDAO = new SignupVerificationCodeDAO();
+    private AuthService authService;
+
+    @Override
+    public void init() throws ServletException {
+        authService = new AuthService();
+    }
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
@@ -42,7 +44,7 @@ public class VerifySignupCodeServlet extends HttpServlet {
             return;
         }
 
-        if (userDAO.hasEmailExist(email)) {
+        if (authService.hasEmailExist(email)) {
             log.warn("Xác thực mã đăng ký thất bại: email đã tồn tại {}", email);
             writeJson(resp, jsonResponse, "error", "Email này đã được đăng ký");
             return;
@@ -62,7 +64,7 @@ public class VerifySignupCodeServlet extends HttpServlet {
             return;
         }
 
-        boolean verified = signupVerificationCodeDAO.verifySignupCode(email, code);
+        boolean verified = authService.verifySignupCode(email, code);
         if (!verified) {
             log.warn("Xác thực mã đăng ký thất bại: code không đúng/hết hạn, email={}", email);
             writeJson(resp, jsonResponse, "error", "Mã xác thực không đúng");

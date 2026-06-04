@@ -214,7 +214,17 @@
                                         <c:forEach items="${users}" var="user">
                                             <option value="${user.id}"
                                                     <c:if test="${not empty editUserIds and editUserIds.contains(user.id.toString())}">selected</c:if>>
-                                                ${user.fullName} - ${user.email} (${user.role})
+                                                ${user.fullName} - ${user.email} (
+                                                <c:choose>
+                                                    <c:when test="${not empty user.roles}">
+                                                        <c:forEach items="${user.roles}" var="r" varStatus="st">
+                                                            <c:out value="${r.name}"/>
+                                                            <c:if test="${!st.last}">, </c:if>
+                                                        </c:forEach>
+                                                    </c:when>
+                                                    <c:otherwise>—</c:otherwise>
+                                                </c:choose>
+                                                )
                                             </option>
                                         </c:forEach>
                                     </select>

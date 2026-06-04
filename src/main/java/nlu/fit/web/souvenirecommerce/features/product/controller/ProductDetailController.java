@@ -49,11 +49,11 @@ public class ProductDetailController extends HttpServlet {
         request.setAttribute("breadcrumbProduct", dto.getProduct());
 
         request.setAttribute("pageTitle", dto.getProduct().getName());
-        request.setAttribute("contentPage", "/product.jsp");
+        request.setAttribute("contentPage", "/WEB-INF/views/product/detail.jsp");
         request.setAttribute("pageCss", "ProductDetail.css");
         request.setAttribute("pageJs", "ProductDetail.js");
 
-        request.getRequestDispatcher("WEB-INF/layout/base.jsp")
+        request.getRequestDispatcher("/WEB-INF/layout/base.jsp")
                 .forward(request, response);
     }
 }

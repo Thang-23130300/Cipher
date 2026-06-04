@@ -2,7 +2,6 @@ package nlu.fit.web.souvenirecommerce.model.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import nlu.fit.web.souvenirecommerce.common.base.AbsBaseEntity;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 
@@ -15,7 +14,7 @@ import org.hibernate.annotations.SQLRestriction;
 @Table(name = "products")
 @SQLDelete(sql = "UPDATE products SET deleted_at = CURRENT_TIMESTAMP WHERE id = ?")
 @SQLRestriction("deleted_at IS NULL")
-public class Product extends AbsBaseEntity {
+public class Product {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -32,7 +31,7 @@ public class Product extends AbsBaseEntity {
     private double originalPrice;
 
     @Column(name = "discount_percent")
-    private int discountPercent;
+    private Integer discountPercent;
 
     @Column(name = "sale_price")
     private Double salePrice;

@@ -20,8 +20,11 @@ public class VerificationCode extends AbsBaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "user_id", columnDefinition = "BIGINT(20) UNSIGNED")
+    private Long userId;
+
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "user_id", insertable = false, updatable = false)
     private User user;
 
     @Column(nullable = false, length = 255)
