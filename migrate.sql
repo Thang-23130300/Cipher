@@ -1,8 +1,10 @@
+use souvenirdb;
+
 CREATE TABLE IF NOT EXISTS `site_settings` (
   `setting_key` VARCHAR(128) NOT NULL,
   `setting_value` TEXT NULL,
   PRIMARY KEY (`setting_key`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;a 
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Default settings used by the admin settings UI
 INSERT INTO `site_settings` (`setting_key`, `setting_value`) VALUES
