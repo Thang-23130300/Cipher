@@ -14,27 +14,21 @@ import java.util.Map;
 
 public class ReviewDAO {
 
-    public List<Review> getReviewsByProductWithFilter(
-            Long productId,
-            Integer rating,
-            String sort,
-            int offset,
-            int limit
-    ) {
+    public List<Review> getReviewsByProductWithFilter(Long productId, Integer rating, String sort, int offset, int limit) {
         List<Review> list = new ArrayList<>();
 
         StringBuilder sql = new StringBuilder(""" 
-            SELECT r.id,
-                   r.product_id,
-                   r.user_id,
-                   u.full_name AS user_name,
-                   r.rating,
-                   r.comment,
-                   r.created_at
-            FROM reviews r
-            JOIN users u ON r.user_id = u.id
-            WHERE r.product_id = ?
-        """);
+                    SELECT r.id,
+                           r.product_id,
+                           r.user_id,
+                           u.full_name AS user_name,
+                           r.rating,
+                           r.comment,
+                           r.created_at
+                    FROM reviews r
+                    JOIN users u ON r.user_id = u.id
+                    WHERE r.product_id = ?
+                """);
 
         if (rating != null) {
             sql.append(" AND r.rating = ? ");
@@ -48,8 +42,7 @@ public class ReviewDAO {
 
         sql.append(" LIMIT ? OFFSET ? ");
 
-        try (Connection conn = DBContext.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+        try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql.toString())) {
 
             int idx = 1;
             ps.setLong(idx++, productId);
@@ -74,14 +67,13 @@ public class ReviewDAO {
 
     public ReviewSummary getReviewSummaryByProductId(Long productId) {
         String sql = """
-        SELECT COUNT(*) AS total_reviews,
-               AVG(rating) AS avg_rating
-        FROM reviews
-        WHERE product_id = ?
-    """;
+                    SELECT COUNT(*) AS total_reviews,
+                           AVG(rating) AS avg_rating
+                    FROM reviews
+                    WHERE product_id = ?
+                """;
 
-        try (Connection conn = DBContext.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setLong(1, productId);
             ResultSet rs = ps.executeQuery();
@@ -94,10 +86,7 @@ public class ReviewDAO {
                     avg = 0.0;
                 }
 
-                return new ReviewSummary(
-                        total,
-                        Math.round(avg * 10.0) / 10.0
-                );
+                return new ReviewSummary(total, Math.round(avg * 10.0) / 10.0);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -105,18 +94,18 @@ public class ReviewDAO {
 
         return new ReviewSummary(0, 0.0);
     }
+
     public boolean hasPurchased(int userId, Long productId) {
         String sql = """
-        SELECT 1
-        FROM orders o
-        JOIN order_items oi ON o.id = oi.order_id
-        WHERE o.user_id = ?
-          AND oi.product_id = ?
-        LIMIT 1
-    """;
+                    SELECT 1
+                    FROM orders o
+                    JOIN order_items oi ON o.id = oi.order_id
+                    WHERE o.user_id = ?
+                      AND oi.product_id = ?
+                    LIMIT 1
+                """;
 
-        try (Connection conn = DBContext.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setInt(1, userId);
             ps.setLong(2, productId);
@@ -130,25 +119,27 @@ public class ReviewDAO {
         }
     }
 
-    public Map<Integer, Integer> countReviewsByRating(Long productId) {
-        Map<Integer, Integer> map = new HashMap<>();
-        for (int i = 1; i <= 5; i++) map.put(i, 0);
+    public Map<String, Integer> countReviewsByRating(Long productId) {
+        Map<String, Integer> map = new HashMap<>();
+
+        for (int i = 1; i <= 5; i++) {
+            map.put(String.valueOf(i), 0);
+        }
 
         String sql = """
-            SELECT rating, COUNT(*) AS cnt
-            FROM reviews
-            WHERE product_id = ?
-            GROUP BY rating
-        """;
+                    SELECT rating, COUNT(*) AS cnt
+                    FROM reviews
+                    WHERE product_id = ?
+                    GROUP BY rating
+                """;
 
-        try (Connection conn = DBContext.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setLong(1, productId);
             ResultSet rs = ps.executeQuery();
 
             while (rs.next()) {
-                map.put(rs.getInt("rating"), rs.getInt("cnt"));
+                map.put(String.valueOf(rs.getInt("rating")), rs.getInt("cnt"));
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -159,12 +150,11 @@ public class ReviewDAO {
 
     public boolean addReview(Review r) {
         String sql = """
-            INSERT INTO reviews (product_id, user_id, rating, comment, created_at)
-            VALUES (?, ?, ?, ?, NOW())
-        """;
+                    INSERT INTO reviews (product_id, user_id, rating, comment, created_at)
+                    VALUES (?, ?, ?, ?, NOW())
+                """;
 
-        try (Connection conn = DBContext.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setLong(1, r.getProductId());
             ps.setInt(2, r.getUserId());

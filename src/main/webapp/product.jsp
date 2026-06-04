@@ -182,25 +182,77 @@
                         </p>
 
                         <div class="rating-breakdown">
-                            <c:forEach begin="1" end="5" var="i">
-                                <c:set var="star" value="${6 - i}"/>
-                                <c:set var="count" value="${data.ratingCount[star]}"/>
-                                <c:set var="percent"
-                                       value="${data.totalReviews > 0
-                                               ? (count * 100 / data.totalReviews)
-                                               : 0}"/>
 
-                                <div class="rating-row">
-                                    <span>${star}</span>
-                                    <i class="fa-solid fa-star"></i>
-
-                                    <div class="rating-bar">
-                                        <span style="width:${percent}%"></span>
-                                    </div>
-
-                                    <span>${percent}%</span>
+                            <c:set var="count5" value="${data.ratingCount['5']}"/>
+                            <c:set var="percent5"
+                                   value="${data.totalReviews > 0 ? (count5 * 100.0 / data.totalReviews) : 0}"/>
+                            <div class="rating-row">
+                                <span>5</span>
+                                <i class="fa-solid fa-star"></i>
+                                <div class="rating-bar">
+                                    <span style="width:${percent5}%"></span>
                                 </div>
-                            </c:forEach>
+                                <span>
+            <fmt:formatNumber value="${percent5}" minFractionDigits="1" maxFractionDigits="1"/>%
+        </span>
+                            </div>
+
+                            <c:set var="count4" value="${data.ratingCount['4']}"/>
+                            <c:set var="percent4"
+                                   value="${data.totalReviews > 0 ? (count4 * 100.0 / data.totalReviews) : 0}"/>
+                            <div class="rating-row">
+                                <span>4</span>
+                                <i class="fa-solid fa-star"></i>
+                                <div class="rating-bar">
+                                    <span style="width:${percent4}%"></span>
+                                </div>
+                                <span>
+            <fmt:formatNumber value="${percent4}" minFractionDigits="1" maxFractionDigits="1"/>%
+        </span>
+                            </div>
+
+                            <c:set var="count3" value="${data.ratingCount['3']}"/>
+                            <c:set var="percent3"
+                                   value="${data.totalReviews > 0 ? (count3 * 100.0 / data.totalReviews) : 0}"/>
+                            <div class="rating-row">
+                                <span>3</span>
+                                <i class="fa-solid fa-star"></i>
+                                <div class="rating-bar">
+                                    <span style="width:${percent3}%"></span>
+                                </div>
+                                <span>
+            <fmt:formatNumber value="${percent3}" minFractionDigits="1" maxFractionDigits="1"/>%
+        </span>
+                            </div>
+
+                            <c:set var="count2" value="${data.ratingCount['2']}"/>
+                            <c:set var="percent2"
+                                   value="${data.totalReviews > 0 ? (count2 * 100.0 / data.totalReviews) : 0}"/>
+                            <div class="rating-row">
+                                <span>2</span>
+                                <i class="fa-solid fa-star"></i>
+                                <div class="rating-bar">
+                                    <span style="width:${percent2}%"></span>
+                                </div>
+                                <span>
+            <fmt:formatNumber value="${percent2}" minFractionDigits="1" maxFractionDigits="1"/>%
+        </span>
+                            </div>
+
+                            <c:set var="count1" value="${data.ratingCount['1']}"/>
+                            <c:set var="percent1"
+                                   value="${data.totalReviews > 0 ? (count1 * 100.0 / data.totalReviews) : 0}"/>
+                            <div class="rating-row">
+                                <span>1</span>
+                                <i class="fa-solid fa-star"></i>
+                                <div class="rating-bar">
+                                    <span style="width:${percent1}%"></span>
+                                </div>
+                                <span>
+                                    <fmt:formatNumber value="${percent1}" minFractionDigits="1" maxFractionDigits="1"/>%
+                                </span>
+                            </div>
+
                         </div>
                     </div>
 

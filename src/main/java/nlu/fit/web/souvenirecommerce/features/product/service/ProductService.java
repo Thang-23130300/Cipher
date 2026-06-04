@@ -28,27 +28,20 @@ public class ProductService {
         Promotion promotion = promotionDAO.getActivePromotionByProductId(productId);
 
         ReviewSummary summary = reviewDAO.getReviewSummaryByProductId(productId);
+        Map<String, Integer> ratingCount = reviewDAO.countReviewsByRating(productId);
 
-        Map<Integer, Integer> ratingCount = reviewDAO.countReviewsByRating(productId);
         for (int i = 1; i <= 5; i++) {
-            ratingCount.putIfAbsent(i, 0);
+            ratingCount.putIfAbsent(String.valueOf(i), 0);
         }
-        List<Product> relatedProducts = productDAO.getRelatedProducts(
-                product.getCategory().getId(),
-                        productId,
-                        5
-                );
+        List<Product> relatedProducts = productDAO.getRelatedProducts(product.getCategory().getId(), productId, 5);
 
         List<ProductCardDTO> relatedCards = new ArrayList<>();
 
         if (relatedProducts != null && !relatedProducts.isEmpty()) {
             for (Product rp : relatedProducts) {
-                Promotion promo =
-                        promotionDAO.getActivePromotionByProductId(rp.getId());
+                Promotion promo = promotionDAO.getActivePromotionByProductId(rp.getId());
 
-                relatedCards.add(
-                        ProductCardMapper.from(rp, promo)
-                );
+                relatedCards.add(ProductCardMapper.from(rp, promo));
             }
         }
 
@@ -70,8 +63,7 @@ public class ProductService {
         dto.setRelatedProductCards(relatedCards);
 
         if (promotion != null) {
-            double discounted =
-                    product.getOriginalPrice() * (100 - promotion.getDiscountPercent()) / 100.0;
+            double discounted = product.getOriginalPrice() * (100 - promotion.getDiscountPercent()) / 100.0;
             dto.setDiscountedPrice(discounted);
         }
 
