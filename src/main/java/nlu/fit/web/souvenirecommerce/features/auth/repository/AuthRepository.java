@@ -13,6 +13,7 @@ import nlu.fit.web.souvenirecommerce.model.entity.VerificationCode;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
 
 public class AuthRepository extends AbsBaseRepository<Long, User> {
@@ -35,6 +36,20 @@ public class AuthRepository extends AbsBaseRepository<Long, User> {
         return total != null && total > 0;
     }
 
+    public boolean hasPhoneExist(String phone) {
+        if (phone == null || phone.isBlank()) {
+            return false;
+        }
+
+        Long total = getSession().createQuery("""
+                        select count(u.id) from User u
+                        where u.phone = :phone
+                        """, Long.class)
+                .setParameter("phone", phone.trim())
+                .uniqueResult();
+        return total != null && total > 0;
+    }
+
     public Optional<User> createUser(String email, String password, String firstName, String lastName, String phone, String gender) {
         if (email == null || email.isBlank()
                 || password == null || password.isBlank()
@@ -45,7 +60,7 @@ public class AuthRepository extends AbsBaseRepository<Long, User> {
             return Optional.empty();
         }
 
-        if (hasEmailExist(email)) {
+        if (hasEmailExist(email) || hasPhoneExist(phone)) {
             return Optional.empty();
         }
 
@@ -94,20 +109,25 @@ public class AuthRepository extends AbsBaseRepository<Long, User> {
             return Optional.empty();
         }
 
-        Optional<User> user = getSession().createQuery("""
+        String loginDetail = userEmail.trim();
+        List<User> users = getSession().createQuery("""
                         select distinct u from User u
                         left join fetch u.credentials
                         left join fetch u.roles r
                         left join fetch r.permissions
                         left join fetch u.oauthAccounts
-                        where (lower(u.email) = lower(:loginDetail) or u.phone = :loginDetail)
+                        where lower(u.email) = lower(:loginDetail)
+                           or u.phone = :loginDetail
+                        order by u.id desc
                         """, User.class)
-                .setParameter("loginDetail", userEmail.trim())
-                .uniqueResultOptional();
+                .setParameter("loginDetail", loginDetail)
+                .getResultList();
 
-        return user.filter(u -> u.isActive()
-                && u.getCredentials() != null
-                && PasswordUtil.checkPassword(password, u.getCredentials().getPasswordHash()));
+        return users.stream()
+                .filter(u -> u.isActive()
+                        && u.getCredentials() != null
+                        && PasswordUtil.checkPassword(password, u.getCredentials().getPasswordHash()))
+                .findFirst();
     }
 
     public Optional<User> findByUserEmail(String userEmail) {

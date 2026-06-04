@@ -35,6 +35,10 @@ public class AuthService {
         return authRepository.hasEmailExist(email);
     }
 
+    public boolean hasPhoneExist(String phone) {
+        return authRepository.hasPhoneExist(phone);
+    }
+
     public User loginWithUserCredential(String email, String password) {
         return authRepository.findByUserEmailAndPassword(email, password)
                 .orElseThrow(() -> new IllegalArgumentException("Email hoặc mật khẩu không đúng."));
