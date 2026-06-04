@@ -1,25 +1,46 @@
 package nlu.fit.web.souvenirecommerce.features.auth.service;
 
+import jakarta.mail.MessagingException;
 import nlu.fit.web.souvenirecommerce.features.auth.dto.GooglePojo;
-import nlu.fit.web.souvenirecommerce.features.auth.dao.AuthDAO;
+import nlu.fit.web.souvenirecommerce.features.auth.repository.AuthRepository;
+import nlu.fit.web.souvenirecommerce.features.auth.service.impl.EmailServiceImpl;
 import nlu.fit.web.souvenirecommerce.features.auth.util.GoogleUtils;
 import nlu.fit.web.souvenirecommerce.model.entity.User;
 
 import java.io.IOException;
+import java.security.SecureRandom;
+import java.time.LocalDateTime;
+import java.util.Optional;
 
 public class AuthService {
-    private AuthDAO authDAO;
+    private static final SecureRandom RANDOM = new SecureRandom();
 
-    public AuthService(AuthDAO authDAO) {
-        this.authDAO = authDAO;
-    }
+    private final AuthRepository authRepository;
+    private final EmailServiceImpl emailService;
 
     public AuthService() {
-        this.authDAO = new AuthDAO();
+        this(new AuthRepository(), new EmailServiceImpl());
+    }
+
+    public AuthService(AuthRepository authRepository) {
+        this(authRepository, new EmailServiceImpl());
+    }
+
+    public AuthService(AuthRepository authRepository, EmailServiceImpl emailService) {
+        this.authRepository = authRepository;
+        this.emailService = emailService;
+    }
+
+    public boolean hasEmailExist(String email) {
+        return authRepository.hasEmailExist(email);
+    }
+
+    public boolean hasPhoneExist(String phone) {
+        return authRepository.hasPhoneExist(phone);
     }
 
     public User loginWithUserCredential(String email, String password) {
-        return authDAO.findByUserEmailAndPassword(email, password)
+        return authRepository.findByUserEmailAndPassword(email, password)
                 .orElseThrow(() -> new IllegalArgumentException("Email hoặc mật khẩu không đúng."));
     }
 
@@ -41,7 +62,7 @@ public class AuthService {
 
     public User loginWithGoogle(String code) throws IOException {
         GooglePojo googleUser = processGoogleLogin(code);
-        return authDAO.upsertGoogleUser(
+        return authRepository.upsertGoogleUser(
                 googleUser.getId(),
                 googleUser.getEmail(),
                 googleUser.getGiven_name(),
@@ -50,4 +71,26 @@ public class AuthService {
         );
     }
 
+    public Optional<User> createUser(String email, String password, String firstName, String lastName, String phone, String gender) {
+        return authRepository.createUser(email, password, firstName, lastName, phone, gender);
+    }
+
+    public LocalDateTime sendSignupVerificationCode(String email) throws MessagingException {
+        if (hasEmailExist(email)) {
+            throw new IllegalArgumentException("Email này đã được đăng ký");
+        }
+
+        String code = String.format("%06d", RANDOM.nextInt(1_000_000));
+        LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(10);
+        authRepository.createSignupVerificationCode(email, code, expiresAt);
+        emailService.sendSignupVerificationCode(email, code);
+        return expiresAt;
+    }
+
+    public boolean verifySignupCode(String email, String code) {
+        if (hasEmailExist(email)) {
+            throw new IllegalArgumentException("Email này đã được đăng ký");
+        }
+        return authRepository.verifySignupCode(email, code);
+    }
 }

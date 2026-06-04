@@ -9,31 +9,23 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
-import nlu.fit.web.souvenirecommerce.features.auth.dao.SignupVerificationCodeDAO;
-import nlu.fit.web.souvenirecommerce.legacy.dao.IUserDAO;
-import nlu.fit.web.souvenirecommerce.features.auth.dao.AuthDAO;
-import nlu.fit.web.souvenirecommerce.features.auth.service.impl.EmailServiceImpl;
 import nlu.fit.web.souvenirecommerce.common.utils.EmailUtil;
+import nlu.fit.web.souvenirecommerce.core.config.HibernateUtil;
+import nlu.fit.web.souvenirecommerce.features.auth.service.AuthService;
+import org.hibernate.Transaction;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.security.SecureRandom;
 import java.time.LocalDateTime;
 
 @WebServlet("/api/signup/send-code")
 @Slf4j
 public class SendSignupCodeServlet extends HttpServlet {
-    private static final SecureRandom RANDOM = new SecureRandom();
-
-    private IUserDAO userDAO;
-    private EmailServiceImpl emailService;
-    private SignupVerificationCodeDAO signupVerificationCodeDAO;
+    private AuthService authService;
 
     @Override
     public void init() throws ServletException {
-        userDAO = new AuthDAO();
-        emailService = new EmailServiceImpl();
-        signupVerificationCodeDAO = new SignupVerificationCodeDAO();
+        authService = new AuthService();
     }
 
     @Override
@@ -56,19 +48,17 @@ public class SendSignupCodeServlet extends HttpServlet {
             return;
         }
 
-        if (userDAO.hasEmailExist(email)) {
+        if (authService.hasEmailExist(email)) {
             log.warn("Gửi mã đăng ký thất bại: email đã tồn tại {}", email);
             writeJson(resp, jsonResponse, "error", "Email này đã được đăng ký");
             return;
         }
 
-        String code = String.format("%06d", RANDOM.nextInt(1_000_000));
-        LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(10);
-
+        LocalDateTime expiresAt;
         try {
-            signupVerificationCodeDAO.createCode(email, code, expiresAt);
-            emailService.sendSignupVerificationCode(email, code);
+            expiresAt = authService.sendSignupVerificationCode(email);
         } catch (MessagingException | RuntimeException e) {
+            rollbackCurrentTransaction();
             log.error("Gửi mã đăng ký thất bại: email={}", email, e);
             writeJson(resp, jsonResponse, "error", "Không gửi được mã xác thực. Vui lòng kiểm tra cấu hình email");
             return;
@@ -87,5 +77,16 @@ public class SendSignupCodeServlet extends HttpServlet {
         jsonResponse.addProperty("message", message);
         PrintWriter out = resp.getWriter();
         out.print(jsonResponse.toString());
+    }
+
+    private void rollbackCurrentTransaction() {
+        try {
+            Transaction transaction = HibernateUtil.getSessionFactory().getCurrentSession().getTransaction();
+            if (transaction != null && transaction.isActive()) {
+                transaction.rollback();
+            }
+        } catch (RuntimeException rollbackError) {
+            log.warn("Không thể rollback transaction gửi mã đăng ký", rollbackError);
+        }
     }
 }

@@ -40,6 +40,13 @@ public class HibernateUtil {
         configuration.addAnnotatedClass(Address.class);
         configuration.addAnnotatedClass(Province.class);
         configuration.addAnnotatedClass(Ward.class);
+        configuration.addAnnotatedClass(Order.class);
+        configuration.addAnnotatedClass(OrderItem.class);
+        configuration.addAnnotatedClass(OrderStatus.class);
+        configuration.addAnnotatedClass(PaymentTransaction.class);
+        configuration.addAnnotatedClass(Promotion.class);
+        configuration.addAnnotatedClass(ProductSpecification.class);
+        configuration.addAnnotatedClass(Review.class);
     }
 
     public static SessionFactory getSessionFactory() {

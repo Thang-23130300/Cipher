@@ -8,10 +8,11 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
-import nlu.fit.web.souvenirecommerce.legacy.dao.IUserDAO;
-import nlu.fit.web.souvenirecommerce.features.auth.dao.AuthDAO;
 import nlu.fit.web.souvenirecommerce.common.enums.Gender;
 import nlu.fit.web.souvenirecommerce.common.utils.EmailUtil;
+import nlu.fit.web.souvenirecommerce.core.config.HibernateUtil;
+import nlu.fit.web.souvenirecommerce.features.auth.service.AuthService;
+import org.hibernate.Transaction;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -19,11 +20,11 @@ import java.io.PrintWriter;
 @WebServlet(urlPatterns = {"/api/signup", "/signup"})
 @Slf4j
 public class SignupServlet extends HttpServlet {
-    private IUserDAO userDAO;
+    private AuthService authService;
 
     @Override
     public void init() throws ServletException {
-        userDAO = new AuthDAO();
+        authService = new AuthService();
     }
 
     @Override
@@ -60,20 +61,27 @@ public class SignupServlet extends HttpServlet {
                 return;
             }
 
-            if (userDAO.hasEmailExist(email)) {
+            if (authService.hasEmailExist(email)) {
                 log.warn("Đăng ký thất bại do email đã tồn tại: email={}", email);
                 writeJson(resp, jsonResponse, "error", "Email này đã được đăng ký");
                 return;
             }
 
+            if (authService.hasPhoneExist(phone)) {
+                log.warn("Đăng ký thất bại do số điện thoại đã tồn tại: phone={}", phone);
+                writeJson(resp, jsonResponse, "error", "Số điện thoại này đã được đăng ký");
+                return;
+            }
+
             try {
-                boolean registered = userDAO.createUser(email, password, firstName, lastName, phone, gender).isPresent();
+                boolean registered = authService.createUser(email, password, firstName, lastName, phone, gender).isPresent();
                 if (!registered) {
                     log.error("Đăng ký thất bại: createUser trả về rỗng cho email={}", email);
                     writeJson(resp, jsonResponse, "error", "Không thể tạo tài khoản. Vui lòng thử lại");
                     return;
                 }
             } catch (Exception createUserError) {
+                rollbackCurrentTransaction();
                 log.error("Lỗi khi tạo tài khoản: email={}", email, createUserError);
 
                 String errorMsg = "Không thể tạo tài khoản. Vui lòng thử lại";
@@ -96,6 +104,7 @@ public class SignupServlet extends HttpServlet {
             log.info("Đăng ký thành công: email={}", email);
             writeJson(resp, jsonResponse, "success", "Tạo tài khoản thành công");
         } catch (Exception e) {
+            rollbackCurrentTransaction();
             log.error("Lỗi không mong muốn trong luồng đăng ký", e);
             try {
                 writeJson(resp, jsonResponse, "error", "Có lỗi xảy ra. Vui lòng thử lại");
@@ -159,5 +168,16 @@ public class SignupServlet extends HttpServlet {
         jsonResponse.addProperty("message", message);
         PrintWriter out = resp.getWriter();
         out.print(jsonResponse.toString());
+    }
+
+    private void rollbackCurrentTransaction() {
+        try {
+            Transaction transaction = HibernateUtil.getSessionFactory().getCurrentSession().getTransaction();
+            if (transaction != null && transaction.isActive()) {
+                transaction.rollback();
+            }
+        } catch (RuntimeException rollbackError) {
+            log.warn("Không thể rollback transaction đăng ký", rollbackError);
+        }
     }
 }

@@ -6,12 +6,16 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import lombok.extern.slf4j.Slf4j;
+import nlu.fit.web.souvenirecommerce.core.config.HibernateUtil;
 import nlu.fit.web.souvenirecommerce.features.auth.service.AuthService;
 import nlu.fit.web.souvenirecommerce.model.entity.User;
+import org.hibernate.Transaction;
 
 import java.io.IOException;
 
 @WebServlet("/login-google")
+@Slf4j
 public class LoginGoogleServlet extends HttpServlet {
     private AuthService authService;
 
@@ -43,8 +47,21 @@ public class LoginGoogleServlet extends HttpServlet {
             }
             resp.sendRedirect(req.getContextPath() + "/home");
         } catch (Exception e) {
+            rollbackCurrentTransaction();
+            log.warn("Đăng nhập Google thất bại", e);
             req.getSession(true).setAttribute("error", "Đăng nhập Google thất bại.");
             resp.sendRedirect(req.getContextPath() + "/login");
+        }
+    }
+
+    private void rollbackCurrentTransaction() {
+        try {
+            Transaction transaction = HibernateUtil.getSessionFactory().getCurrentSession().getTransaction();
+            if (transaction != null && transaction.isActive()) {
+                transaction.rollback();
+            }
+        } catch (RuntimeException rollbackError) {
+            log.warn("Không thể rollback transaction đăng nhập Google", rollbackError);
         }
     }
 }

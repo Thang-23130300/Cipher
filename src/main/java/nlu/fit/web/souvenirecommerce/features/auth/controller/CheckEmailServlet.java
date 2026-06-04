@@ -5,19 +5,19 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import nlu.fit.web.souvenirecommerce.legacy.dao.IUserDAO;
-import nlu.fit.web.souvenirecommerce.features.auth.dao.AuthDAO;
 import com.google.gson.JsonObject;
+import nlu.fit.web.souvenirecommerce.features.auth.service.AuthService;
+
 import java.io.IOException;
 import java.io.PrintWriter;
 
 @WebServlet(urlPatterns = {"/api/check-email", "/api/signup/check-email", "/api/login/check-email"})
 public class CheckEmailServlet extends HttpServlet {
-    private IUserDAO userDAO;
+    private AuthService authService;
 
     @Override
     public void init() throws ServletException {
-        userDAO = new AuthDAO();
+        authService = new AuthService();
     }
 
     @Override
@@ -45,7 +45,7 @@ public class CheckEmailServlet extends HttpServlet {
         }
 
         // Check if email exists
-        boolean exists = userDAO.hasEmailExist(email);
+        boolean exists = authService.hasEmailExist(email);
 
         if (exists) {
             jsonResponse.addProperty("status", "error");
