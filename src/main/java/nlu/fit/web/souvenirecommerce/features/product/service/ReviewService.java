@@ -9,22 +9,20 @@ public class ReviewService {
 
     private final ReviewDAO reviewDAO = new ReviewDAO();
 
-    public List<Review> getReviews(
-            Long productId,
-            Integer rating,
-            String sort,
-            int offset,
-            int limit
-    ) {
-        return reviewDAO.getReviewsByProductWithFilter(
-                productId, rating, sort, offset, limit
-        );
+    public List<Review> getReviews(Long productId, Integer rating, String sort, int offset, int limit) {
+        return reviewDAO.getReviewsByProductWithFilter(productId, rating, sort, offset, limit);
     }
+
     public boolean canReview(int userId, Long productId) {
         return reviewDAO.hasPurchased(userId, productId);
     }
 
     public boolean addReview(Review review) {
-        return reviewDAO.addReview(review);
+        boolean success = reviewDAO.addReview(review);
+
+        if (success) {reviewDAO.refreshProductReviewStats(review.getProductId());
+        }
+
+        return success;
     }
 }

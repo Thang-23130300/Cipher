@@ -17,7 +17,7 @@ public class ReviewDAO {
     public List<Review> getReviewsByProductWithFilter(Long productId, Integer rating, String sort, int offset, int limit) {
         List<Review> list = new ArrayList<>();
 
-        StringBuilder sql = new StringBuilder(""" 
+        StringBuilder sql = new StringBuilder("""
                     SELECT r.id,
                            r.product_id,
                            r.user_id,
@@ -55,6 +55,7 @@ public class ReviewDAO {
             ps.setInt(idx, offset);
 
             ResultSet rs = ps.executeQuery();
+
             while (rs.next()) {
                 list.add(mapReview(rs));
             }
@@ -99,9 +100,9 @@ public class ReviewDAO {
         String sql = """
                     SELECT 1
                     FROM orders o
-                    JOIN order_items oi ON o.id = oi.order_id
+                    JOIN order_details od ON o.id = od.order_id
                     WHERE o.user_id = ?
-                      AND oi.product_id = ?
+                      AND od.product_id = ?
                     LIMIT 1
                 """;
 
@@ -168,9 +169,38 @@ public class ReviewDAO {
         }
     }
 
-    // Mapping ResultSet → Review
+    public void refreshProductReviewStats(Long productId) {
+        String sql = """
+                    UPDATE products p
+                    LEFT JOIN (
+                        SELECT
+                            product_id,
+                            ROUND(AVG(rating), 1) AS avg_rating,
+                            COUNT(*) AS review_count
+                        FROM reviews
+                        WHERE product_id = ?
+                        GROUP BY product_id
+                    ) r ON r.product_id = p.id
+                    SET
+                        p.avg_rating = COALESCE(r.avg_rating, 0),
+                        p.review_count = COALESCE(r.review_count, 0)
+                    WHERE p.id = ?
+                """;
+
+        try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setLong(1, productId);
+            ps.setLong(2, productId);
+            ps.executeUpdate();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     private Review mapReview(ResultSet rs) throws Exception {
         Review r = new Review();
+
         r.setId(rs.getInt("id"));
         r.setProductId(rs.getLong("product_id"));
         r.setUserId(rs.getInt("user_id"));
@@ -178,6 +208,7 @@ public class ReviewDAO {
         r.setRating(rs.getInt("rating"));
         r.setComment(rs.getString("comment"));
         r.setCreatedAt(rs.getTimestamp("created_at"));
+
         return r;
     }
 }
