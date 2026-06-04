@@ -8,12 +8,20 @@ $(document).ready(function () {
     let currentSort = 'newest';
     let isLoading = false;
 
+    let lastMessage = '';
+    let lastMessageTime = 0;
+
     function showMessage(message) {
-        if (typeof showToast === 'function') {
-            showToast(message);
-        } else {
-            alert(message);
+        const now = Date.now();
+
+        if (message === lastMessage && now - lastMessageTime < 1000) {
+            return;
         }
+
+        lastMessage = message;
+        lastMessageTime = now;
+
+        alert(message);
     }
 
     /* Image zoom modal */
@@ -71,7 +79,9 @@ $(document).ready(function () {
     });
 
     /* Review modal open close */
-    $(document).on('click', '.review-action-btn', function () {
+    $(document).off('click.reviewAction', '.review-action-btn');
+
+    $(document).on('click.reviewAction', '.review-action-btn', function () {
         const isLoggedIn = String($(this).data('logged-in')) === 'true';
         const canReview = String($(this).data('can-review')) === 'true';
 
@@ -125,9 +135,14 @@ $(document).ready(function () {
         }
 
         $.ajax({
-            url: contextPath + '/reviews', method: 'POST', data: {
-                productId: productId, rating: rating, comment: comment
-            }, success: function () {
+            url: contextPath + '/reviews',
+            method: 'POST',
+            data: {
+                productId: productId,
+                rating: rating,
+                comment: comment
+            },
+            success: function () {
                 showMessage('Đã gửi đánh giá ✔');
 
                 $('#reviewModal').removeClass('show');
@@ -140,7 +155,8 @@ $(document).ready(function () {
                 $('#reviewContainer').empty();
 
                 loadReviews(true);
-            }, error: function (xhr) {
+            },
+            error: function (xhr) {
                 let message = 'Không gửi được đánh giá ❌';
 
                 if (xhr.status === 401) {
@@ -178,18 +194,27 @@ $(document).ready(function () {
         }
 
         $.ajax({
-            url: contextPath + '/reviews', method: 'GET', data: {
-                productId: productId, rating: currentRating, sort: currentSort, page: currentPage, size: 5
-            }, success: function (html) {
+            url: contextPath + '/reviews',
+            method: 'GET',
+            data: {
+                productId: productId,
+                rating: currentRating,
+                sort: currentSort,
+                page: currentPage,
+                size: 5
+            },
+            success: function (html) {
                 if ($.trim(html) === '') {
                     $('#loadMoreReview').hide();
                 } else {
                     $('#reviewContainer').append(html);
                     $('#loadMoreReview').show();
                 }
-            }, error: function () {
+            },
+            error: function () {
                 showMessage('Không tải được danh sách đánh giá');
-            }, complete: function () {
+            },
+            complete: function () {
                 isLoading = false;
             }
         });
