@@ -9,14 +9,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard | INOLA Admin</title>
+    <link rel="stylesheet" href="${ctx}/admin/template/assets/css/bootstrap.min.css">
+    <link rel="stylesheet" href="${ctx}/admin/template/assets/vendors/bootstrap-icons/bootstrap-icons.css">
+    <link rel="stylesheet" href="${ctx}/admin/template/assets/css/style.css">
     <link rel="stylesheet" href="${ctx}/assets/css/admin-dashboard.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="${ctx}/assets/css/admin-pages.css">
 </head>
 <body>
-<div class="admin-container">
+<div class="admin-shell">
+    <div class="sidebar-backdrop" data-sidebar-close></div>
+
     <jsp:include page="common/admin-sidebar.jsp">
         <jsp:param name="activePage" value="dashboard" />
     </jsp:include>
@@ -24,329 +26,311 @@
     <div class="admin-main">
         <jsp:include page="common/admin-topbar.jsp" />
 
-        <main class="admin-content">
-            <div class="content-header">
-                <h1 class="content-title">Dashboard</h1>
-                <div class="content-actions">
-                    <div style="position: relative; display: inline-block;">
-                        <button type="button" id="reportMenuButton" class="btn btn-secondary" onclick="toggleReportMenu(event)" aria-haspopup="true" aria-expanded="false" aria-controls="reportMenu">
-                            <svg class="btn-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                                <polyline points="7 10 12 15 17 10"/>
-                                <line x1="12" x2="12" y1="15" y2="3"/>
-                            </svg>
-                            Xuất báo cáo
-                        </button>
-                        <div id="reportMenu" role="menu" style="display: none; position: absolute; top: 100%; right: 0; margin-top: 8px; background: white; border: 1px solid #e5e7eb; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); min-width: 200px; z-index: 1000;">
-                            <a href="${ctx}/admin/export-report?type=summary" role="menuitem" style="display: block; padding: 12px 16px; text-decoration: none; color: #374151; border-bottom: 1px solid #e5e7eb;">
-                                <i class="fas fa-chart-line" style="margin-right: 8px;"></i> Báo cáo tổng quan
-                            </a>
-                            <a href="${ctx}/admin/export-report?type=products" role="menuitem" style="display: block; padding: 12px 16px; text-decoration: none; color: #374151; border-bottom: 1px solid #e5e7eb;">
-                                <i class="fas fa-box" style="margin-right: 8px;"></i> Báo cáo sản phẩm
-                            </a>
-                            <a href="${ctx}/admin/export-report?type=orders" role="menuitem" style="display: block; padding: 12px 16px; text-decoration: none; color: #374151; border-bottom: 1px solid #e5e7eb;">
-                                <i class="fas fa-shopping-cart" style="margin-right: 8px;"></i> Báo cáo đơn hàng
-                            </a>
-                            <a href="${ctx}/admin/export-report?type=customers" role="menuitem" style="display: block; padding: 12px 16px; text-decoration: none; color: #374151;">
-                                <i class="fas fa-users" style="margin-right: 8px;"></i> Báo cáo khách hàng
-                            </a>
+        <main class="dashboard-content">
+            <div class="container-fluid px-3 px-lg-4 py-4">
+                <div class="page-heading">
+                    <div class="page-heading-copy">
+                        <span class="page-icon"><i class="bi bi-speedometer2" aria-hidden="true"></i></span>
+                        <div>
+                            <p class="eyebrow mb-1">Overview</p>
+                            <h1 class="h3 mb-1">Dashboard</h1>
+                            <p class="text-muted mb-0">Monitor performance, sales, users, and support from one clean workspace.</p>
                         </div>
                     </div>
-                    <c:if test="${canCreateProduct}">
-                        <button class="btn btn-primary" onclick="window.location.href='${ctx}/admin/products?action=add'">
-                            <svg class="btn-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M5 12h14"/>
-                                <path d="M12 5v14"/>
-                            </svg>
-                            Thêm sản phẩm
-                        </button>
-                    </c:if>
-                </div>
-            </div>
 
-            <!-- Stats Cards -->
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-card-header">
-                        <span class="stat-card-title">Doanh thu tháng</span>
-                        <svg class="stat-card-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <line x1="12" x2="12" y1="2" y2="22"/>
-                            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
-                        </svg>
-                    </div>
-                    <div class="stat-card-value">
-                        <fmt:formatNumber value="${totalRevenue}" type="currency" currencySymbol="₫" maxFractionDigits="0"/>
-                    </div>
-                    <p class="stat-card-description">+12.5% so với tháng trước</p>
-                </div>
-
-                <div class="stat-card">
-                    <div class="stat-card-header">
-                        <span class="stat-card-title">Đơn hàng mới</span>
-                        <svg class="stat-card-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <circle cx="8" cy="21" r="1"/>
-                            <circle cx="19" cy="21" r="1"/>
-                            <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/>
-                        </svg>
-                    </div>
-                    <div class="stat-card-value">${totalOrders}</div>
-                    <p class="stat-card-description">+3 đơn so với tháng trước</p>
-                </div>
-
-                <div class="stat-card">
-                    <div class="stat-card-header">
-                        <span class="stat-card-title">Sản phẩm</span>
-                        <svg class="stat-card-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/>
-                            <path d="M3 6h18"/>
-                            <path d="M16 10a4 4 0 0 1-8 0"/>
-                        </svg>
-                    </div>
-                    <div class="stat-card-value">${totalProducts}</div>
-                    <p class="stat-card-description">Tổng số sản phẩm</p>
-                </div>
-
-                <div class="stat-card">
-                    <div class="stat-card-header">
-                        <span class="stat-card-title">Khách hàng</span>
-                        <svg class="stat-card-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
-                            <circle cx="9" cy="7" r="4"/>
-                            <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
-                            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-                        </svg>
-                    </div>
-                    <div class="stat-card-value">${totalCustomers}</div>
-                    <p class="stat-card-description">Tổng số khách hàng</p>
-                </div>
-            </div>
-
-            <!-- Tabs -->
-            <div class="tabs">
-                <div class="tabs-list">
-                    <button class="tabs-trigger active" data-tab="overview">Tổng quan</button>
-                    <button class="tabs-trigger" data-tab="orders">Đơn hàng gần đây</button>
-                    <button class="tabs-trigger" data-tab="products">Sản phẩm bán chạy</button>
-                </div>
-
-                <!-- Overview Tab -->
-                <div class="tabs-content active" id="overview">
-                    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1rem;">
-                        <div class="card">
-                            <div class="card-header">
-                                <h3 class="card-title">Doanh thu theo tháng</h3>
-                                <p class="card-description">Biểu đồ doanh thu 6 tháng gần đây</p>
-                            </div>
-                            <div class="card-content">
-                                <canvas id="revenueChart" style="height: 300px;"></canvas>
+                    <div class="heading-actions">
+                        <div style="position: relative;">
+                            <button type="button" id="reportMenuButton" class="btn btn-outline-secondary btn-sm" onclick="toggleReportMenu(event)" aria-haspopup="true" aria-expanded="false" aria-controls="reportMenu">
+                                <i class="bi bi-download" aria-hidden="true"></i> Export report
+                            </button>
+                            <div id="reportMenu" role="menu" class="dropdown-menu shadow-sm" style="display:none; position:absolute; top:100%; right:0; margin-top:0.5rem; min-width:220px; z-index:1000;">
+                                <a class="dropdown-item" href="${ctx}/admin/export-report?type=summary" role="menuitem">Summary report</a>
+                                <a class="dropdown-item" href="${ctx}/admin/export-report?type=products" role="menuitem">Product report</a>
+                                <a class="dropdown-item" href="${ctx}/admin/export-report?type=orders" role="menuitem">Order report</a>
+                                <a class="dropdown-item" href="${ctx}/admin/export-report?type=customers" role="menuitem">Customer report</a>
                             </div>
                         </div>
 
-                        <div class="card">
-                            <div class="card-header">
-                                <h3 class="card-title">Đơn hàng gần đây</h3>
-                                <p class="card-description">5 đơn hàng mới nhất</p>
+                        <c:if test="${canCreateProduct}">
+                            <a class="btn btn-primary btn-sm" href="${ctx}/admin/products?action=add">
+                                <i class="bi bi-plus-lg" aria-hidden="true"></i> Add product
+                            </a>
+                        </c:if>
+                    </div>
+                </div>
+
+                <section class="stats-grid" aria-label="Dashboard metrics">
+                    <article class="metric-card">
+                        <div class="metric-top">
+                            <span class="metric-label">Revenue this month</span>
+                            <span class="metric-icon"><i class="bi bi-currency-dollar" aria-hidden="true"></i></span>
+                        </div>
+                        <div class="metric-value">
+                            <fmt:formatNumber value="${totalRevenue}" type="currency" currencySymbol="₫" maxFractionDigits="0"/>
+                        </div>
+                        <div class="metric-meta">
+                            <span class="text-success">+12.5%</span>
+                            <span>vs last month</span>
+                        </div>
+                    </article>
+
+                    <article class="metric-card">
+                        <div class="metric-top">
+                            <span class="metric-label">New orders</span>
+                            <span class="metric-icon"><i class="bi bi-bag-check" aria-hidden="true"></i></span>
+                        </div>
+                        <div class="metric-value">${totalOrders}</div>
+                        <div class="metric-meta">
+                            <span class="text-success">Growth</span>
+                            <span>latest month</span>
+                        </div>
+                    </article>
+
+                    <article class="metric-card">
+                        <div class="metric-top">
+                            <span class="metric-label">Products</span>
+                            <span class="metric-icon"><i class="bi bi-box-seam" aria-hidden="true"></i></span>
+                        </div>
+                        <div class="metric-value">${totalProducts}</div>
+                        <div class="metric-meta">
+                            <span>Total catalog items</span>
+                        </div>
+                    </article>
+
+                    <article class="metric-card">
+                        <div class="metric-top">
+                            <span class="metric-label">Customers</span>
+                            <span class="metric-icon"><i class="bi bi-people" aria-hidden="true"></i></span>
+                        </div>
+                        <div class="metric-value">${totalCustomers}</div>
+                        <div class="metric-meta">
+                            <span>Total registered users</span>
+                        </div>
+                    </article>
+                </section>
+
+                <div class="tabs">
+                    <div class="tabs-list">
+                        <button class="tabs-trigger active" data-tab="overview" type="button">Overview</button>
+                        <button class="tabs-trigger" data-tab="orders" type="button">Recent orders</button>
+                        <button class="tabs-trigger" data-tab="products" type="button">Best sellers</button>
+                    </div>
+
+                    <section class="tabs-content active" id="overview">
+                        <div class="row g-3">
+                            <div class="col-12 col-xl-8">
+                                <div class="panel h-100">
+                                    <div class="panel-header">
+                                        <div>
+                                            <h2 class="section-title"><i class="bi bi-graph-up-arrow" aria-hidden="true"></i><span>Revenue trend</span></h2>
+                                            <p class="text-muted mb-0">Monthly revenue for the latest six months.</p>
+                                        </div>
+                                    </div>
+                                    <div class="panel-body">
+                                        <canvas id="revenueChart" style="height: 320px;"></canvas>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="card-content">
+
+                            <div class="col-12 col-xl-4">
+                                <div class="panel h-100">
+                                    <div class="panel-header">
+                                        <div>
+                                            <h2 class="section-title"><i class="bi bi-clock-history" aria-hidden="true"></i><span>Recent orders</span></h2>
+                                            <p class="text-muted mb-0">Five newest orders.</p>
+                                        </div>
+                                    </div>
+                                    <div class="panel-body">
+                                        <c:choose>
+                                            <c:when test="${empty recentOrders}">
+                                                <div class="text-center py-5 text-muted">
+                                                    <p class="mb-0">No recent orders yet.</p>
+                                                </div>
+                                            </c:when>
+                                            <c:otherwise>
+                                                <c:forEach items="${recentOrders}" var="order" varStatus="status">
+                                                    <div class="d-flex align-items-center justify-content-between gap-3 py-3 ${!status.last ? 'border-bottom' : ''}">
+                                                        <div>
+                                                            <p class="fw-semibold mb-1">#${order.id}</p>
+                                                            <p class="small text-muted mb-0"><c:out value="${order.customerName}"/></p>
+                                                        </div>
+                                                        <div class="text-end">
+                                                            <p class="fw-bold mb-0">
+                                                                <fmt:formatNumber value="${order.totalAmount}" pattern="#,###"/>₫
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                </c:forEach>
+                                            </c:otherwise>
+                                        </c:choose>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="tabs-content" id="orders">
+                        <div class="panel">
+                            <div class="panel-header">
+                                <div>
+                                    <h2 class="section-title"><i class="bi bi-bag-check" aria-hidden="true"></i><span>Recent orders</span></h2>
+                                    <p class="text-muted mb-0">Latest order activity and status.</p>
+                                </div>
+                            </div>
+                            <div class="panel-body table-container">
                                 <c:choose>
                                     <c:when test="${empty recentOrders}">
-                                        <div style="padding: 2rem; text-align: center; color: var(--muted-foreground);">
-                                            <p>Chưa có đơn hàng nào</p>
+                                        <div class="text-center py-5 text-muted">
+                                            <p class="mb-0">No recent orders yet.</p>
                                         </div>
                                     </c:when>
                                     <c:otherwise>
-                                        <c:forEach items="${recentOrders}" var="order" varStatus="status">
-                                            <div style="display: flex; align-items: center; gap: 1rem; padding: 0.75rem 0; border-bottom: 1px solid var(--border);">
-                                                <div style="flex: 1;">
-                                                    <p style="font-weight: 500; font-size: 0.875rem;">#${order.id}</p>
-                                                    <p style="font-size: 0.75rem; color: var(--muted-foreground);"><c:out value="${order.customerName}"/></p>
-                                                </div>
-                                                <div style="text-align: right;">
-                                                    <p style="font-weight: 600; font-size: 0.875rem;">
-                                                        <fmt:formatNumber value="${order.totalAmount}" pattern="#,###"/>₫
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        </c:forEach>
+                                        <table class="data-table">
+                                            <thead>
+                                            <tr>
+                                                <th scope="col">Order</th>
+                                                <th scope="col">Customer</th>
+                                                <th scope="col">Date</th>
+                                                <th scope="col">Total</th>
+                                                <th scope="col">Status</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody>
+                                            <c:forEach items="${recentOrders}" var="order">
+                                                <tr>
+                                                    <td>#${order.id}</td>
+                                                    <td><c:out value="${order.customerName}"/></td>
+                                                    <td><fmt:formatDate value="${order.orderDate}" pattern="dd/MM/yyyy HH:mm"/></td>
+                                                    <td><fmt:formatNumber value="${order.totalAmount}" pattern="#,###"/>₫</td>
+                                                    <td>
+                                                        <c:choose>
+                                                            <c:when test="${order.status == 'Đang xử lý'}">
+                                                                <span class="badge badge-warning"><c:out value="${order.status}"/></span>
+                                                            </c:when>
+                                                            <c:when test="${order.status == 'Đang giao'}">
+                                                                <span class="badge badge-info"><c:out value="${order.status}"/></span>
+                                                            </c:when>
+                                                            <c:when test="${order.status == 'Hoàn thành'}">
+                                                                <span class="badge badge-success"><c:out value="${order.status}"/></span>
+                                                            </c:when>
+                                                            <c:otherwise>
+                                                                <span class="badge badge-secondary"><c:out value="${order.status}"/></span>
+                                                            </c:otherwise>
+                                                        </c:choose>
+                                                    </td>
+                                                </tr>
+                                            </c:forEach>
+                                            </tbody>
+                                        </table>
                                     </c:otherwise>
                                 </c:choose>
                             </div>
                         </div>
-                    </div>
-                </div>
+                    </section>
 
-                <!-- Orders Tab -->
-                <div class="tabs-content" id="orders">
-                    <div class="card">
-                        <div class="card-header">
-                            <h3 class="card-title">Đơn hàng gần đây</h3>
-                            <p class="card-description">Danh sách đơn hàng mới nhất</p>
-                        </div>
-                        <div class="card-content">
-                            <c:choose>
-                                <c:when test="${empty recentOrders}">
-                                    <div style="padding: 3rem; text-align: center; color: var(--muted-foreground);">
-                                        <p>Chưa có đơn hàng nào</p>
-                                    </div>
-                                </c:when>
-                                <c:otherwise>
-                                    <table class="data-table">
-                                        <thead>
-                                        <tr>
-                                            <th>Mã đơn</th>
-                                            <th>Khách hàng</th>
-                                            <th>Ngày đặt</th>
-                                            <th>Tổng tiền</th>
-                                            <th>Trạng thái</th>
-                                        </tr>
-                                        </thead>
-                                        <tbody>
-                                        <c:forEach items="${recentOrders}" var="order">
+                    <section class="tabs-content" id="products">
+                        <div class="panel">
+                            <div class="panel-header">
+                                <div>
+                                    <h2 class="section-title"><i class="bi bi-stars" aria-hidden="true"></i><span>Best-selling products</span></h2>
+                                    <p class="text-muted mb-0">Top 10 products by sales volume.</p>
+                                </div>
+                            </div>
+                            <div class="panel-body table-container">
+                                <c:choose>
+                                    <c:when test="${empty topProducts}">
+                                        <div class="text-center py-5 text-muted">
+                                            <p class="mb-0">No top-selling products available.</p>
+                                        </div>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <table class="data-table">
+                                            <thead>
                                             <tr>
-                                                <td>#${order.id}</td>
-                                                <td><c:out value="${order.customerName}"/></td>
-                                                <td><fmt:formatDate value="${order.orderDate}" pattern="dd/MM/yyyy HH:mm"/></td>
-                                                <td><fmt:formatNumber value="${order.totalAmount}" pattern="#,###"/>₫</td>
-                                                <td>
-                                                    <c:choose>
-                                                        <c:when test="${order.status == 'Đang xử lý'}">
-                                                            <span class="badge badge-warning"><c:out value="${order.status}"/></span>
-                                                        </c:when>
-                                                        <c:when test="${order.status == 'Đang giao'}">
-                                                            <span class="badge badge-info"><c:out value="${order.status}"/></span>
-                                                        </c:when>
-                                                        <c:when test="${order.status == 'Hoàn thành'}">
-                                                            <span class="badge badge-success"><c:out value="${order.status}"/></span>
-                                                        </c:when>
-                                                        <c:otherwise>
-                                                            <span class="badge badge-secondary"><c:out value="${order.status}"/></span>
-                                                        </c:otherwise>
-                                                    </c:choose>
-                                                </td>
+                                                <th scope="col">Product</th>
+                                                <th scope="col">Category</th>
+                                                <th scope="col">Price</th>
+                                                <th scope="col">Sold</th>
+                                                <th scope="col">Stock</th>
                                             </tr>
-                                        </c:forEach>
-                                        </tbody>
-                                    </table>
-                                </c:otherwise>
-                            </c:choose>
+                                            </thead>
+                                            <tbody>
+                                            <c:forEach items="${topProducts}" var="product">
+                                                <tr>
+                                                    <td><c:out value="${product.name}"/></td>
+                                                    <td>
+                                                        <c:choose>
+                                                            <c:when test="${not empty product.category}">
+                                                                <c:out value="${product.category.categoryName}"/>
+                                                            </c:when>
+                                                            <c:otherwise>Uncategorized</c:otherwise>
+                                                        </c:choose>
+                                                    </td>
+                                                    <td><fmt:formatNumber value="${product.originalPrice}" type="currency" currencySymbol="₫" maxFractionDigits="0"/></td>
+                                                    <td>${product.totalSold}</td>
+                                                    <td>${product.stockQuantity}</td>
+                                                </tr>
+                                            </c:forEach>
+                                            </tbody>
+                                        </table>
+                                    </c:otherwise>
+                                </c:choose>
+                            </div>
                         </div>
-                    </div>
-                </div>
-
-                <!-- Products Tab -->
-                <div class="tabs-content" id="products">
-                    <div class="card">
-                        <div class="card-header">
-                            <h3 class="card-title">Sản phẩm bán chạy</h3>
-                            <p class="card-description">Top 10 sản phẩm bán chạy nhất</p>
-                        </div>
-                        <div class="card-content">
-                            <c:choose>
-                                <c:when test="${empty topProducts}">
-                                    <div style="padding: 3rem; text-align: center; color: var(--muted-foreground);">
-                                        <p>Không có sản phẩm bán chạy</p>
-                                    </div>
-                                </c:when>
-                                <c:otherwise>
-                                    <table class="data-table">
-                                        <thead>
-                                        <tr>
-                                            <th>Sản phẩm</th>
-                                            <th>Danh mục</th>
-                                            <th>Giá</th>
-                                            <th>Đã bán</th>
-                                            <th>Tồn kho</th>
-                                        </tr>
-                                        </thead>
-                                        <tbody>
-                                        <c:forEach items="${topProducts}" var="product">
-                                            <tr>
-                                                <td><c:out value="${product.name}"/></td>
-                                                <td>
-                                                    <c:choose>
-                                                        <c:when test="${not empty product.category}"><c:out value="${product.category.categoryName}"/></c:when>
-                                                        <c:otherwise>Không xác định</c:otherwise>
-                                                    </c:choose>
-                                                </td>
-                                                <td><fmt:formatNumber value="${product.originalPrice}" type="currency" currencySymbol="₫" maxFractionDigits="0"/></td>
-                                                <td>${product.totalSold}</td>
-                                                <td>${product.stockQuantity}</td>
-                                            </tr>
-                                        </c:forEach>
-                                        </tbody>
-                                    </table>
-                                </c:otherwise>
-                            </c:choose>
-                        </div>
-                    </div>
+                    </section>
                 </div>
             </div>
         </main>
+
+        <jsp:include page="common/admin-footer.jsp" />
     </div>
 </div>
 
+<script src="${ctx}/admin/template/assets/js/bootstrap.bundle.min.js"></script>
+<script src="${ctx}/admin/template/assets/js/main.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
-    // Tab switching
-    document.querySelectorAll('.tabs-trigger').forEach(trigger => {
-        trigger.addEventListener('click', function() {
-            const tabId = this.getAttribute('data-tab');
+    document.querySelectorAll('.tabs-trigger').forEach(function (trigger) {
+        trigger.addEventListener('click', function () {
+            var tabId = this.getAttribute('data-tab');
 
-            // Remove active class from all triggers and contents
-            document.querySelectorAll('.tabs-trigger').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.tabs-content').forEach(c => c.classList.remove('active'));
+            document.querySelectorAll('.tabs-trigger').forEach(function (tab) {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tabs-content').forEach(function (content) {
+                content.classList.remove('active');
+            });
 
-            // Add active class to clicked trigger and corresponding content
             this.classList.add('active');
-            document.getElementById(tabId).classList.add('active');
+            document.getElementById(tabId)?.classList.add('active');
         });
     });
 
-    // Report menu toggle
     function toggleReportMenu(event) {
         event.stopPropagation();
-        const menu = document.getElementById('reportMenu');
-        const button = document.getElementById('reportMenuButton');
-        const isOpen = menu.style.display === 'block';
+        var menu = document.getElementById('reportMenu');
+        var button = document.getElementById('reportMenuButton');
+        var isOpen = menu.style.display === 'block';
         menu.style.display = isOpen ? 'none' : 'block';
         button?.setAttribute('aria-expanded', String(!isOpen));
     }
 
-    // Close menu when clicking outside
-    document.addEventListener('click', function(event) {
-        const menu = document.getElementById('reportMenu');
-        const button = document.getElementById('reportMenuButton');
-        if (menu.style.display === 'block') {
+    document.addEventListener('click', function () {
+        var menu = document.getElementById('reportMenu');
+        var button = document.getElementById('reportMenuButton');
+        if (menu && menu.style.display === 'block') {
             menu.style.display = 'none';
             button?.setAttribute('aria-expanded', 'false');
         }
     });
 
-    // Close menu when pressing Escape
-    document.addEventListener('keydown', function(event) {
-        if (event.key === 'Escape') {
-            const menu = document.getElementById('reportMenu');
-            const button = document.getElementById('reportMenuButton');
-            if (menu.style.display === 'block') {
-                menu.style.display = 'none';
-                button?.setAttribute('aria-expanded', 'false');
-            }
-        }
-    });
-
-    // Prevent menu from closing when clicking inside
-    document.getElementById('reportMenu')?.addEventListener('click', function(event) {
+    document.getElementById('reportMenu')?.addEventListener('click', function (event) {
         event.stopPropagation();
     });
-</script>
 
-<!-- Chart.js -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-<script>
-    // Revenue Chart
-    const ctx = document.getElementById('revenueChart');
-    if (ctx) {
-        // Get data from JSP
-        const revenueData = [
+    var chartElement = document.getElementById('revenueChart');
+    if (chartElement && window.Chart) {
+        var revenueData = [
             <c:choose>
                 <c:when test="${not empty monthlyRevenues}">
                     <c:forEach items="${monthlyRevenues}" var="revenue" varStatus="status">
@@ -357,30 +341,28 @@
             </c:choose>
         ];
 
-        // Get month labels (last 6 months)
-        const monthNames = ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6',
-            'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12'];
-        const currentMonth = new Date().getMonth();
-        const labels = [];
-        for (let i = 5; i >= 0; i--) {
-            const monthIndex = (currentMonth - i + 12) % 12;
-            labels.push(monthNames[monthIndex]);
+        var monthNames = ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6', 'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12'];
+        var currentMonth = new Date().getMonth();
+        var labels = [];
+
+        for (var i = 5; i >= 0; i--) {
+            labels.push(monthNames[(currentMonth - i + 12) % 12]);
         }
 
-        new Chart(ctx, {
+        new Chart(chartElement, {
             type: 'line',
             data: {
                 labels: labels,
                 datasets: [{
                     label: 'Doanh thu (₫)',
                     data: revenueData,
-                    borderColor: 'rgb(52, 152, 219)',
-                    backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                    borderColor: 'rgb(37, 99, 235)',
+                    backgroundColor: 'rgba(37, 99, 235, 0.12)',
                     tension: 0.4,
                     fill: true,
-                    pointRadius: 5,
-                    pointHoverRadius: 7,
-                    pointBackgroundColor: 'rgb(52, 152, 219)',
+                    pointRadius: 4,
+                    pointHoverRadius: 6,
+                    pointBackgroundColor: 'rgb(37, 99, 235)',
                     pointBorderColor: '#fff',
                     pointBorderWidth: 2
                 }]
@@ -389,19 +371,11 @@
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
-                    legend: {
-                        display: true,
-                        position: 'top',
-                    },
+                    legend: { display: true, position: 'top' },
                     tooltip: {
                         callbacks: {
-                            label: function(context) {
-                                let label = context.dataset.label || '';
-                                if (label) {
-                                    label += ': ';
-                                }
-                                label += new Intl.NumberFormat('vi-VN').format(context.parsed.y) + '₫';
-                                return label;
+                            label: function (context) {
+                                return new Intl.NumberFormat('vi-VN').format(context.parsed.y) + '₫';
                             }
                         }
                     }
@@ -410,7 +384,7 @@
                     y: {
                         beginAtZero: true,
                         ticks: {
-                            callback: function(value) {
+                            callback: function (value) {
                                 return new Intl.NumberFormat('vi-VN', {
                                     notation: 'compact',
                                     compactDisplay: 'short'

@@ -5,34 +5,24 @@
 <head>
     <meta charset="UTF-8">
     <title>Quản lý khách hàng - Admin</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/admin/template/assets/css/bootstrap.min.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/admin/template/assets/vendors/bootstrap-icons/bootstrap-icons.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/admin/template/assets/css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/admin-dashboard.css">
-    <style>
-        .alert { padding: 12px; border-radius: 6px; margin-bottom: 16px; }
-        .alert-success { background: #d1fae5; color: #065f46; }
-        .alert-error { background: #fee2e2; color: #991b1b; }
-        .badge { padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 500; }
-        .badge-success { background: #d1fae5; color: #065f46; }
-        .badge-danger { background: #fee2e2; color: #991b1b; }
-        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); }
-        .modal-content { background: white; margin: 80px auto; padding: 0; width: 500px; border-radius: 8px; }
-        .modal-header { padding: 20px; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center; }
-        .modal-body { padding: 20px; }
-        .close-btn { background: none; border: none; font-size: 24px; cursor: pointer; color: #6b7280; }
-        .form-group { margin-bottom: 16px; }
-        .form-group label { display: block; margin-bottom: 6px; font-weight: 500; }
-        .form-control { width: 100%; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px; }
-        .btn-submit { background: #3b82f6; color: white; padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; width: 100%; }
-    </style>
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/admin-pages.css">
 </head>
 <body>
-<div class="admin-container">
+<div class="admin-shell">
+    <div class="sidebar-backdrop" data-sidebar-close></div>
     <jsp:include page="common/admin-sidebar.jsp"/>
 
     <div class="admin-main">
         <jsp:include page="common/admin-topbar.jsp"/>
 
-        <div class="admin-content">
+        <main class="dashboard-content">
+        <div class="container-fluid px-3 px-lg-4 py-4">
             <div class="content-header">
                 <h1>Quản lý khách hàng</h1>
                 <c:if test="${canCreateCustomer}">
@@ -145,6 +135,9 @@
                 </c:if>
             </div>
         </div>
+        </main>
+
+        <jsp:include page="common/admin-footer.jsp"/>
     </div>
 </div>
 
@@ -222,5 +215,7 @@
         if (event.target == modal) closeModal();
     }
 </script>
+<script src="${pageContext.request.contextPath}/admin/template/assets/js/bootstrap.bundle.min.js"></script>
+<script src="${pageContext.request.contextPath}/admin/template/assets/js/main.js"></script>
 </body>
 </html>

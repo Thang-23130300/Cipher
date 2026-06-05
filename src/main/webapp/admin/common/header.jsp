@@ -9,6 +9,6 @@
 
     <div class="user-info">
         <i class="fa-solid fa-bell"></i>
-        <img src="https://i.pravatar.cc/40" alt="user">
+        <img src="${ctx}/assets/images/logo.png" alt="user">
     </div>
 </header>

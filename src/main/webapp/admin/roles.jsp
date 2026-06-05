@@ -7,14 +7,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Phân quyền - Admin</title>
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/admin/template/assets/css/bootstrap.min.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/admin/template/assets/vendors/bootstrap-icons/bootstrap-icons.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/admin/template/assets/css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/admin-dashboard.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/admin-roles.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/admin-pages.css">
 </head>
 <body>
 <c:set var="ctx" value="${pageContext.request.contextPath}" />
 
-<div class="admin-container">
+<div class="admin-shell">
+    <div class="sidebar-backdrop" data-sidebar-close></div>
     <jsp:include page="common/admin-sidebar.jsp">
         <jsp:param name="activePage" value="roles" />
     </jsp:include>
@@ -22,7 +27,8 @@
     <div class="admin-main">
         <jsp:include page="common/admin-topbar.jsp" />
 
-        <main class="admin-content">
+        <main class="dashboard-content">
+            <div class="container-fluid px-3 px-lg-4 py-4">
             <div class="content-header">
                 <h1 class="content-title">Phân quyền</h1>
                 <div class="content-actions">
@@ -276,8 +282,13 @@
                     </div>
                 </div>
             </div>
+            </div>
         </main>
+
+        <jsp:include page="common/admin-footer.jsp" />
     </div>
 </div>
+<script src="${pageContext.request.contextPath}/admin/template/assets/js/bootstrap.bundle.min.js"></script>
+<script src="${pageContext.request.contextPath}/admin/template/assets/js/main.js"></script>
 </body>
 </html>

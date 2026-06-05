@@ -6,30 +6,22 @@
 <head>
     <meta charset="UTF-8">
     <title>Quản lý danh mục - Admin</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/admin/template/assets/css/bootstrap.min.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/admin/template/assets/vendors/bootstrap-icons/bootstrap-icons.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/admin/template/assets/css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/admin-dashboard.css">
-    <style>
-        .modal { display:none; position:fixed; inset:0; z-index:1000; background:rgba(0,0,0,0.5); align-items:center; justify-content:center }
-        .modal.show { display:flex }
-        .modal-content{background:#fff;width:90%;max-width:520px;border-radius:8px;overflow:hidden}
-        .modal-header{padding:16px;border-bottom:1px solid #eee;display:flex;justify-content:space-between}
-        .modal-body{padding:16px}
-        .form-control{width:100%;padding:8px;border:1px solid #ddd;border-radius:6px}
-        .category-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:20px;padding:20px}
-        .category-card{border:1px solid #e5e7eb;border-radius:8px;background:#fff;overflow:hidden}
-        .category-image{width:100%;height:150px;object-fit:cover}
-        .category-info{padding:12px}
-        .category-name{font-weight:600}
-        .action-buttons{display:flex;gap:8px;margin-top:8px}
-        .error-message{color:#ef4444;font-size:12px;margin-top:6px}
-    </style>
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/admin-pages.css">
 </head>
 <body>
-<div class="admin-container">
+<div class="admin-shell">
+    <div class="sidebar-backdrop" data-sidebar-close></div>
     <jsp:include page="common/admin-sidebar.jsp"/>
     <div class="admin-main">
         <jsp:include page="common/admin-topbar.jsp"/>
-        <div class="admin-content">
+        <main class="dashboard-content">
+        <div class="container-fluid px-3 px-lg-4 py-4">
             <div class="content-header">
                 <h1><i class="fas fa-folder"></i> Quản lý danh mục</h1>
                 <c:if test="${canCreateCategory}"><button class="btn-primary" onclick="openAddModal()"><i class="fas fa-plus"></i> Thêm danh mục</button></c:if>
@@ -69,6 +61,9 @@
                 </div>
             </div>
         </div>
+        </main>
+
+        <jsp:include page="common/admin-footer.jsp"/>
     </div>
 </div>
 
@@ -118,5 +113,7 @@
     document.getElementById('categoryName').addEventListener('input',()=>{ SUBMIT_BTN.disabled=!document.getElementById('categoryName').value.trim(); });
     document.getElementById('categoryImage').addEventListener('input',()=>{ SUBMIT_BTN.disabled=!document.getElementById('categoryImage').value.trim(); });
 </script>
+<script src="${pageContext.request.contextPath}/admin/template/assets/js/bootstrap.bundle.min.js"></script>
+<script src="${pageContext.request.contextPath}/admin/template/assets/js/main.js"></script>
 </body>
 </html>
