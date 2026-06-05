@@ -15,11 +15,7 @@
         </form>
 
         <div class="navbar-actions ms-auto">
-            <button class="icon-button theme-toggle" type="button" data-theme-toggle aria-label="Switch color theme" title="Switch color theme">
-                <i class="bi bi-moon-stars" data-theme-icon aria-hidden="true"></i>
-            </button>
-
-            <div class="dropdown">
+             <div class="dropdown">
                 <button class="icon-button" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Notifications">
                     <span class="notification-dot"></span>
                     <i class="bi bi-bell" aria-hidden="true"></i>
@@ -43,7 +39,6 @@
 
             <div class="dropdown">
                 <button class="profile-button dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                    <img class="avatar-img avatar-sm" src="${ctx}/admin/template/assets/images/avatar/avatar.jpg" alt="Admin avatar">
                     <span class="profile-name d-none d-sm-inline">Admin</span>
                 </button>
                 <ul class="dropdown-menu dropdown-menu-end">
