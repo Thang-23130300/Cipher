@@ -15,28 +15,6 @@
         </form>
 
         <div class="navbar-actions ms-auto">
-             <div class="dropdown">
-                <button class="icon-button" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Notifications">
-                    <span class="notification-dot"></span>
-                    <i class="bi bi-bell" aria-hidden="true"></i>
-                </button>
-                <div class="dropdown-menu dropdown-menu-end notification-menu">
-                    <div class="dropdown-header fw-bold text-body">Notifications</div>
-                    <a class="dropdown-item" href="${ctx}/admin/orders">
-                        <span class="notification-title">New order received</span>
-                        <span class="notification-time">Just now</span>
-                    </a>
-                    <a class="dropdown-item" href="${ctx}/admin/products">
-                        <span class="notification-title">Product stock check</span>
-                        <span class="notification-time">12 minutes ago</span>
-                    </a>
-                    <a class="dropdown-item" href="${ctx}/admin/settings">
-                        <span class="notification-title">System settings updated</span>
-                        <span class="notification-time">1 hour ago</span>
-                    </a>
-                </div>
-            </div>
-
             <div class="dropdown">
                 <button class="profile-button dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                     <span class="profile-name d-none d-sm-inline">Admin</span>
