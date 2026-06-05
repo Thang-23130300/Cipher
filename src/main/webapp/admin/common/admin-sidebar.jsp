@@ -91,24 +91,4 @@
             </a>
         </c:if>
     </nav>
-
-    <div class="sidebar-user">
-        <img class="avatar-img avatar-md sidebar-user-avatar" src="${ctx}/admin/template/assets/images/avatar/avatar.jpg" alt="Admin avatar">
-        <strong><c:out value="${currentAdminUser.fullName}"/></strong>
-        <small>
-            <c:choose>
-                <c:when test="${not empty currentAdminUser.roles}">
-                    <c:forEach items="${currentAdminUser.roles}" var="r" varStatus="st">
-                        <c:out value="${r.name}"/><c:if test="${!st.last}">, </c:if>
-                    </c:forEach>
-                </c:when>
-                <c:otherwise>Active Workspace</c:otherwise>
-            </c:choose>
-        </small>
-    </div>
-
-    <div class="sidebar-footer">
-        <span class="status-dot"></span>
-        <span class="sidebar-footer-text">System running smoothly</span>
-    </div>
 </aside>
