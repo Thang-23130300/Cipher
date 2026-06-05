@@ -2,33 +2,57 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <c:set var="ctx" value="${pageContext.request.contextPath}" />
 
-<header class="admin-topbar">
-    <div class="topbar-search">
-        <form action="${ctx}/admin/products" method="get" style="width: 100%;">
-            <input type="text" name="search" placeholder="Tìm kiếm sản phẩm..."
-                   value="${param.search}" style="width: 100%; padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 6px;"/>
-        </form>
-    </div>
+<nav class="navbar admin-navbar navbar-expand bg-white">
+    <div class="container-fluid px-3 px-lg-4">
+        <button class="sidebar-toggle" type="button" data-sidebar-toggle aria-controls="adminSidebar" aria-expanded="true" aria-label="Toggle sidebar">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
 
-    <div class="topbar-actions">
-        <button class="topbar-button" title="Thông báo">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/>
-                <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>
-            </svg>
-        </button>
-        <button class="topbar-button" title="Cài đặt">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
-                <circle cx="12" cy="12" r="3"/>
-            </svg>
-        </button>
-        <a href="${ctx}/logout" class="topbar-button" title="Đăng xuất">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-                <polyline points="16 17 21 12 16 7"/>
-                <line x1="21" x2="9" y1="12" y2="12"/>
-            </svg>
-        </a>
+        <form class="d-none d-md-flex ms-3 flex-grow-1" role="search" action="${ctx}/admin/products" method="get">
+            <input class="form-control search-input" type="search" name="search" placeholder="Search products, orders, reports" value="${param.search}" aria-label="Search">
+        </form>
+
+        <div class="navbar-actions ms-auto">
+            <button class="icon-button theme-toggle" type="button" data-theme-toggle aria-label="Switch color theme" title="Switch color theme">
+                <i class="bi bi-moon-stars" data-theme-icon aria-hidden="true"></i>
+            </button>
+
+            <div class="dropdown">
+                <button class="icon-button" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Notifications">
+                    <span class="notification-dot"></span>
+                    <i class="bi bi-bell" aria-hidden="true"></i>
+                </button>
+                <div class="dropdown-menu dropdown-menu-end notification-menu">
+                    <div class="dropdown-header fw-bold text-body">Notifications</div>
+                    <a class="dropdown-item" href="${ctx}/admin/orders">
+                        <span class="notification-title">New order received</span>
+                        <span class="notification-time">Just now</span>
+                    </a>
+                    <a class="dropdown-item" href="${ctx}/admin/products">
+                        <span class="notification-title">Product stock check</span>
+                        <span class="notification-time">12 minutes ago</span>
+                    </a>
+                    <a class="dropdown-item" href="${ctx}/admin/settings">
+                        <span class="notification-title">System settings updated</span>
+                        <span class="notification-time">1 hour ago</span>
+                    </a>
+                </div>
+            </div>
+
+            <div class="dropdown">
+                <button class="profile-button dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <img class="avatar-img avatar-sm" src="${ctx}/admin/template/assets/images/avatar/avatar.jpg" alt="Admin avatar">
+                    <span class="profile-name d-none d-sm-inline">Admin</span>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end">
+                    <li><a class="dropdown-item" href="${ctx}/admin/settings">Profile</a></li>
+                    <li><a class="dropdown-item" href="${ctx}/admin/settings">Account settings</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item" href="${ctx}/logout">Sign out</a></li>
+                </ul>
+            </div>
+        </div>
     </div>
-</header>
+</nav>
