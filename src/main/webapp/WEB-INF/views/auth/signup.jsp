@@ -9,9 +9,18 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/auth/signup.css">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <jsp:include page="/WEB-INF/layout/dark-mode.jsp"/>
 </head>
 
 <body class="auth-page">
+<button class="theme-toggle-button auth-theme-toggle"
+        type="button"
+        data-theme-toggle
+        aria-label="Chuyển giao diện sáng tối"
+        aria-pressed="false">
+    <i class="fa-solid fa-moon" data-theme-icon aria-hidden="true"></i>
+    <span class="theme-label" data-theme-label>Tối</span>
+</button>
 <main class="auth-shell signup-shell">
     <aside class="auth-media" aria-label="Sản phẩm INOLA">
         <img src="${pageContext.request.contextPath}/assets/images/products/lang-nghe-thu-cong/bo-am-chen-bach-ngoc-hoa-sen-qua-tang-cao-cap.jpg" alt="Quà tặng thủ công">

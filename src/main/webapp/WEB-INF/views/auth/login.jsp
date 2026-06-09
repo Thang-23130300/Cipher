@@ -8,8 +8,17 @@
     <title>Đăng nhập - INOLA</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/auth/login.css">
+    <jsp:include page="/WEB-INF/layout/dark-mode.jsp"/>
 </head>
 <body class="auth-page">
+<button class="theme-toggle-button auth-theme-toggle"
+        type="button"
+        data-theme-toggle
+        aria-label="Chuyển giao diện sáng tối"
+        aria-pressed="false">
+    <i class="fa-solid fa-moon" data-theme-icon aria-hidden="true"></i>
+    <span class="theme-label" data-theme-label>Tối</span>
+</button>
 <main class="auth-shell">
     <section class="auth-panel">
         <a class="brand-link" href="${pageContext.request.contextPath}/home" aria-label="Về trang chủ">

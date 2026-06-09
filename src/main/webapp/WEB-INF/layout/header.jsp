@@ -178,6 +178,21 @@
 
         <div class="header-actions">
 
+            <button class="theme-toggle-button"
+                    type="button"
+                    data-theme-toggle
+                    aria-label="Chuyển giao diện sáng tối"
+                    aria-pressed="false">
+
+                <i class="fa-solid fa-moon"
+                   data-theme-icon
+                   aria-hidden="true"></i>
+
+                <span class="theme-label"
+                      data-theme-label>Tối</span>
+
+            </button>
+
             <a class="header-icon-link"
                href="${pageContext.request.contextPath}/user/orders">
 
