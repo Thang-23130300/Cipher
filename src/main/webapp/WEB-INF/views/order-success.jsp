@@ -20,6 +20,7 @@
         .btn-primary { background: #e74c3c; color: #fff; }
         .btn-secondary { background: #f3f4f6; color: #374151; }
     </style>
+    <jsp:include page="/WEB-INF/layout/dark-mode.jsp"/>
 </head>
 <body>
 <div class="page-container">
