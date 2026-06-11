@@ -8,6 +8,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import nlu.fit.web.souvenirecommerce.common.enums.PaymentMethod;
 import nlu.fit.web.souvenirecommerce.features.cart.model.Cart;
+import nlu.fit.web.souvenirecommerce.features.cart.model.CartItem;
+import nlu.fit.web.souvenirecommerce.features.cart.service.CartPriceService;
 import nlu.fit.web.souvenirecommerce.features.cart.service.CartPersistenceService;
 import nlu.fit.web.souvenirecommerce.features.order.dto.CheckoutException;
 import nlu.fit.web.souvenirecommerce.features.order.dto.CheckoutRequest;
@@ -21,6 +23,7 @@ import java.io.IOException;
 public class CheckoutController extends HttpServlet {
     private final CheckoutService checkoutService = new CheckoutService();
     private final CartPersistenceService cartPersistenceService = new CartPersistenceService();
+    private final CartPriceService cartPriceService = new CartPriceService();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -40,7 +43,9 @@ public class CheckoutController extends HttpServlet {
             response.sendRedirect(request.getContextPath() + "/cart");
             return;
         }
+        refreshCartPrices(cart);
 
+        prepareCheckoutHeader(request);
         prepareCheckoutPage(request, user);
         request.getRequestDispatcher("/checkout.jsp").forward(request, response);
     }
@@ -63,6 +68,7 @@ public class CheckoutController extends HttpServlet {
             response.sendRedirect(request.getContextPath() + "/cart");
             return;
         }
+        refreshCartPrices(cart);
 
         try {
             CheckoutResult result = checkoutService.checkout(user, cart, buildCheckoutRequest(request));
@@ -80,9 +86,15 @@ public class CheckoutController extends HttpServlet {
             response.sendRedirect(request.getContextPath() + "/order-success");
         } catch (CheckoutException e) {
             request.setAttribute("error", e.getMessage());
+            prepareCheckoutHeader(request);
             prepareCheckoutPage(request, user);
             request.getRequestDispatcher("/checkout.jsp").forward(request, response);
         }
+    }
+
+    private void prepareCheckoutHeader(HttpServletRequest request) {
+        request.setAttribute("headerMode", "CHECKOUT_FLOW");
+        request.setAttribute("checkoutStep", "CHECKOUT");
     }
 
     private void prepareCheckoutPage(HttpServletRequest request, User user) {
@@ -163,5 +175,11 @@ public class CheckoutController extends HttpServlet {
         }
         user = session.getAttribute("authUser");
         return user instanceof User ? (User) user : null;
+    }
+
+    private void refreshCartPrices(Cart cart) {
+        for (CartItem item : cart.getItems()) {
+            item.setPrice(cartPriceService.getCurrentPrice(item.getProduct()));
+        }
     }
 }
