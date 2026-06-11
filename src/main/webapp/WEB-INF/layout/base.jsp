@@ -36,7 +36,7 @@
 
     <!-- Header -->
     <link rel="stylesheet"
-          href="${pageContext.request.contextPath}/assets/css/layout/header.css?v=5">
+          href="${pageContext.request.contextPath}/assets/css/layout/header.css?v=8">
 
     <!-- Footer -->
     <link rel="stylesheet"
@@ -54,7 +54,7 @@
 
     <c:if test="${not empty pageCss}">
         <link rel="stylesheet"
-              href="${pageContext.request.contextPath}/assets/css/${pageCss}">
+              href="${pageContext.request.contextPath}/assets/css/${pageCss}?v=7">
     </c:if>
 
     <c:if test="${not empty contentCss}">
@@ -87,7 +87,9 @@
 
 <!-- ================= FOOTER ================= -->
 
-<jsp:include page="/WEB-INF/layout/footer.jsp"/>
+<c:if test="${headerMode != 'CHECKOUT_FLOW'}">
+    <jsp:include page="/WEB-INF/layout/footer.jsp"/>
+</c:if>
 
 <!-- ================= GLOBAL JS ================= -->
 
@@ -95,7 +97,7 @@
 
 <script src="${pageContext.request.contextPath}/assets/js/common.js"></script>
 
-<script src="${pageContext.request.contextPath}/assets/js/header.js?v=5"></script>
+<script src="${pageContext.request.contextPath}/assets/js/header.js?v=8"></script>
 
 <c:if test="${requestScope.enableSelect2}">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
@@ -104,7 +106,7 @@
 <!-- ================= PAGE JS ================= -->
 
 <c:if test="${not empty pageJs}">
-    <script src="${pageContext.request.contextPath}/assets/js/${pageJs}?v=5">
+    <script src="${pageContext.request.contextPath}/assets/js/${pageJs}?v=7">
     </script>
 </c:if>
 

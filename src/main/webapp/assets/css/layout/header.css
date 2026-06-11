@@ -1,5 +1,125 @@
 /* header root */
 
+.checkout-flow-header {
+    background: #fff;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.checkout-flow-shell {
+    max-width: 1560px;
+    min-height: 118px;
+    margin: 0 auto;
+    padding: 0 28px;
+    display: grid;
+    grid-template-columns: 240px 1fr 320px;
+    align-items: center;
+    gap: 24px;
+}
+
+.checkout-flow-logo img {
+    width: 190px;
+    max-height: 66px;
+    object-fit: contain;
+}
+
+.checkout-flow-steps {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 24px;
+    font-size: 30px;
+    font-weight: 700;
+}
+
+.checkout-flow-steps i,
+.checkout-flow-step {
+    color: #aeb4ba;
+}
+
+.checkout-flow-step.active {
+    color: #111827;
+}
+
+.checkout-flow-user {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 14px;
+    position: relative;
+    color: #a3a8ad;
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.checkout-flow-user i {
+    font-size: 22px;
+}
+
+.checkout-flow-user .user-box {
+    color: #a3a8ad;
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.checkout-flow-user .user-box .fa-caret-down {
+    font-size: 13px;
+}
+
+.checkout-flow-user .user-dropdown {
+    color: var(--text-main);
+    text-align: left;
+}
+
+.cart-action-toast {
+    position: fixed;
+    top: 14px;
+    right: 58px;
+    z-index: 8000;
+    min-width: 520px;
+    min-height: 54px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 48px 0 24px;
+    border: 1px solid #79cf30;
+    border-radius: 4px;
+    background: #c7f8a7;
+    color: #5b8d27;
+    font-size: 18px;
+    box-shadow: 0 8px 24px rgba(31, 41, 51, 0.12);
+}
+
+.cart-action-toast[hidden] {
+    display: none;
+}
+
+.cart-action-toast strong {
+    color: #477a19;
+}
+
+.cart-action-toast button {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    border: none;
+    background: transparent;
+    color: #62b51e;
+    cursor: pointer;
+    font-size: 18px;
+}
+
+@media (max-width: 1100px) {
+    .checkout-flow-shell {
+        grid-template-columns: 1fr;
+        padding-top: 20px;
+        padding-bottom: 20px;
+    }
+
+    .checkout-flow-user {
+        justify-content: center;
+    }
+}
+
 .layout-shell {
     max-width: 1400px;
     width: 100%;

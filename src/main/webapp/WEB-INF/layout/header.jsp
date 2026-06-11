@@ -2,6 +2,95 @@
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 
+<c:if test="${headerMode == 'CHECKOUT_FLOW'}">
+    <header class="checkout-flow-header">
+        <div class="checkout-flow-shell">
+            <a class="checkout-flow-logo"
+               href="${pageContext.request.contextPath}/home"
+               aria-label="Về trang chủ">
+                <img src="${pageContext.request.contextPath}/assets/images/logo.png" alt="INOLA">
+            </a>
+
+            <nav class="checkout-flow-steps" aria-label="Tiến trình đặt hàng">
+                <span class="checkout-flow-step ${checkoutStep == 'CART' ? 'active' : ''}">Giỏ hàng</span>
+                <i class="fa-solid fa-chevron-right"></i>
+                <span class="checkout-flow-step ${checkoutStep == 'CHECKOUT' ? 'active' : ''}">Thanh toán</span>
+                <i class="fa-solid fa-chevron-right"></i>
+                <span class="checkout-flow-step ${checkoutStep == 'DONE' ? 'active' : ''}">Hoàn thành</span>
+            </nav>
+
+            <div class="checkout-flow-user header-account">
+
+                <c:choose>
+
+                    <c:when test="${not empty authUser}">
+
+                        <div class="user-box"
+                             id="userToggle">
+
+                            <i class="fa-solid fa-circle-user"></i>
+
+                <span class="user-name">
+                    Xin chào, ${authUser.fullName}
+                </span>
+
+                            <i class="fa fa-caret-down"></i>
+
+                        </div>
+
+                        <div class="user-dropdown"
+                             id="userDropdown">
+
+                            <a href="${pageContext.request.contextPath}/user/profile">
+
+                                <i class="fa fa-user"></i>
+
+                                Tài khoản
+
+                            </a>
+
+                            <a href="${pageContext.request.contextPath}/user/orders">
+
+                                <i class="fa fa-receipt"></i>
+
+                                Đơn hàng
+
+                            </a>
+
+                            <a href="${pageContext.request.contextPath}/logout">
+
+                                <i class="fa fa-sign-out-alt"></i>
+
+                                Đăng xuất
+
+                            </a>
+
+                        </div>
+
+                    </c:when>
+
+                    <c:otherwise>
+
+                        <a href="${pageContext.request.contextPath}/login">
+                            Đăng nhập
+                        </a>
+
+                        <span>|</span>
+
+                        <a href="${pageContext.request.contextPath}/signup">
+                            Đăng ký
+                        </a>
+
+                    </c:otherwise>
+
+                </c:choose>
+
+            </div>
+        </div>
+    </header>
+</c:if>
+
+<c:if test="${headerMode != 'CHECKOUT_FLOW'}">
 <header class="site-header">
 
     <div class="header-top">
@@ -376,3 +465,4 @@
 <div id="headerOverlay"
      class="header-overlay">
 </div>
+</c:if>
