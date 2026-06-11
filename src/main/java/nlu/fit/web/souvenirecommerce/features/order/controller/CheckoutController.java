@@ -8,6 +8,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import nlu.fit.web.souvenirecommerce.common.enums.PaymentMethod;
 import nlu.fit.web.souvenirecommerce.features.cart.model.Cart;
+import nlu.fit.web.souvenirecommerce.features.cart.service.CartPersistenceService;
 import nlu.fit.web.souvenirecommerce.features.order.dto.CheckoutException;
 import nlu.fit.web.souvenirecommerce.features.order.dto.CheckoutRequest;
 import nlu.fit.web.souvenirecommerce.features.order.dto.CheckoutResult;
@@ -19,6 +20,7 @@ import java.io.IOException;
 @WebServlet("/checkout")
 public class CheckoutController extends HttpServlet {
     private final CheckoutService checkoutService = new CheckoutService();
+    private final CartPersistenceService cartPersistenceService = new CartPersistenceService();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -66,6 +68,8 @@ public class CheckoutController extends HttpServlet {
             CheckoutResult result = checkoutService.checkout(user, cart, buildCheckoutRequest(request));
             cart.removeAllItems();
             session.setAttribute("cart", cart);
+            session.setAttribute("cartItemCount", 0);
+            cartPersistenceService.saveCart(user, cart);
             session.setAttribute("lastOrderCode", result.getOrderCode());
             session.setAttribute("lastOrderId", result.getOrder().getId());
 
