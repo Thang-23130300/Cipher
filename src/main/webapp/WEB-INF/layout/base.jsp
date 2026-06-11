@@ -11,6 +11,9 @@
     <meta name="viewport"
           content="width=device-width, initial-scale=1.0">
 
+    <meta name="context-path"
+          content="${pageContext.request.contextPath}">
+
     <title>
         <c:out value="${empty pageTitle ? 'INOLA' : pageTitle}"/>
     </title>
@@ -33,7 +36,7 @@
 
     <!-- Header -->
     <link rel="stylesheet"
-          href="${pageContext.request.contextPath}/assets/css/layout/header.css?v=2">
+          href="${pageContext.request.contextPath}/assets/css/layout/header.css?v=5">
 
     <!-- Footer -->
     <link rel="stylesheet"
@@ -92,7 +95,7 @@
 
 <script src="${pageContext.request.contextPath}/assets/js/common.js"></script>
 
-<script src="${pageContext.request.contextPath}/assets/js/header.js?v=2"></script>
+<script src="${pageContext.request.contextPath}/assets/js/header.js?v=5"></script>
 
 <c:if test="${requestScope.enableSelect2}">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
@@ -101,7 +104,7 @@
 <!-- ================= PAGE JS ================= -->
 
 <c:if test="${not empty pageJs}">
-    <script src="${pageContext.request.contextPath}/assets/js/${pageJs}">
+    <script src="${pageContext.request.contextPath}/assets/js/${pageJs}?v=5">
     </script>
 </c:if>
 
