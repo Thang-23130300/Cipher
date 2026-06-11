@@ -30,6 +30,39 @@ $(document).ready(function () {
         }
     }
 
+    function showCartAddedToast() {
+        const productName = $('.product-title').text().trim() || 'Sản phẩm';
+        let $toast = $('#cartAddedToast');
+
+        if (!$toast.length) {
+            $toast = $(`
+                <div class="cart-action-toast" id="cartAddedToast" hidden>
+                    <strong>Thông báo</strong>
+                    <span></span>
+                    <button type="button" aria-label="Đóng thông báo">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+            `);
+
+            $('body').append($toast);
+
+            $toast.find('button').on('click', function () {
+                $toast.prop('hidden', true);
+                clearTimeout($toast.data('timer'));
+            });
+        }
+
+        $toast.find('span').text(`${productName} đã được thêm vào giỏ hàng của bạn`);
+        $toast.prop('hidden', false);
+
+        clearTimeout($toast.data('timer'));
+        const timer = setTimeout(() => {
+            $toast.prop('hidden', true);
+        }, 3500);
+        $toast.data('timer', timer);
+    }
+
     $('.buy-form').on('submit', function (event) {
         const submitter = event.originalEvent?.submitter;
 
@@ -49,6 +82,7 @@ $(document).ready(function () {
             success: function (data) {
                 if (data.success) {
                     updateCartPreview(data);
+                    showCartAddedToast();
                     return;
                 }
 
