@@ -5,36 +5,25 @@
 <head>
     <meta charset="UTF-8">
     <title>Quản lý Banner - Admin</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/bootstrap.min.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/vendors/bootstrap-icons/bootstrap-icons.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/admin-style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/admin-dashboard.css">
-    <style>
-        .banner-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; padding: 20px; }
-        .banner-card { border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden; }
-        .banner-image { width: 100%; height: 180px; object-fit: cover; }
-        .banner-info { padding: 16px; }
-        .banner-title { font-weight: 600; font-size: 16px; margin-bottom: 8px; }
-        .badge { padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 500; }
-        .badge-success { background: #d1fae5; color: #065f46; }
-        .badge-danger { background: #fee2e2; color: #991b1b; }
-        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); }
-        .modal-content { background: white; margin: 80px auto; padding: 0; width: 500px; border-radius: 8px; }
-        .modal-header { padding: 20px; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center; }
-        .modal-body { padding: 20px; }
-        .close-btn { background: none; border: none; font-size: 24px; cursor: pointer; color: #6b7280; }
-        .form-group { margin-bottom: 16px; }
-        .form-group label { display: block; margin-bottom: 6px; font-weight: 500; }
-        .form-control { width: 100%; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px; }
-        .btn-submit { background: #3b82f6; color: white; padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; width: 100%; }
-    </style>
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/admin-pages.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/admin-banners.css">
 </head>
 <body>
-<div class="admin-container">
+<div class="admin-shell">
+    <div class="sidebar-backdrop" data-sidebar-close></div>
     <jsp:include page="common/admin-sidebar.jsp"/>
 
     <div class="admin-main">
         <jsp:include page="common/admin-topbar.jsp"/>
 
-        <div class="admin-content">
+        <main class="dashboard-content">
+        <div class="container-fluid px-3 px-lg-4 py-4">
             <div class="content-header">
                 <h1>Quản lý Banner</h1>
                 <c:if test="${canCreateBanner}">
@@ -58,10 +47,10 @@
                                  onerror="this.src='https://placehold.co/300x180?text=Banner'">
                             <div class="banner-info">
                                 <div class="banner-title">${banner.title}</div>
-                                <p style="color: #6b7280; font-size: 14px; margin: 8px 0;">
+                                <p class="banner-meta">
                                     Thứ tự: <strong>#${banner.position}</strong>
                                 </p>
-                                <p style="margin: 8px 0;">
+                                <p class="banner-status-row">
                                     Trạng thái:
                                     <c:choose>
                                         <c:when test="${banner.status}">
@@ -72,21 +61,21 @@
                                         </c:otherwise>
                                     </c:choose>
                                 </p>
-                                <div class="action-buttons" style="margin-top: 12px;">
+                                <div class="action-buttons banner-actions">
                                     <c:if test="${canUpdateBanner}">
                                         <button class="btn-icon btn-edit" onclick="openEditModal(${banner.id}, '${banner.title}', ${banner.position}, ${banner.status}, '${pageContext.request.contextPath}/${banner.imageUrl}')" title="Sửa">
                                             <i class="fas fa-edit"></i>
                                         </button>
-                                        <form action="${pageContext.request.contextPath}/admin/banner" method="post" style="display: inline;">
+                                        <form action="${pageContext.request.contextPath}/admin/banner" method="post" class="banner-form-inline">
                                             <input type="hidden" name="action" value="toggle">
                                             <input type="hidden" name="id" value="${banner.id}">
-                                            <button class="btn-icon" style="background: ${banner.status ? '#f59e0b' : '#10b981'};" title="${banner.status ? 'Ẩn' : 'Hiện'}">
+                                            <button class="btn-icon ${banner.status ? 'banner-toggle-active' : 'banner-toggle-inactive'}" title="${banner.status ? 'Ẩn' : 'Hiện'}">
                                                 <i class="fas fa-${banner.status ? 'eye-slash' : 'eye'}"></i>
                                             </button>
                                         </form>
                                     </c:if>
                                     <c:if test="${canDeleteBanner}">
-                                        <form action="${pageContext.request.contextPath}/admin/banner" method="post" style="display: inline;" onsubmit="return confirm('Bạn có chắc muốn xóa banner này?');">
+                                        <form action="${pageContext.request.contextPath}/admin/banner" method="post" class="banner-form-inline" onsubmit="return confirm('Bạn có chắc muốn xóa banner này?');">
                                             <input type="hidden" name="action" value="delete">
                                             <input type="hidden" name="id" value="${banner.id}">
                                             <button class="btn-icon btn-delete" title="Xóa">
@@ -100,20 +89,20 @@
                     </c:forEach>
 
                     <c:if test="${empty banners}">
-                        <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #6b7280;">
-                            <i class="fas fa-images" style="font-size: 48px; margin-bottom: 16px; display: block; color: #d1d5db;"></i>
+                        <div class="banner-empty-state">
+                            <i class="fas fa-images banner-empty-icon"></i>
                             <p>Chưa có banner nào. Hãy thêm mới ngay!</p>
                         </div>
                     </c:if>
                 </div>
             </div>
 
-            <div class="card" style="margin-top: 20px;">
+            <div class="card banner-guidelines-card">
                 <div class="card-header">
                     <h3>Hướng dẫn</h3>
                 </div>
-                <div style="padding: 20px;">
-                    <ul style="line-height: 2;">
+                <div class="banner-guidelines-body">
+                    <ul class="banner-guidelines-list">
                         <li>Kích thước banner khuyến nghị: <strong>1920x600 pixels</strong></li>
                         <li>Định dạng: JPG, PNG, WebP</li>
                         <li>Dung lượng tối đa: 2MB</li>
@@ -122,6 +111,9 @@
                 </div>
             </div>
         </div>
+        </main>
+
+        <jsp:include page="common/admin-footer.jsp"/>
     </div>
 </div>
 
@@ -145,7 +137,7 @@
                 <div class="form-group">
                     <label>Hình ảnh</label>
                     <input type="file" name="imageFile" id="bannerFile" class="form-control" accept="image/*">
-                    <small id="fileHint" style="display:none; color: #6b7280; margin-top:5px; font-size: 12px;">* Chỉ chọn ảnh mới nếu bạn muốn thay đổi.</small>
+                    <small id="fileHint" class="banner-file-hint">* Chỉ chọn ảnh mới nếu bạn muốn thay đổi.</small>
                 </div>
 
                 <div class="form-group">
@@ -179,8 +171,8 @@
         document.getElementById('bannerStatus').value = 'true';
         document.getElementById('bannerFile').value = '';
         document.getElementById('bannerFile').required = true;
-        document.getElementById('fileHint').style.display = 'none';
-        modal.style.display = 'block';
+        document.getElementById('fileHint').classList.add('is-hidden');
+        modal.classList.add('show');
     }
 
     function openEditModal(id, title, position, status, imageUrl) {
@@ -192,17 +184,19 @@
         document.getElementById('bannerStatus').value = status;
         document.getElementById('bannerFile').value = '';
         document.getElementById('bannerFile').required = false;
-        document.getElementById('fileHint').style.display = 'block';
-        modal.style.display = 'block';
+        document.getElementById('fileHint').classList.remove('is-hidden');
+        modal.classList.add('show');
     }
 
     function closeModal() {
-        modal.style.display = 'none';
+        modal.classList.remove('show');
     }
 
     window.onclick = function(event) {
         if (event.target == modal) closeModal();
     }
 </script>
+<script src="${pageContext.request.contextPath}/assets/js/bootstrap.bundle.min.js"></script>
+<script src="${pageContext.request.contextPath}/assets/js/admin-main.js"></script>
 </body>
 </html>

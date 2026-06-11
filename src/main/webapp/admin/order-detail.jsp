@@ -6,24 +6,31 @@
 <head>
     <meta charset="UTF-8">
     <title>Quản lý đơn hàng - Admin</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/bootstrap.min.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/vendors/bootstrap-icons/bootstrap-icons.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/admin-style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/admin-dashboard.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/admin-pages.css">
 </head>
 <body>
-<div class="admin-container">
+<div class="admin-shell">
+    <div class="sidebar-backdrop" data-sidebar-close></div>
     <jsp:include page="common/admin-sidebar.jsp"/>
 
     <div class="admin-main">
         <jsp:include page="common/admin-topbar.jsp"/>
 
-        <div class="admin-content">
+        <main class="dashboard-content">
+        <div class="container-fluid px-3 px-lg-4 py-4">
             <div class="content-header">
                 <h1>Quản lý đơn hàng</h1>
             </div>
 
-            <div class="stats-grid" style="margin-bottom: 30px;">
-                <div class="stat-card">
-                    <div class="stat-icon" style="background: #3498db;">
+            <div class="stats-grid orders-stats">
+                <div class="stat-card orders-stat-pending">
+                    <div class="stat-icon">
                         <i class="fas fa-clock"></i>
                     </div>
                     <div class="stat-info">
@@ -32,8 +39,8 @@
                     </div>
                 </div>
 
-                <div class="stat-card">
-                    <div class="stat-icon" style="background: #f39c12;">
+                <div class="stat-card orders-stat-processing">
+                    <div class="stat-icon">
                         <i class="fas fa-box"></i>
                     </div>
                     <div class="stat-info">
@@ -42,8 +49,8 @@
                     </div>
                 </div>
 
-                <div class="stat-card">
-                    <div class="stat-icon" style="background: #9b59b6;">
+                <div class="stat-card orders-stat-shipping">
+                    <div class="stat-icon">
                         <i class="fas fa-shipping-fast"></i>
                     </div>
                     <div class="stat-info">
@@ -52,8 +59,8 @@
                     </div>
                 </div>
 
-                <div class="stat-card">
-                    <div class="stat-icon" style="background: #27ae60;">
+                <div class="stat-card orders-stat-completed">
+                    <div class="stat-icon">
                         <i class="fas fa-check-circle"></i>
                     </div>
                     <div class="stat-info">
@@ -64,8 +71,11 @@
             </div>
 
             <div class="card">
-                <div class="card-header">
-                    <h3>Danh sách đơn hàng</h3>
+                <div class="card-header orders-card-header">
+                    <div>
+                        <h3>Danh sách đơn hàng</h3>
+                        <p class="orders-card-subtitle">Tổng đơn: ${totalOrders}</p>
+                    </div>
                     <div class="filter-group">
                         <select class="form-select" onchange="filterByStatus(this.value)">
                             <option value="all" ${empty statusFilter || statusFilter == 'all' ? 'selected' : ''}>Tất cả trạng thái</option>
@@ -95,10 +105,10 @@
                         <c:choose>
                             <c:when test="${empty orders}">
                                 <tr>
-                                    <td colspan="7" style="text-align: center; padding: 40px; color: #999;">
-                                        <i class="fas fa-inbox" style="font-size: 48px; margin-bottom: 10px;"></i>
+                                    <td colspan="7" class="orders-empty-state">
+                                        <i class="fas fa-inbox orders-empty-icon"></i>
                                         <p>Chưa có đơn hàng nào</p>
-                                        <p style="font-size: 14px;">Đơn hàng sẽ hiển thị ở đây khi khách hàng đặt hàng</p>
+                                        <p class="orders-empty-note">Đơn hàng sẽ hiển thị ở đây khi khách hàng đặt hàng</p>
                                     </td>
                                 </tr>
                             </c:when>
@@ -107,13 +117,13 @@
                                     <tr>
                                         <td>#${order.id}</td>
                                         <td>
-                                            <div style="font-weight: 500;">${order.customerName}</div>
-                                            <div style="font-size: 12px; color: #666;">${order.customerEmail}</div>
+                                            <div class="orders-customer-name">${order.customerName}</div>
+                                            <div class="orders-customer-email">${order.customerEmail}</div>
                                         </td>
                                         <td>
                                             <fmt:formatDate value="${order.orderDate}" pattern="dd/MM/yyyy HH:mm"/>
                                         </td>
-                                        <td style="font-weight: 600; color: #e74c3c;">
+                                        <td class="orders-total">
                                             <fmt:formatNumber value="${order.totalAmount}" pattern="#,###"/>₫
                                         </td>
                                         <td>
@@ -165,8 +175,8 @@
 </div>
 
 <!-- Modal cập nhật trạng thái -->
-<div id="updateStatusModal" class="modal" style="display: none;">
-    <div class="modal-content" style="max-width: 500px;">
+<div id="updateStatusModal" class="modal orders-modal">
+    <div class="modal-content orders-modal-content">
         <div class="modal-header">
             <h3>Cập nhật trạng thái đơn hàng</h3>
             <button class="close-btn" onclick="closeUpdateStatusModal()">&times;</button>
@@ -177,7 +187,7 @@
 
             <div class="form-group">
                 <label>Trạng thái hiện tại:</label>
-                <p id="currentStatus" style="font-weight: 600; color: #666;"></p>
+                <p id="currentStatus" class="orders-current-status"></p>
             </div>
 
             <div class="form-group">
@@ -208,11 +218,11 @@
     function showUpdateStatusModal(orderId, currentStatus) {
         document.getElementById('updateOrderId').value = orderId;
         document.getElementById('currentStatus').textContent = currentStatus;
-        document.getElementById('updateStatusModal').style.display = 'flex';
+        document.getElementById('updateStatusModal').classList.add('show');
     }
 
     function closeUpdateStatusModal() {
-        document.getElementById('updateStatusModal').style.display = 'none';
+        document.getElementById('updateStatusModal').classList.remove('show');
         document.getElementById('updateStatusForm').reset();
     }
 
@@ -225,90 +235,7 @@
     }
 </script>
 
-<style>
-    .modal {
-        display: none;
-        position: fixed;
-        z-index: 1000;
-        left: 0;
-        top: 0;
-        width: 100%;
-        height: 100%;
-        background-color: rgba(0,0,0,0.5);
-        align-items: center;
-        justify-content: center;
-    }
-
-    .modal-content {
-        background-color: white;
-        border-radius: 8px;
-        width: 90%;
-        max-width: 600px;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-    }
-
-    .modal-header {
-        padding: 20px;
-        border-bottom: 1px solid #ddd;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-
-    .modal-header h3 {
-        margin: 0;
-    }
-
-    .close-btn {
-        background: none;
-        border: none;
-        font-size: 28px;
-        cursor: pointer;
-        color: #999;
-    }
-
-    .close-btn:hover {
-        color: #333;
-    }
-
-    .modal-content form {
-        padding: 20px;
-    }
-
-    .modal-footer {
-        padding: 15px 20px;
-        border-top: 1px solid #ddd;
-        display: flex;
-        justify-content: flex-end;
-        gap: 10px;
-    }
-
-    .btn {
-        padding: 10px 20px;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        font-size: 14px;
-        font-weight: 500;
-    }
-
-    .btn-primary {
-        background: #3498db;
-        color: white;
-    }
-
-    .btn-primary:hover {
-        background: #2980b9;
-    }
-
-    .btn-secondary {
-        background: #95a5a6;
-        color: white;
-    }
-
-    .btn-secondary:hover {
-        background: #7f8c8d;
-    }
-</style>
+<script src="${pageContext.request.contextPath}/assets/js/bootstrap.bundle.min.js"></script>
+<script src="${pageContext.request.contextPath}/assets/js/admin-main.js"></script>
 </body>
 </html>

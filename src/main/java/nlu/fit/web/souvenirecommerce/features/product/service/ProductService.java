@@ -12,10 +12,12 @@ import nlu.fit.web.souvenirecommerce.model.entity.Product;
 import nlu.fit.web.souvenirecommerce.model.entity.Promotion;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class ProductService {
+
     private static final int RELATED_PRODUCT_LIMIT = 5;
 
     private final ProductRepository productRepository = new ProductRepository();
@@ -25,21 +27,22 @@ public class ProductService {
 
     public ProductDetailDTO getProductDetail(Long productId) {
         Product product = productRepository.findDetailById(productId).orElse(null);
+
         if (product == null) {
             return null;
         }
 
         Category category = product.getCategory();
         Promotion promotion = promotionRepository.findBestActiveByProductId(productId).orElse(null);
+
         long totalReviews = reviewRepository.countByProductId(productId);
         double avgRating = reviewRepository.avgRatingByProductId(productId);
-        Map<Integer, Integer> ratingCount = reviewRepository.countByRating(productId);
 
-        List<Product> relatedProducts = productRepository.findRelatedProducts(
-                category == null ? null : category.getId(),
-                productId,
-                RELATED_PRODUCT_LIMIT
-        );
+        Map<Integer, Integer> rawRatingCount = reviewRepository.countByRating(productId);
+        Map<String, Integer> ratingCount = normalizeRatingCount(rawRatingCount);
+
+        List<Product> relatedProducts = productRepository.findRelatedProducts(category == null ? null : category.getId(), productId, RELATED_PRODUCT_LIMIT);
+
         List<ProductCardDTO> relatedCards = mapRelatedProducts(relatedProducts);
 
         ProductDetailDTO dto = new ProductDetailDTO();
@@ -54,10 +57,31 @@ public class ProductService {
 
         if (promotion != null && promotion.getDiscountPercent() > 0) {
             double discounted = product.getOriginalPrice() * (100 - promotion.getDiscountPercent()) / 100.0;
+
             dto.setDiscountedPrice(discounted);
         }
 
         return dto;
+    }
+
+    private Map<String, Integer> normalizeRatingCount(Map<Integer, Integer> rawRatingCount) {
+        Map<String, Integer> ratingCount = new HashMap<>();
+
+        for (int i = 1; i <= 5; i++) {
+            ratingCount.put(String.valueOf(i), 0);
+        }
+
+        if (rawRatingCount == null || rawRatingCount.isEmpty()) {
+            return ratingCount;
+        }
+
+        for (Map.Entry<Integer, Integer> entry : rawRatingCount.entrySet()) {
+            if (entry.getKey() != null && entry.getValue() != null) {
+                ratingCount.put(String.valueOf(entry.getKey()), entry.getValue());
+            }
+        }
+
+        return ratingCount;
     }
 
     private List<ProductCardDTO> mapRelatedProducts(List<Product> relatedProducts) {
@@ -65,15 +89,16 @@ public class ProductService {
             return List.of();
         }
 
-        List<Long> productIds = relatedProducts.stream()
-                .map(Product::getId)
-                .toList();
+        List<Long> productIds = relatedProducts.stream().map(Product::getId).toList();
+
         Map<Long, Promotion> promotions = promotionRepository.findBestActiveByProductIds(productIds);
 
         List<ProductCardDTO> relatedCards = new ArrayList<>();
+
         for (Product relatedProduct : relatedProducts) {
             relatedCards.add(ProductCardMapper.from(relatedProduct, promotions.get(relatedProduct.getId())));
         }
+
         return relatedCards;
     }
 }

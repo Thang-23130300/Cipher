@@ -26,7 +26,7 @@ public class ProductDetailDTO {
 
     private double avgRating;
     private int totalReviews;
-    private Map<Integer, Integer> ratingCount;
+    private Map<String, Integer> ratingCount;
 
     private List<ProductCardDTO> relatedProductCards;
 }

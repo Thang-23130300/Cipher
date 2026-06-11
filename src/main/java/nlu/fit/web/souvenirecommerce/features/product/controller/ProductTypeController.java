@@ -96,13 +96,13 @@ public class ProductTypeController extends HttpServlet {
 
     private ProductSort parseSort(String value) {
         if (value == null || value.isBlank()) {
-            return null;
+            return ProductSort.POPULAR;
         }
 
         try {
-            return ProductSort.valueOf(value);
+            return ProductSort.valueOf(value.trim().toUpperCase());
         } catch (IllegalArgumentException e) {
-            return null;
+            return ProductSort.POPULAR;
         }
     }
 }
