@@ -14,6 +14,7 @@ import java.sql.ResultSet;
 public class CartPersistenceService {
 
     private final ProductDAO productDAO = new ProductDAO();
+    private final CartPriceService cartPriceService = new CartPriceService();
 
     public Cart loadCart(User user) {
         Cart cart = new Cart();
@@ -42,7 +43,7 @@ public class CartPersistenceService {
                     int quantity = resultSet.getInt("quantity");
 
                     if (product != null && quantity > 0) {
-                        cart.addItem(product, quantity);
+                        cart.addItem(product, quantity, cartPriceService.getCurrentPrice(product));
                     }
                 }
             }

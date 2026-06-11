@@ -8,6 +8,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import nlu.fit.web.souvenirecommerce.common.utils.GsonUtil;
 import nlu.fit.web.souvenirecommerce.features.cart.model.Cart;
+import nlu.fit.web.souvenirecommerce.features.cart.service.CartPriceService;
 import nlu.fit.web.souvenirecommerce.features.cart.service.CartPersistenceService;
 import nlu.fit.web.souvenirecommerce.features.cart.service.CartSummaryService;
 import nlu.fit.web.souvenirecommerce.legacy.dao.ProductDAO;
@@ -21,6 +22,7 @@ import java.io.PrintWriter;
 public class AddCart extends HttpServlet {
     private final CartPersistenceService cartPersistenceService = new CartPersistenceService();
     private final CartSummaryService cartSummaryService = new CartSummaryService();
+    private final CartPriceService cartPriceService = new CartPriceService();
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
@@ -68,7 +70,7 @@ public class AddCart extends HttpServlet {
         Cart cart = (Cart) session.getAttribute("cart");
         if (cart == null) cart = new Cart();
 
-        cart.addItem(product, quantity);
+        cart.addItem(product, quantity, cartPriceService.getCurrentPrice(product));
         session.setAttribute("cart", cart);
         session.setAttribute("cartItemCount", cart.totalQuantity());
         cartPersistenceService.saveCart(user, cart);

@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 
 public class CartSummaryService {
+    private final CartPriceService cartPriceService = new CartPriceService();
 
     public Map<String, Object> buildSummary(Cart cart, String contextPath) {
         Cart safeCart = cart == null ? new Cart() : cart;
@@ -23,11 +24,14 @@ public class CartSummaryService {
                 continue;
             }
 
+            double currentPrice = cartPriceService.getCurrentPrice(product);
+            cartItem.setPrice(currentPrice);
+
             Map<String, Object> item = new LinkedHashMap<>();
             item.put("id", product.getId());
             item.put("name", product.getName());
             item.put("imageUrl", normalizeImageUrl(product.getImageUrl(), contextPath));
-            item.put("price", cartItem.getPrice());
+            item.put("price", currentPrice);
             item.put("quantity", cartItem.getQuantity());
             items.add(item);
         }
