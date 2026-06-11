@@ -4,6 +4,7 @@ target/
 !**/src/test/**/target/
 .kotlin
 .smarttomcat
+commit.ps1
 
 ### IntelliJ IDEA ###
 .idea/
