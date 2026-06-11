@@ -11,7 +11,7 @@
                 <div class="slide">
                     <a href="${pageContext.request.contextPath}/category?id=${item.category.id}">
                         <img
-                                src="${pageContext.request.contextPath}/assets/images/Banner/${item.category.image}"
+                                src="${pageContext.request.contextPath}/assets/images/home_banner/${item.category.image}"
                                 alt="${item.category.categoryName}"
                                 loading="${status.first ? 'eager' : 'lazy'}"
                                 decoding="async">
