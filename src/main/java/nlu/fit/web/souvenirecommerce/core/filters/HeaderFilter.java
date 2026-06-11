@@ -8,7 +8,7 @@ import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
-import nlu.fit.web.souvenirecommerce.features.cart.model.Cart;
+import nlu.fit.web.souvenirecommerce.features.cart.service.CartService;
 import nlu.fit.web.souvenirecommerce.features.product.service.ICategoryService;
 import nlu.fit.web.souvenirecommerce.features.product.service.impl.CategoryServiceImpl;
 import nlu.fit.web.souvenirecommerce.legacy.dao.SettingsDAO;
@@ -20,11 +20,13 @@ public class HeaderFilter implements Filter {
 
     private ICategoryService categoryService;
     private SettingsDAO settingsDAO;
+    private CartService cartService;
 
     @Override
     public void init(FilterConfig filterConfig) {
         this.categoryService = new CategoryServiceImpl();
         this.settingsDAO = new SettingsDAO();
+        this.cartService = new CartService();
     }
 
     @Override
@@ -88,21 +90,7 @@ public class HeaderFilter implements Filter {
             return;
         }
 
-        Object cartItemCount = session.getAttribute("cartItemCount");
-
-        if (cartItemCount != null) {
-            request.setAttribute("cartItemCount", cartItemCount);
-            return;
-        }
-
-        Cart cart = (Cart) session.getAttribute("cart");
-
-        if (cart != null) {
-            request.setAttribute("cartItemCount", cart.totalQuantity());
-            return;
-        }
-
-        request.setAttribute("cartItemCount", 0);
+        request.setAttribute("cartItemCount", cartService.totalQuantity(session));
     }
 
     private void setSiteSettings(ServletRequest request) {

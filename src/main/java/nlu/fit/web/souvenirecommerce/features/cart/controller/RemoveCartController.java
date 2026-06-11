@@ -6,50 +6,36 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import nlu.fit.web.souvenirecommerce.features.cart.model.Cart;
-import nlu.fit.web.souvenirecommerce.features.cart.model.CartItem;
+import nlu.fit.web.souvenirecommerce.features.cart.service.CartService;
 
 import java.io.IOException;
 
 @WebServlet("/cart/remove")
 public class RemoveCartController extends HttpServlet {
+    private final CartService cartService = new CartService();
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
 
-        HttpSession session = request.getSession(false);
         boolean isAjax = "XMLHttpRequest".equals(request.getHeader("X-Requested-With"));
-
-        if (session == null) {
-            handleResponse(response, isAjax, false, 0, 0);
-            return;
-        }
-
-        Cart cart = (Cart) session.getAttribute("cart");
-        if (cart == null) {
-            handleResponse(response, isAjax, false, 0, 0);
-            return;
-        }
+        HttpSession session = request.getSession();
 
         try {
             Long productId = Long.parseLong(request.getParameter("productId"));
-            CartItem removedItem = cart.removeItem(productId);
-            session.setAttribute("cart", cart);
+            boolean success = cartService.removeItem(session, productId);
+            Cart cart = cartService.getCartForDisplay(session);
 
-            if (removedItem != null) {
-                handleResponse(
-                        response,
-                        isAjax,
-                        true,
-                        cart.totalQuantity(),
-                        cart.total()
-                );
-            } else {
-                handleResponse(response, isAjax, false, cart.totalQuantity(), cart.total());
-            }
-
+            handleResponse(
+                    request,
+                    response,
+                    isAjax,
+                    success,
+                    cart.totalQuantity(),
+                    cart.total()
+            );
         } catch (Exception e) {
-            handleResponse(response, isAjax, false, cart.totalQuantity(), cart.total());
+            handleResponse(request, response, isAjax, false, 0, 0);
         }
     }
 
@@ -60,8 +46,8 @@ public class RemoveCartController extends HttpServlet {
         doPost(request, response);
     }
 
-
-    private void handleResponse(HttpServletResponse response,
+    private void handleResponse(HttpServletRequest request,
+                                HttpServletResponse response,
                                 boolean isAjax,
                                 boolean success,
                                 int totalQty,
@@ -72,16 +58,16 @@ public class RemoveCartController extends HttpServlet {
             response.setCharacterEncoding("UTF-8");
 
             String json = """
-            {
-              "success": %b,
-              "totalQuantity": %d,
-              "total": %.0f
-            }
-            """.formatted(success, totalQty, total);
+                    {
+                      "success": %b,
+                      "totalQuantity": %d,
+                      "total": %.0f
+                    }
+                    """.formatted(success, totalQty, total);
 
             response.getWriter().write(json);
         } else {
-            response.sendRedirect("/cart");
+            response.sendRedirect(request.getContextPath() + "/cart");
         }
     }
 }

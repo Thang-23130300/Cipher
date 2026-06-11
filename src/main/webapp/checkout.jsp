@@ -148,7 +148,7 @@
                     <div class="checkout-section">
                         <h2 class="section-title">Đơn hàng của bạn</h2>
                         <div class="order-summary">
-                            <c:forEach items="${sessionScope.cart.items}" var="item">
+                            <c:forEach items="${cart.items}" var="item">
                                 <div class="summary-item">
                                     <div class="item-info">
                                         <div class="item-name">${item.product.name}</div>
@@ -161,7 +161,7 @@
                             <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #ddd;">
                                 <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
                                     <span>Tạm tính:</span>
-                                    <span><fmt:formatNumber value="${sessionScope.cart.total()}" groupingUsed="true"/>₫</span>
+                                    <span><fmt:formatNumber value="${cart.total()}" groupingUsed="true"/>₫</span>
                                 </div>
                                 <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
                                     <span>Phí vận chuyển:</span>
@@ -171,7 +171,7 @@
 
                             <div class="summary-total">
                                 <span>Tổng cộng:</span>
-                                <span style="color: #e74c3c;"><fmt:formatNumber value="${sessionScope.cart.total()}" groupingUsed="true"/>₫</span>
+                                <span style="color: #e74c3c;"><fmt:formatNumber value="${cart.total()}" groupingUsed="true"/>₫</span>
                             </div>
                         </div>
 

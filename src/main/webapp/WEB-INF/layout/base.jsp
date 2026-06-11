@@ -11,6 +11,9 @@
     <meta name="viewport"
           content="width=device-width, initial-scale=1.0">
 
+    <meta name="context-path"
+          content="${pageContext.request.contextPath}">
+
     <title>
         <c:out value="${empty pageTitle ? 'INOLA' : pageTitle}"/>
     </title>

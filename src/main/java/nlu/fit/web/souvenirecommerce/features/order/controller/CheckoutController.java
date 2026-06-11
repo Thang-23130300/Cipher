@@ -8,6 +8,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import nlu.fit.web.souvenirecommerce.common.enums.PaymentMethod;
 import nlu.fit.web.souvenirecommerce.features.cart.model.Cart;
+import nlu.fit.web.souvenirecommerce.features.cart.service.CartService;
 import nlu.fit.web.souvenirecommerce.features.order.dto.CheckoutException;
 import nlu.fit.web.souvenirecommerce.features.order.dto.CheckoutRequest;
 import nlu.fit.web.souvenirecommerce.features.order.dto.CheckoutResult;
@@ -19,12 +20,13 @@ import java.io.IOException;
 @WebServlet("/checkout")
 public class CheckoutController extends HttpServlet {
     private final CheckoutService checkoutService = new CheckoutService();
+    private final CartService cartService = new CartService();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         HttpSession session = request.getSession(false);
-        User user = getCurrentUser(session);
+        User user = cartService.getCurrentUser(session);
 
         if (user == null) {
             HttpSession newSession = request.getSession();
@@ -33,12 +35,13 @@ public class CheckoutController extends HttpServlet {
             return;
         }
 
-        Cart cart = getCart(session);
+        Cart cart = cartService.getCartForDisplay(session);
         if (cart == null || cart.totalQuantity() == 0) {
             response.sendRedirect(request.getContextPath() + "/cart");
             return;
         }
 
+        request.setAttribute("cart", cart);
         prepareCheckoutPage(request, user);
         request.getRequestDispatcher("/checkout.jsp").forward(request, response);
     }
@@ -50,13 +53,13 @@ public class CheckoutController extends HttpServlet {
         response.setCharacterEncoding("UTF-8");
 
         HttpSession session = request.getSession(false);
-        User user = getCurrentUser(session);
+        User user = cartService.getCurrentUser(session);
         if (user == null) {
             response.sendRedirect(request.getContextPath() + "/login");
             return;
         }
 
-        Cart cart = getCart(session);
+        Cart cart = cartService.getCartForDisplay(session);
         if (cart == null || cart.totalQuantity() == 0) {
             response.sendRedirect(request.getContextPath() + "/cart");
             return;
@@ -64,8 +67,8 @@ public class CheckoutController extends HttpServlet {
 
         try {
             CheckoutResult result = checkoutService.checkout(user, cart, buildCheckoutRequest(request));
-            cart.removeAllItems();
-            session.setAttribute("cart", cart);
+            cartService.clearUserCart(user.getId());
+            cartService.clearSessionCart(session);
             session.setAttribute("lastOrderCode", result.getOrderCode());
             session.setAttribute("lastOrderId", result.getOrder().getId());
 
@@ -76,6 +79,7 @@ public class CheckoutController extends HttpServlet {
             response.sendRedirect(request.getContextPath() + "/order-success");
         } catch (CheckoutException e) {
             request.setAttribute("error", e.getMessage());
+            request.setAttribute("cart", cart);
             prepareCheckoutPage(request, user);
             request.getRequestDispatcher("/checkout.jsp").forward(request, response);
         }
@@ -133,31 +137,4 @@ public class CheckoutController extends HttpServlet {
         }
     }
 
-    private Cart getCart(HttpSession session) {
-        if (session == null) {
-            return null;
-        }
-        Object cart = session.getAttribute("cart");
-        return cart instanceof Cart ? (Cart) cart : null;
-    }
-
-    private User getCurrentUser(HttpSession session) {
-        if (session == null) {
-            return null;
-        }
-        Object user = session.getAttribute("userInSession");
-        if (user instanceof User) {
-            return (User) user;
-        }
-        user = session.getAttribute("user");
-        if (user instanceof User) {
-            return (User) user;
-        }
-        user = session.getAttribute("currentUser");
-        if (user instanceof User) {
-            return (User) user;
-        }
-        user = session.getAttribute("authUser");
-        return user instanceof User ? (User) user : null;
-    }
 }

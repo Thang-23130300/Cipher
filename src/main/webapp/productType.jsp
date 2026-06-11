@@ -53,7 +53,7 @@
             <main class="product-type-content">
 
                 <div class="category-banner">
-                    <img src="${pageContext.request.contextPath}/assets/images/Banner/${data.category.image}"
+                    <img src="${pageContext.request.contextPath}/assets/images/home_banner/${data.category.image}"
                          alt="${data.category.categoryName}">
                 </div>
 

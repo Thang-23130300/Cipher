@@ -1,30 +1,23 @@
 document.addEventListener('DOMContentLoaded', () => {
-
-    /* ================== CONFIG ================== */
-
     const contextPath =
         document.querySelector('meta[name="context-path"]')?.content || '';
 
-    /* ================== HELPERS ================== */
-
     const formatVND = (value) =>
-        value.toLocaleString('vi-VN') + '₫';
-
-    /* ===== UPDATE SUMMARY (HEADER + RIGHT) ===== */
+        Number(value || 0).toLocaleString('vi-VN') + '₫';
 
     const updateSummary = (total, totalQty) => {
-        const qtyEl       = document.getElementById('cart-total-qty');
-        const subtotalEl  = document.getElementById('cart-subtotal');
-        const totalEl     = document.getElementById('cart-total');
-        const payTotalEl  = document.getElementById('cart-total-pay');
+        const qtyEl = document.getElementById('cart-total-qty');
+        const subtotalEl = document.getElementById('cart-subtotal');
+        const totalEl = document.getElementById('cart-total');
+        const payTotalEl = document.getElementById('cart-total-pay');
+        const headerCountEl = document.getElementById('header-cart-count');
 
-        if (qtyEl)      qtyEl.textContent = `Tổng cộng: ${totalQty} sản phẩm`;
+        if (qtyEl) qtyEl.textContent = `Tổng cộng: ${totalQty} sản phẩm`;
         if (subtotalEl) subtotalEl.textContent = formatVND(total);
-        if (totalEl)    totalEl.textContent = formatVND(total);
+        if (totalEl) totalEl.textContent = formatVND(total);
         if (payTotalEl) payTotalEl.textContent = formatVND(total);
+        if (headerCountEl) headerCountEl.textContent = totalQty;
     };
-
-    /* ===== CLIENT-SIDE CALC (SOURCE OF TRUTH UI) ===== */
 
     const calcClientSummary = () => {
         let totalQty = 0;
@@ -35,12 +28,10 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!qtyInput) return;
 
             const qty = parseInt(qtyInput.value, 10) || 0;
-
-            const unitPriceText =
-                card.querySelector('.item-details p')
-                    ?.innerText.replace(/[^\d]/g, '') || '0';
-
-            const unitPrice = parseInt(unitPriceText, 10) || 0;
+            const unitPrice = parseInt(
+                card.querySelector('.item-details p')?.innerText.replace(/[^\d]/g, '') || '0',
+                10
+            ) || 0;
 
             totalQty += qty;
             totalPrice += qty * unitPrice;
@@ -49,39 +40,29 @@ document.addEventListener('DOMContentLoaded', () => {
         updateSummary(totalPrice, totalQty);
     };
 
-    /* ================== MAIN ================== */
-
     document.querySelectorAll('.cart-item-card').forEach(card => {
-
         const productId = card.dataset.productId;
         if (!productId) return;
 
-        const minusBtn  = card.querySelector('.minus-btn');
-        const plusBtn   = card.querySelector('.plus-btn');
-        const qtyInput  = card.querySelector('.qty-input');
-        const priceEl   = card.querySelector('.item-price');
+        const minusBtn = card.querySelector('.minus-btn');
+        const plusBtn = card.querySelector('.plus-btn');
+        const qtyInput = card.querySelector('.qty-input');
+        const priceEl = card.querySelector('.item-price');
         const removeBtn = card.querySelector('.remove-item-btn');
-
-        /* ===== UNIT PRICE ===== */
-
-        const unitPriceText =
-            card.querySelector('.item-details p')
-                ?.innerText.replace(/[^\d]/g, '') || '0';
-
-        const unitPrice = parseInt(unitPriceText, 10) || 0;
-
-        /* ===== OPTIMISTIC UI ===== */
+        const unitPrice = parseInt(
+            card.querySelector('.item-details p')?.innerText.replace(/[^\d]/g, '') || '0',
+            10
+        ) || 0;
 
         const updateItemUI = (qty) => {
             if (qty <= 0) {
                 card.remove();
-            } else {
-                qtyInput.value = qty;
-                priceEl.textContent = formatVND(unitPrice * qty);
+                return;
             }
-        };
 
-        /* ===== BACKEND SYNC (NO UI UPDATE) ===== */
+            qtyInput.value = qty;
+            priceEl.textContent = formatVND(unitPrice * qty);
+        };
 
         const syncBackend = (qty) => {
             fetch(`${contextPath}/cart/update`, {
@@ -90,14 +71,19 @@ document.addEventListener('DOMContentLoaded', () => {
                     'Content-Type': 'application/x-www-form-urlencoded',
                     'X-Requested-With': 'XMLHttpRequest'
                 },
-                body: `productId=${productId}&quantity=${qty}`
-            }).catch(err => {
-                console.error(err);
-                alert('Lỗi kết nối server');
-            });
+                body: `productId=${encodeURIComponent(productId)}&quantity=${encodeURIComponent(qty)}`
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        updateSummary(data.total, data.totalQuantity);
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    alert('Lỗi kết nối server');
+                });
         };
-
-        /* ================== EVENTS ================== */
 
         minusBtn?.addEventListener('click', () => {
             const newQty = parseInt(qtyInput.value, 10) - 1;
@@ -118,7 +104,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         qtyInput?.addEventListener('change', () => {
             let newQty = parseInt(qtyInput.value, 10);
-            if (isNaN(newQty) || newQty < 1) newQty = 1;
+            if (Number.isNaN(newQty) || newQty < 1) newQty = 1;
 
             updateItemUI(newQty);
             calcClientSummary();

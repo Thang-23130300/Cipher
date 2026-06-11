@@ -7,41 +7,20 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import nlu.fit.web.souvenirecommerce.features.cart.model.Cart;
-import nlu.fit.web.souvenirecommerce.legacy.dao.ProductDAO;
-import nlu.fit.web.souvenirecommerce.model.entity.Product;
-import nlu.fit.web.souvenirecommerce.model.entity.User;
+import nlu.fit.web.souvenirecommerce.features.cart.service.CartService;
 
 import java.io.IOException;
 import java.io.PrintWriter;
 
 @WebServlet(name = "AddCart", value = "/cart/add")
-public class AddCart extends HttpServlet {
+public class AddCartServlet extends HttpServlet {
+    private final CartService cartService = new CartService();
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
         HttpSession session = request.getSession();
-        User user = (User) session.getAttribute("userInSession");
-
-        if (user == null) {
-            if ("XMLHttpRequest".equals(request.getHeader("X-Requested-With"))) {
-                response.setContentType("application/json");
-                response.setCharacterEncoding("UTF-8");
-                response.getWriter().print("""
-                        {
-                          "success": false,
-                          "requireLogin": true,
-                          "message": "Vui lòng đăng nhập"
-                        }
-                        """);
-                return;
-            }
-
-            session.setAttribute("redirectAfterLogin", request.getHeader("Referer"));
-            response.sendRedirect(request.getContextPath() + "/login");
-            return;
-        }
 
         Long productId;
         int quantity;
@@ -50,46 +29,64 @@ public class AddCart extends HttpServlet {
             productId = Long.parseLong(request.getParameter("productId"));
             quantity = Integer.parseInt(request.getParameter("quantity"));
         } catch (Exception e) {
-            response.sendRedirect(request.getContextPath() + "/home");
+            handleFailure(request, response);
             return;
         }
 
-        Product product = new ProductDAO().getProductById(productId);
-        if (product == null || quantity <= 0 || quantity > product.getStockQuantity()) {
-            response.sendRedirect(request.getContextPath() + "/home");
+        if (!cartService.addItem(session, productId, quantity)) {
+            handleFailure(request, response);
             return;
         }
 
-        Cart cart = (Cart) session.getAttribute("cart");
-        if (cart == null) cart = new Cart();
-
-        cart.addItem(product, quantity);
-        session.setAttribute("cart", cart);
+        Cart cart = cartService.getCartForDisplay(session);
 
         if ("true".equals(request.getParameter("buyNow"))) {
             response.sendRedirect(request.getContextPath() + "/checkout");
             return;
         }
 
-        if ("XMLHttpRequest".equals(request.getHeader("X-Requested-With"))) {
+        if (isAjax(request)) {
             response.setContentType("application/json");
             response.setCharacterEncoding("UTF-8");
             PrintWriter out = response.getWriter();
             out.print("""
                     {
                       "success": true,
+                      "message": "Đã thêm sản phẩm vào giỏ hàng",
                       "cartCount": %d
                     }
                     """.formatted(cart.totalQuantity()));
             return;
         }
- 
-        response.sendRedirect(request.getHeader("Referer"));
+
+        String referer = request.getHeader("Referer");
+        response.sendRedirect(referer != null ? referer : request.getContextPath() + "/cart");
     }
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
         response.sendRedirect(request.getContextPath() + "/home");
+    }
+
+    private void handleFailure(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        if (isAjax(request)) {
+            response.setContentType("application/json");
+            response.setCharacterEncoding("UTF-8");
+            response.getWriter().write("""
+                    {
+                      "success": false,
+                      "message": "Không thể thêm sản phẩm vào giỏ hàng"
+                    }
+                    """);
+            return;
+        }
+
+        String referer = request.getHeader("Referer");
+        response.sendRedirect(referer != null ? referer : request.getContextPath() + "/home");
+    }
+
+    private boolean isAjax(HttpServletRequest request) {
+        return "XMLHttpRequest".equals(request.getHeader("X-Requested-With"));
     }
 }
