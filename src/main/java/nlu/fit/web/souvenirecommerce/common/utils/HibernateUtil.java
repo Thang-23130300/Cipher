@@ -1,7 +1,8 @@
-package nlu.fit.web.souvenirecommerce.core.config;
+package nlu.fit.web.souvenirecommerce.common.utils;
 
 import jakarta.persistence.EntityManager;
-import nlu.fit.web.souvenirecommerce.common.utils.ApplicationLoader;
+import nlu.fit.web.souvenirecommerce.features.cart.model.NewCart;
+import nlu.fit.web.souvenirecommerce.features.cart.model.NewCartItem;
 import nlu.fit.web.souvenirecommerce.model.entity.*;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
