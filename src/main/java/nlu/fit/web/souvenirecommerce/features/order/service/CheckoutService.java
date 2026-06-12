@@ -1,5 +1,6 @@
 package nlu.fit.web.souvenirecommerce.features.order.service;
 
+import nlu.fit.web.souvenirecommerce.features.signature.service.OrderSignedDataService;
 import nlu.fit.web.souvenirecommerce.common.enums.OrderStatusCode;
 import nlu.fit.web.souvenirecommerce.common.enums.PaymentMethod;
 import nlu.fit.web.souvenirecommerce.features.cart.model.Cart;
@@ -28,6 +29,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public class CheckoutService {
+    private final OrderSignedDataService orderSignedDataService = new OrderSignedDataService();
     private final OrderRepository orderRepository = new OrderRepository();
     private final OrderStatusRepository orderStatusRepository = new OrderStatusRepository();
     private final ProductRepository productRepository = new ProductRepository();
@@ -85,9 +87,12 @@ public class CheckoutService {
                 .qrPayload(paymentPreparation.getQrPayload())
                 .build();
         order.setPaymentTransaction(paymentTransaction);
+        order.setSignatureStatus("WAITING_SIGNATURE");
 
         Order savedOrder = orderRepository.save(order)
                 .orElseThrow(() -> new CheckoutException("Không thể tạo đơn hàng"));
+
+        orderSignedDataService.createForOrder(savedOrder);
 
         return CheckoutResult.builder()
                 .order(savedOrder)
