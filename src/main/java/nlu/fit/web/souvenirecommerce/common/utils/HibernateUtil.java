@@ -47,11 +47,16 @@ public class HibernateUtil {
         configuration.addAnnotatedClass(Promotion.class);
         configuration.addAnnotatedClass(ProductSpecification.class);
         configuration.addAnnotatedClass(Review.class);
+
+        // 5 thực thể bảo mật từ nhánh Dai
         configuration.addAnnotatedClass(UserKey.class);
         configuration.addAnnotatedClass(OrderSignedData.class);
         configuration.addAnnotatedClass(OrderSignature.class);
         configuration.addAnnotatedClass(OrderAuditLog.class);
         configuration.addAnnotatedClass(KeyCompromiseReport.class);
+        // 2 thực thể giỏ hàng từ nhánh main
+        configuration.addAnnotatedClass(NewCart.class);
+        configuration.addAnnotatedClass(NewCartItem.class);
     }
 
     public static SessionFactory getSessionFactory() {

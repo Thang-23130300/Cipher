@@ -1,12 +1,13 @@
 package nlu.fit.web.souvenirecommerce.features.order.service;
 
-import nlu.fit.web.souvenirecommerce.common.enums.OrderStatusCode;
-import nlu.fit.web.souvenirecommerce.common.enums.PaymentMethod;
+import nlu.fit.web.souvenirecommerce.model.enums.OrderStatusCode;
+import nlu.fit.web.souvenirecommerce.model.enums.PaymentMethod;
 import nlu.fit.web.souvenirecommerce.features.cart.model.Cart;
 import nlu.fit.web.souvenirecommerce.features.cart.model.CartItem;
 import nlu.fit.web.souvenirecommerce.features.order.dto.CheckoutException;
 import nlu.fit.web.souvenirecommerce.features.order.dto.CheckoutRequest;
 import nlu.fit.web.souvenirecommerce.features.order.dto.CheckoutResult;
+import nlu.fit.web.souvenirecommerce.features.order.dto.PaymentContext;
 import nlu.fit.web.souvenirecommerce.features.order.dto.PaymentPreparation;
 import nlu.fit.web.souvenirecommerce.features.order.payment.PaymentGateway;
 import nlu.fit.web.souvenirecommerce.features.order.payment.PaymentGatewayRegistry;
@@ -38,11 +39,16 @@ public class CheckoutService {
     private final ProductRepository productRepository = new ProductRepository();
     private final AddressService addressService = new AddressService();
     private final PaymentGatewayRegistry paymentGatewayRegistry = new PaymentGatewayRegistry();
-
     public CheckoutResult checkout(User user, Cart cart, CheckoutRequest request) {
+        return checkout(user, cart, request, null);
+    }
+    public CheckoutResult checkout(User user, Cart cart, CheckoutRequest request, PaymentContext paymentContext) {
         validateUser(user);
         validateCart(cart);
         PaymentMethod paymentMethod = request.getPaymentMethod() == null ? PaymentMethod.COD : request.getPaymentMethod();
+        if (!paymentGatewayRegistry.isAvailable(paymentMethod)) {
+            throw new CheckoutException("Phương thức thanh toán đã chọn hiện không khả dụng.");
+        }
 
         Address shippingAddress = resolveAddress(user, request);
         OrderStatus status = resolveInitialStatus(paymentMethod);
@@ -77,10 +83,13 @@ public class CheckoutService {
         }
         order.setTotalAmount(totalAmount);
 
+        Order savedOrder = orderRepository.save(order)
+                .orElseThrow(() -> new CheckoutException("Không thể tạo đơn hàng"));
+
         PaymentGateway gateway = paymentGatewayRegistry.get(paymentMethod);
-        PaymentPreparation paymentPreparation = gateway.prepare(order);
+        PaymentPreparation paymentPreparation = gateway.prepare(savedOrder, paymentContext);
         PaymentTransaction paymentTransaction = PaymentTransaction.builder()
-                .order(order)
+                .order(savedOrder)
                 .method(paymentMethod)
                 .provider(paymentPreparation.getProvider())
                 .status(paymentPreparation.getStatus())
@@ -89,10 +98,15 @@ public class CheckoutService {
                 .paymentUrl(paymentPreparation.getPaymentUrl())
                 .qrPayload(paymentPreparation.getQrPayload())
                 .build();
-        order.setPaymentTransaction(paymentTransaction);
+//        //savedOrder.setPaymentTransaction(paymentTransaction);
+//        //orderRepository.update(savedOrder);
+//        //order.setPaymentTransaction(paymentTransaction);
 
         Order savedOrder = orderRepository.save(order)
                 .orElseThrow(() -> new CheckoutException("Không thể tạo đơn hàng"));
+        savedOrder.setPaymentTransaction(paymentTransaction);
+        orderRepository.update(savedOrder);
+
         // ===  LOGIC SNAPSHOT & HASH  ===
         try {
             OrderSnapshotService snapshotService = new OrderSnapshotService();
@@ -133,6 +147,10 @@ public class CheckoutService {
         return addressService.getProvinces();
     }
 
+    public boolean isPaymentMethodAvailable(PaymentMethod method) {
+        return paymentGatewayRegistry.isAvailable(method);
+    }
+
     private Address resolveAddress(User user, CheckoutRequest request) {
         if (request.getSavedAddressId() != null) {
             return addressService.getUserAddress(user.getId(), request.getSavedAddressId())
@@ -154,7 +172,9 @@ public class CheckoutService {
     }
 
     private OrderStatus resolveInitialStatus(PaymentMethod method) {
-        OrderStatusCode statusCode = OrderStatusCode.WAITING_SIGNATURE;
+        OrderStatusCode statusCode = method == PaymentMethod.COD
+                ? OrderStatusCode.PENDING
+                : OrderStatusCode.AWAITING_PAYMENT;
         return orderStatusRepository.findByDescription(statusCode.getDescription())
                 .orElseGet(() -> orderStatusRepository.save(OrderStatus.builder()
                                 .description(statusCode.getDescription())
