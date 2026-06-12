@@ -98,12 +98,10 @@ public class CheckoutService {
                 .paymentUrl(paymentPreparation.getPaymentUrl())
                 .qrPayload(paymentPreparation.getQrPayload())
                 .build();
-//        //savedOrder.setPaymentTransaction(paymentTransaction);
-//        //orderRepository.update(savedOrder);
-//        //order.setPaymentTransaction(paymentTransaction);
+        //savedOrder.setPaymentTransaction(paymentTransaction);
+        //orderRepository.update(savedOrder);
+        // order.setPaymentTransaction(paymentTransaction);
 
-        Order savedOrder = orderRepository.save(order)
-                .orElseThrow(() -> new CheckoutException("Không thể tạo đơn hàng"));
         savedOrder.setPaymentTransaction(paymentTransaction);
         orderRepository.update(savedOrder);
 
@@ -172,9 +170,7 @@ public class CheckoutService {
     }
 
     private OrderStatus resolveInitialStatus(PaymentMethod method) {
-        OrderStatusCode statusCode = method == PaymentMethod.COD
-                ? OrderStatusCode.PENDING
-                : OrderStatusCode.AWAITING_PAYMENT;
+        OrderStatusCode statusCode = OrderStatusCode.WAITING_SIGNATURE;
         return orderStatusRepository.findByDescription(statusCode.getDescription())
                 .orElseGet(() -> orderStatusRepository.save(OrderStatus.builder()
                                 .description(statusCode.getDescription())
