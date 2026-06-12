@@ -59,6 +59,13 @@ public class Order {
     @JoinColumn(name = "status_id", nullable = false)
     private OrderStatus status;
 
+    @Column(name = "signature_status", nullable = false, length = 30)
+    @Builder.Default
+    private String signatureStatus = "UNSIGNED";
+
+    @Column(name = "signed_at")
+    private LocalDateTime signedAt;
+
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<OrderItem> items = new ArrayList<>();

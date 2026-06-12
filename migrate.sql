@@ -1,4 +1,4 @@
-use souvenirdb;
+use cipher;
 
 CREATE TABLE IF NOT EXISTS `site_settings` (
   `setting_key` VARCHAR(128) NOT NULL,

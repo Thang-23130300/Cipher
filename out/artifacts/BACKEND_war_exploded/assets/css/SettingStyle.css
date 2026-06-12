@@ -1,0 +1,229 @@
+/* Content */
+.main-content-page {
+    padding: 25px 40px;
+}
+
+.content-container {
+    background: var(--bg-white);
+    padding: 30px;
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-md);
+    min-height: 85vh;
+}
+
+/* Header */
+.page-header-control {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    align-items: center;
+}
+
+.page-header-control h2 {
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--text-heading);
+}
+
+/* Tab */
+.settings-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--border-normal);
+    margin-bottom: 30px;
+    gap: 10px;
+}
+
+.tab-btn {
+    text-decoration: none;
+    padding: 12px 20px;
+    font-size: 15px;
+    color: var(--text-muted);
+    font-weight: 500;
+    border-bottom: 3px solid transparent;
+    transition: 0.3s;
+}
+
+.tab-btn:hover {
+    color: var(--color-primary);
+    background: var(--bg-light);
+}
+
+.tab-btn.active {
+    color: var(--color-primary);
+    border-bottom: 3px solid var(--color-primary);
+    font-weight: 600;
+}
+
+/* Section */
+.setting-section h3 {
+    font-size: 18px;
+    color: var(--text-heading);
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border-light);
+}
+
+/* Form */
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    margin-bottom: 8px;
+    font-size: 14px;
+    color: var(--text-secondary);
+}
+
+.form-group input {
+    width: 100%;
+    padding: 12px 15px;
+    border: 1px solid var(--border-normal);
+    border-radius: var(--radius-sm);
+    font-family: inherit;
+}
+
+.form-group input:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.1);
+}
+
+.row-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 25px;
+}
+
+/* Togge */
+.toggle-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 0;
+    border-bottom: 1px solid var(--border-light);
+}
+
+.toggle-info p {
+    color: var(--text-muted);
+}
+
+.slider {
+    background-color: var(--border-normal);
+}
+
+input:checked + .slider {
+    background-color: var(--color-primary);
+}
+
+/* Table */
+.setting-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.setting-table th {
+    background: var(--bg-light);
+}
+
+.setting-table th,
+.setting-table td {
+    border-bottom: 1px solid var(--border-light);
+}
+
+/* Badge role */
+.badge-role.admin {
+    background: var(--bg-light);
+    color: var(--color-sale);
+}
+
+.badge-role.editor {
+    background: var(--bg-light);
+    color: var(--color-primary);
+}
+
+/* button small */
+.btn-small {
+    background: var(--bg-light);
+    border-radius: var(--radius-sm);
+}
+
+/* Add card */
+.btn-add-card {
+    background: var(--bg-white);
+    border: 1px dashed var(--color-primary);
+    color: var(--color-primary);
+}
+
+.btn-add-card:hover {
+    background: var(--bg-light);
+}
+
+/* Bank grid */
+.bank-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 25px;
+}
+
+/* Bank card */
+.bank-card {
+    border-radius: 15px;
+    padding: 25px;
+    color: var(--bg-white);
+    position: relative;
+    box-shadow: var(--shadow-md);
+    font-family: monospace;
+}
+
+.vcb-style {
+    background: linear-gradient(135deg, #004b24, #002814);
+}
+
+.mb-style {
+    background: linear-gradient(135deg, #1e3a8a, #172554);
+}
+
+/* Card */
+.card-number {
+    font-size: 22px;
+}
+
+.card-actions {
+    background: rgba(0,0,0,0.6);
+}
+
+.card-actions button {
+    background: var(--bg-white);
+    color: var(--text-main);
+}
+
+/* Payment method  */
+.payment-method-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.payment-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    border: 1px solid var(--border-normal);
+    border-radius: var(--radius-md);
+    background: var(--bg-light);
+}
+
+/* icon */
+.cod-icon {
+    background: var(--color-primary);
+    color: var(--bg-white);
+}
+
+/* text */
+.method-info h4 {
+    color: var(--text-heading);
+}
+
+.method-info p {
+    color: var(--text-muted);
+}

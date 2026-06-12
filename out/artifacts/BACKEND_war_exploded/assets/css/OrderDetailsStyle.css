@@ -1,0 +1,242 @@
+/* Menu */
+.menu-toggle {
+    cursor: pointer;
+    font-size: 24px;
+    color: var(--color-primary);
+    transition: color 0.3s ease;
+}
+
+.menu-toggle:hover {
+    color: var(--color-primary-dark);
+}
+
+/* User */
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.user-info img {
+    border-radius: 50%;
+    border: 2px solid var(--color-primary);
+}
+
+/* Main */
+.main-content-detail {
+    padding: 25px 40px;
+    background: var(--bg-main);
+    flex: 1;
+}
+
+.detail-container {
+    background: var(--bg-white);
+    padding: 30px;
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+}
+
+/* Header */
+.detail-header h2 {
+    font-size: 24px;
+    color: var(--text-heading);
+    margin-bottom: 25px;
+}
+
+/* Progress bar */
+.progress-bar-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    position: relative;
+    padding: 0 50px;
+}
+
+.progress-bar-container::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50px;
+    right: 50px;
+    height: 4px;
+    background: var(--border-normal);
+    transform: translateY(-50%);
+    z-index: 1;
+}
+
+.progress-bar-container::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50px;
+    width: calc(100% / 3);
+    height: 4px;
+    background: var(--color-primary);
+    transform: translateY(-50%);
+    z-index: 2;
+}
+
+.progress-step {
+    text-align: center;
+    position: relative;
+    z-index: 3;
+    color: var(--text-muted);
+    font-size: 14px;
+}
+
+.progress-step.active {
+    color: var(--color-primary);
+    font-weight: 600;
+}
+
+.progress-dot {
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    background: var(--border-normal);
+    margin: 0 auto 5px;
+}
+
+.progress-step.active .progress-dot {
+    background: var(--color-primary);
+}
+
+/* Layout */
+.detail-body {
+    display: flex;
+    gap: 30px;
+}
+
+.detail-main {
+    flex: 2;
+}
+
+.detail-summary {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* Order info */
+.order-info {
+    border-bottom: 1px solid var(--border-light);
+    padding-bottom: 15px;
+    margin-bottom: 20px;
+}
+
+.order-info p {
+    margin: 8px 0;
+    font-size: 16px;
+    font-weight: 500;
+}
+
+/* Status */
+.order-status {
+    background: var(--color-sale);
+    color: var(--bg-white);
+    padding: 4px 10px;
+    border-radius: var(--radius-sm);
+    font-weight: 600;
+    font-size: 13px;
+    margin-left: 10px;
+    display: inline-block;
+}
+
+/* Table */
+.product-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.product-table th,
+.product-table td {
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border-light);
+    text-align: left;
+    font-size: 15px;
+}
+
+.product-table th {
+    font-weight: 500;
+    color: var(--text-muted);
+}
+
+.product-table tr:last-child td {
+    border-bottom: none;
+}
+
+/* Button */
+.export-order-btn {
+    background: var(--color-primary);
+    color: var(--bg-white);
+    padding: 10px 20px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    margin-top: 20px;
+    font-weight: 600;
+    transition: 0.2s;
+}
+
+.export-order-btn:hover {
+    background: var(--color-primary-dark);
+}
+
+/* Summary */
+.summary-box {
+    background: var(--bg-white);
+    padding: 20px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-light);
+    box-shadow: var(--shadow-sm);
+}
+
+.summary-box h3 {
+    font-size: 18px;
+    margin-bottom: 15px;
+    color: var(--text-heading);
+}
+
+.summary-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    font-size: 15px;
+}
+
+.summary-row.total {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text-heading);
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px dashed var(--border-normal);
+}
+
+.summary-row.total .value {
+    font-size: 20px;
+    color: var(--color-sale);
+}
+
+/* Payment */
+.payment-details h3 {
+    border: none;
+    padding-bottom: 0;
+}
+
+.payment-row {
+    display: flex;
+    margin-bottom: 8px;
+}
+
+.payment-row .label {
+    width: 150px;
+    color: var(--text-muted);
+    font-size: 14px;
+}
+
+.payment-row .value {
+    font-weight: 500;
+    font-size: 14px;
+}

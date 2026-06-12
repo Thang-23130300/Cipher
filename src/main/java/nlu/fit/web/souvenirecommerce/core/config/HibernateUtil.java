@@ -47,6 +47,11 @@ public class HibernateUtil {
         configuration.addAnnotatedClass(Promotion.class);
         configuration.addAnnotatedClass(ProductSpecification.class);
         configuration.addAnnotatedClass(Review.class);
+        configuration.addAnnotatedClass(UserKey.class);
+        configuration.addAnnotatedClass(OrderSignedData.class);
+        configuration.addAnnotatedClass(OrderSignature.class);
+        configuration.addAnnotatedClass(OrderAuditLog.class);
+        configuration.addAnnotatedClass(KeyCompromiseReport.class);
     }
 
     public static SessionFactory getSessionFactory() {
