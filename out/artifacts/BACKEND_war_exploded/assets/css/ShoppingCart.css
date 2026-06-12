@@ -1,0 +1,252 @@
+/* Header */
+.main-header {
+    background-color: var(--bg-white);
+    padding: 15px 0;
+    box-shadow: var(--shadow-sm);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.header-content {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.main-nav a {
+    font-weight: 500;
+    font-size: 15px;
+    color: var(--text-secondary);
+}
+
+.main-nav a::after {
+    background-color: var(--color-primary);
+}
+
+/* Cart badge */
+.cart-badge {
+    background-color: var(--color-sale);
+    color: var(--bg-white);
+    border: 2px solid var(--bg-white);
+    box-shadow: var(--shadow-sm);
+}
+
+/* Layout */
+.page-wrapper {
+    max-width: 1280px;
+    margin: 30px auto;
+    padding: 0 20px;
+}
+
+.cart-layout {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 30px;
+}
+
+/* Cart section */
+.cart-items-section {
+    background-color: var(--bg-white);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+    padding: 30px;
+}
+
+.section-header {
+    border-bottom: 1px solid var(--border-light);
+}
+
+.section-title {
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--text-heading);
+}
+
+/* Item card */
+.cart-item-card {
+    display: flex;
+    align-items: center;
+    background-color: var(--bg-light);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-sm);
+    padding: 15px 20px;
+    margin-bottom: 15px;
+    gap: 15px;
+    transition: 0.2s;
+}
+
+.cart-item-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-sm);
+}
+
+.item-checkbox {
+    accent-color: var(--color-primary);
+}
+
+.item-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-main);
+}
+
+.item-variant {
+    font-size: 13px;
+    color: var(--text-muted);
+}
+
+/* Status */
+.status-available {
+    background-color: var(--bg-light);
+    color: var(--color-primary);
+}
+
+.status-low-stock {
+    background-color: var(--bg-light);
+    color: var(--color-sale);
+}
+
+/* Remove */
+.remove-item-btn {
+    color: var(--text-muted);
+}
+
+.remove-item-btn:hover {
+    color: var(--color-sale);
+}
+
+/* Price */
+.item-price {
+    font-size: 19px;
+    font-weight: 700;
+    color: var(--color-sale);
+}
+
+/* Quantity */
+.quantity-selector {
+    border: 1px solid var(--border-normal);
+    border-radius: var(--radius-sm);
+}
+
+.qty-btn {
+    background-color: var(--bg-light);
+    color: var(--text-secondary);
+}
+
+.qty-btn:hover {
+    background-color: var(--border-light);
+}
+
+.qty-input {
+    color: var(--text-main);
+}
+
+/* Continue */
+.continue-shopping a {
+    color: var(--color-primary);
+    border: 1px solid var(--color-primary);
+    border-radius: var(--radius-lg);
+}
+
+.continue-shopping a:hover {
+    background-color: var(--color-primary);
+    color: var(--bg-white);
+}
+
+/* Summary */
+.summary-card,
+.customer-benefits-card {
+    background-color: var(--bg-white);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+    padding: 25px;
+}
+
+.summary-card-title {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text-heading);
+    border-bottom: 1px solid var(--border-light);
+}
+
+/* Voucher */
+.voucher-input {
+    border: 1px solid var(--border-normal);
+    border-radius: var(--radius-sm);
+}
+
+.voucher-input:focus {
+    border-color: var(--color-primary);
+}
+
+.apply-voucher-btn {
+    background-color: var(--color-primary);
+    color: var(--bg-white);
+}
+
+.apply-voucher-btn:hover {
+    background-color: var(--color-primary-dark);
+}
+
+/* Summary row */
+.summary-row {
+    color: var(--text-secondary);
+}
+
+.summary-row span:last-child {
+    color: var(--text-main);
+}
+
+.discount-amount {
+    color: var(--color-sale);
+}
+
+/* Total */
+.summary-total-row {
+    border-top: 1px dashed var(--border-normal);
+}
+
+.final-total {
+    font-size: 26px;
+    font-weight: 800;
+    color: var(--color-sale);
+}
+
+/* Button */
+.checkout-btn {
+    display: block;
+    width: 100%;
+    background-color: var(--color-primary);
+    color: var(--bg-white);
+    padding: 15px 20px;
+    margin-top: 25px;
+    border-radius: var(--radius-md);
+    font-size: 18px;
+    font-weight: 700;
+    text-align: center;
+    transition: 0.2s;
+    box-shadow: var(--shadow-sm);
+}
+
+.checkout-btn:hover {
+    background-color: var(--color-primary-dark);
+    transform: translateY(-2px);
+}
+
+/* Payment icon */
+.payment-icons i:hover {
+    color: var(--color-primary);
+}
+
+/* Benefits */
+.customer-benefits-card ul li {
+    color: var(--text-secondary);
+}
+
+.customer-benefits-card ul li i {
+    color: var(--color-primary);
+}

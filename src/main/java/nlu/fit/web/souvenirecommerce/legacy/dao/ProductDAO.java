@@ -1,6 +1,6 @@
 package nlu.fit.web.souvenirecommerce.legacy.dao;
 
-import nlu.fit.web.souvenirecommerce.common.enums.ProductSort;
+import nlu.fit.web.souvenirecommerce.model.enums.ProductSort;
 import nlu.fit.web.souvenirecommerce.features.dashboard.dto.CategorySalesDTO;
 import nlu.fit.web.souvenirecommerce.model.entity.Product;
 import nlu.fit.web.souvenirecommerce.model.entity.Category;

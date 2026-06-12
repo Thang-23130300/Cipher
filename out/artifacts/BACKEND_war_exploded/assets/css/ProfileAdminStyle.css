@@ -1,0 +1,197 @@
+/* Layout */
+.main-content-page {
+    padding: 25px 40px;
+}
+
+.content-container {
+    min-height: 85vh;
+}
+
+/* Header */
+.page-header-control {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    align-items: center;
+}
+
+.page-header-control h2 {
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--text-heading);
+}
+
+.btn-save {
+    background: var(--color-primary);
+    color: var(--bg-white);
+}
+
+.btn-save:hover {
+    background: var(--color-primary-dark);
+}
+
+/* Tabs */
+.settings-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--border-normal);
+    margin-bottom: 30px;
+    gap: 10px;
+}
+
+/* Section */
+.setting-section h3 {
+    font-size: 18px;
+    color: var(--text-heading);
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border-light);
+}
+
+/* Form */
+.form-group {
+    text-align: left;
+}
+
+.form-group input:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(75, 18, 131, 0.1);
+}
+
+/* Grid */
+.row-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 25px;
+}
+
+/* Toggle */
+.toggle-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 0;
+    border-bottom: 1px solid var(--bg-light);
+}
+
+.toggle-info h4 {
+    font-size: 15px;
+}
+
+.toggle-info p {
+    font-size: 13px;
+    color: var(--text-muted);
+}
+
+.switch {
+    width: 50px;
+    height: 24px;
+}
+
+/* Table */
+.setting-table {
+    margin-top: 10px;
+}
+
+/* Badge */
+.badge-role.admin {
+    background: var(--bg-light);
+    color: var(--color-sale);
+}
+
+.badge-role.editor {
+    background: var(--bg-light);
+    color: var(--color-primary);
+}
+
+/* Text */
+.text-red {
+    color: var(--color-sale);
+}
+
+/* Flex */
+.flex-between {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+/* Small button */
+.btn-small {
+    background: var(--bg-light);
+}
+
+/* Tab button */
+.tab-btn {
+    text-decoration: none;
+    padding: 12px 20px;
+    font-size: 15px;
+    color: var(--text-muted);
+    font-weight: 500;
+    border-bottom: 3px solid transparent;
+}
+
+.tab-btn:hover {
+    color: var(--color-primary);
+    background: var(--bg-light);
+}
+
+.tab-btn.active {
+    color: var(--color-primary);
+    border-bottom: 3px solid var(--color-primary);
+}
+
+/* Add card */
+.btn-add-card {
+    background: var(--bg-white);
+    border: 1px dashed var(--color-primary);
+    color: var(--color-primary);
+}
+
+.btn-add-card:hover {
+    background: var(--bg-light);
+}
+
+/* Bank grid */
+.bank-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 25px;
+}
+
+/* Bank card  */
+.bank-card {
+    border-radius: 15px;
+    padding: 25px;
+    color: var(--bg-white);
+    box-shadow: var(--shadow-md);
+}
+
+/* Card action */
+.card-actions {
+    background: rgba(0,0,0,0.6);
+}
+
+.card-actions button {
+    background: var(--bg-white);
+    color: var(--text-main);
+}
+
+/* Payment */
+.payment-item {
+    border: 1px solid var(--border-normal);
+    background: var(--bg-light);
+}
+
+.cod-icon {
+    background: var(--color-primary);
+    color: var(--bg-white);
+}
+
+.method-info h4 {
+    color: var(--text-heading);
+}
+
+.method-info p {
+    color: var(--text-muted);
+}

@@ -1,0 +1,70 @@
+:root {
+    /* Brand palette: fresh Vietnamese market, warm souvenir accent */
+    --brand-primary: #247a52;
+    --brand-primary-hover: #1b5e40;
+    --brand-primary-soft: #e9f5ee;
+    --brand-secondary: #3f6f86;
+    --brand-accent: #c28a35;
+    --brand-accent-hover: #9f6f25;
+    --brand-accent-soft: #fff4df;
+
+    /* App surfaces */
+    --surface-page: #f4f6f1;
+    --surface-default: #ffffff;
+    --surface-muted: #f7f9f4;
+    --surface-subtle: #fbfcf8;
+    --surface-inverse: #1f2933;
+
+    /* Text */
+    --text-strong: #1f2933;
+    --text-default: #344034;
+    --text-soft: #667085;
+    --text-subtle: #8a9488;
+    --text-on-primary: #ffffff;
+
+    /* Borders and focus */
+    --border-subtle: #edf0e8;
+    --border-default: #d6ddd2;
+    --border-strong: #b7c5b1;
+    --focus-ring: 0 0 0 3px rgba(36, 122, 82, 0.14);
+
+    /* Feedback */
+    --success: #027a48;
+    --success-bg: #ecfdf3;
+    --success-border: #abefc6;
+    --warning: #b54708;
+    --warning-bg: #fffaeb;
+    --warning-border: #fedf89;
+    --danger: #b42318;
+    --danger-bg: #fff1f0;
+    --danger-border: #fecdca;
+
+    /* Commerce */
+    --price: #1f2933;
+    --sale: #c28a35;
+    --rating: #f5a623;
+
+    /* Legacy aliases used across existing CSS */
+    --bg-main: var(--surface-page);
+    --bg-white: var(--surface-default);
+    --bg-light: var(--surface-muted);
+    --text-main: var(--text-default);
+    --text-heading: var(--text-strong);
+    --text-secondary: var(--text-soft);
+    --text-muted: var(--text-subtle);
+    --color-primary: var(--brand-primary);
+    --color-primary-dark: var(--brand-primary-hover);
+    --color-accent: var(--brand-accent);
+    --color-price: var(--price);
+    --color-sale: var(--sale);
+    --border-light: var(--border-subtle);
+    --border-normal: var(--border-default);
+
+    --shadow-sm: 0 3px 10px rgba(31, 41, 51, 0.08);
+    --shadow-md: 0 8px 24px rgba(31, 41, 51, 0.12);
+    --shadow-lg: 0 24px 70px rgba(31, 41, 51, 0.14);
+
+    --radius-sm: 6px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+}

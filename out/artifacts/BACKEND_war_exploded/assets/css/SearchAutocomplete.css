@@ -1,0 +1,119 @@
+/* Search autocomplete */
+.search-wrapper {
+    position: relative;
+}
+
+/* Dropdown */
+.search-suggestions {
+    position: fixed;
+    background: var(--bg-white);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-md);
+    max-height: 420px;
+    overflow-y: auto;
+    z-index: 2147483647;
+    animation: slideDown 0.2s ease-out;
+}
+
+/* List */
+.suggestions-list {
+    padding: 6px 0;
+}
+
+/* Item */
+.suggestion-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    color: var(--text-main);
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.suggestion-item:hover,
+.suggestion-item.selected {
+    background-color: var(--bg-light);
+}
+
+/* Image */
+.suggestion-item img {
+    width: 48px;
+    height: 48px;
+    object-fit: cover;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-light);
+    flex-shrink: 0;
+}
+
+/* Info */
+.suggestion-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.suggestion-name {
+    font-size: 14px;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.suggestion-price {
+    font-size: 13px;
+    color: var(--color-sale);
+    font-weight: 600;
+}
+
+/* Scrollbar */
+.search-suggestions::-webkit-scrollbar {
+    width: 6px;
+}
+
+.search-suggestions::-webkit-scrollbar-thumb {
+    background: var(--text-muted);
+    border-radius: 3px;
+}
+
+.search-suggestions::-webkit-scrollbar-thumb:hover {
+    background: var(--text-secondary);
+}
+
+/* Animation */
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+    .search-suggestions {
+        max-height: 300px;
+    }
+
+    .suggestion-item img {
+        width: 40px;
+        height: 40px;
+    }
+
+    .main-header {
+        align-items: flex-start !important;
+    }
+
+    .search-wrapper {
+        position: relative;
+    }
+
+    .header-wrapper,
+    .header-container,
+    .main-header {
+        overflow: visible !important;
+    }
+}

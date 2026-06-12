@@ -1,0 +1,393 @@
+/* Profile Form Styles - Shared by profile.jsp and addresses.jsp */
+
+.profile-form .form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.profile-panel--split .panel-header {
+    margin-bottom: 16px;
+}
+
+.profile-panel--split .profile-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 260px;
+    gap: 24px;
+    align-items: start;
+}
+
+.profile-panel--split .profile-info {
+    display: grid;
+    gap: 18px;
+}
+
+.profile-static {
+    display: grid;
+    grid-template-columns: 160px 1fr;
+    gap: 12px;
+    align-items: center;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border-subtle);
+}
+
+.profile-static__label {
+    color: var(--text-soft);
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.profile-static__value {
+    color: var(--text-strong);
+    font-weight: 600;
+}
+
+.profile-form--list .form-grid {
+    grid-template-columns: 1fr;
+    gap: 14px;
+}
+
+.profile-form--list .field {
+    grid-template-columns: 160px 1fr;
+    align-items: center;
+}
+
+.profile-form--list .field span,
+.profile-form--list .gender-field legend {
+    color: var(--text-soft);
+    font-weight: 600;
+}
+
+.profile-form--list .field input {
+    background: var(--surface-default);
+}
+
+.profile-form--list .gender-field {
+    display: grid;
+    grid-template-columns: 160px 1fr;
+    gap: 12px;
+    align-items: start;
+}
+
+.profile-form--list .gender-field label {
+    min-height: 32px;
+}
+
+.profile-form--list .gender-field label span {
+    color: var(--text-default);
+    font-weight: 500;
+}
+
+.profile-panel--split .profile-avatar {
+    padding-left: 20px;
+    border-left: 1px solid var(--border-subtle);
+    display: grid;
+    gap: 14px;
+    justify-items: center;
+    text-align: center;
+}
+
+.profile-avatar__image {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 1px solid var(--border-default);
+    background: var(--surface-muted);
+    display: grid;
+    place-items: center;
+    color: var(--text-subtle);
+    font-size: 42px;
+}
+
+.profile-avatar__image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.profile-avatar__form {
+    display: grid;
+    gap: 8px;
+    justify-items: center;
+}
+
+.profile-avatar__file {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 36px;
+    padding: 0 14px;
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-sm);
+    background: var(--surface-default);
+    color: var(--text-default);
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.profile-avatar__file:hover {
+    border-color: var(--brand-primary);
+    color: var(--brand-primary);
+    box-shadow: var(--focus-ring);
+}
+
+.profile-avatar__file input {
+    display: none;
+}
+
+.profile-avatar__hint {
+    color: var(--text-subtle);
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+.profile-form .field {
+    display: grid;
+    gap: 8px;
+    min-width: 0;
+}
+
+.profile-form .field--full {
+    grid-column: 1 / -1;
+}
+
+.profile-form .field span,
+.profile-form .gender-field legend {
+    color: var(--text-strong);
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.profile-form .field input,
+.profile-form .field select {
+    width: 100%;
+    min-height: 38px;
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-sm);
+    background: var(--surface-subtle);
+    color: var(--text-default);
+    padding: 8px 12px;
+    font-size: 15px;
+    outline: none;
+    transition: all 0.2s ease;
+}
+
+.profile-form .field input:focus,
+.profile-form .field select:focus {
+    border-color: var(--brand-primary);
+    box-shadow: var(--focus-ring);
+    background: var(--surface-default);
+}
+
+.profile-form .field input:disabled,
+.profile-form .field select:disabled {
+    color: var(--text-subtle);
+    background: var(--surface-muted);
+}
+
+.profile-form .select2-container .select2-selection--single {
+    min-height: 38px;
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-sm);
+    background: var(--surface-subtle);
+    display: flex;
+    align-items: center;
+}
+
+.profile-form .select2-container--default .select2-selection--single .select2-selection__rendered {
+    color: var(--text-default);
+    padding-left: 12px;
+    line-height: 36px;
+}
+
+.profile-form .select2-container--default .select2-selection--single .select2-selection__arrow {
+    min-height: 36px;
+}
+
+.profile-form .gender-field {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 16px;
+    align-items: center;
+}
+
+.profile-form .gender-field legend {
+    width: 100%;
+    margin-bottom: 2px;
+}
+
+.profile-form .gender-field label {
+    min-height: 34px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-default);
+    cursor: pointer;
+}
+
+.profile-form .gender-field input {
+    accent-color: var(--brand-primary);
+}
+
+/* Address Section */
+.address-list {
+    display: grid;
+    gap: 12px;
+}
+
+.address-card {
+    display: flex;
+    justify-content: space-between;
+    gap: 18px;
+    padding: 16px;
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    background: var(--surface-subtle);
+}
+
+.address-card__main {
+    min-width: 0;
+}
+
+.address-card__title {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+}
+
+.address-card__title strong {
+    color: var(--text-strong);
+}
+
+.address-card__title span {
+    border: 1px solid var(--brand-accent);
+    border-radius: var(--radius-sm);
+    color: var(--brand-accent);
+    padding: 3px 7px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.address-card p {
+    color: var(--text-soft);
+    overflow-wrap: anywhere;
+}
+
+.address-card__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-content: start;
+    justify-content: flex-end;
+    gap: 10px;
+    min-width: 140px;
+}
+
+.address-card__actions a {
+    color: var(--brand-primary);
+    font-weight: 700;
+    font-size: 14px;
+}
+
+.address-card__actions a:hover {
+    color: var(--brand-primary);
+    text-decoration: underline;
+}
+
+.address-card__actions .danger-link {
+    color: var(--danger);
+}
+
+/* Avatar Section Styles */
+.avatar-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 32px 22px;
+}
+
+.avatar-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+}
+
+.avatar-image,
+.avatar-placeholder {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid var(--border-subtle);
+    background: var(--surface-subtle);
+}
+
+.avatar-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 48px;
+    color: var(--text-soft);
+}
+
+.avatar-actions {
+    display: flex;
+    gap: 12px;
+}
+
+@media (max-width: 640px) {
+    .profile-form .form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .profile-panel--split .profile-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .profile-panel--split .profile-avatar {
+        padding-left: 0;
+        border-left: 0;
+        border-top: 1px solid var(--border-subtle);
+        padding-top: 16px;
+        justify-items: start;
+        text-align: left;
+    }
+
+    .profile-static,
+    .profile-form--list .field,
+    .profile-form--list .gender-field {
+        grid-template-columns: 1fr;
+    }
+
+    .panel-header--split,
+    .address-card {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .address-card__actions {
+        justify-content: flex-start;
+        min-width: 0;
+    }
+
+    .avatar-section {
+        padding: 24px 16px;
+    }
+
+    .avatar-image,
+    .avatar-placeholder {
+        width: 90px;
+        height: 90px;
+    }
+
+    .avatar-placeholder {
+        font-size: 36px;
+    }
+}
