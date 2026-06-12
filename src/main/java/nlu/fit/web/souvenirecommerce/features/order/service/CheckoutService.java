@@ -1,7 +1,5 @@
 package nlu.fit.web.souvenirecommerce.features.order.service;
 
-import nlu.fit.web.souvenirecommerce.model.enums.OrderStatusCode;
-import nlu.fit.web.souvenirecommerce.model.enums.PaymentMethod;
 import nlu.fit.web.souvenirecommerce.features.cart.model.Cart;
 import nlu.fit.web.souvenirecommerce.features.cart.model.CartItem;
 import nlu.fit.web.souvenirecommerce.features.order.dto.CheckoutException;
@@ -14,6 +12,7 @@ import nlu.fit.web.souvenirecommerce.features.order.payment.PaymentGatewayRegist
 import nlu.fit.web.souvenirecommerce.features.order.repository.OrderRepository;
 import nlu.fit.web.souvenirecommerce.features.order.repository.OrderStatusRepository;
 import nlu.fit.web.souvenirecommerce.features.order.repository.ProductRepository;
+import nlu.fit.web.souvenirecommerce.features.signature.service.OrderSignedDataService;
 import nlu.fit.web.souvenirecommerce.features.user.address.AddressService;
 import nlu.fit.web.souvenirecommerce.model.entity.Address;
 import nlu.fit.web.souvenirecommerce.model.entity.Order;
@@ -23,15 +22,12 @@ import nlu.fit.web.souvenirecommerce.model.entity.PaymentTransaction;
 import nlu.fit.web.souvenirecommerce.model.entity.Product;
 import nlu.fit.web.souvenirecommerce.model.entity.Province;
 import nlu.fit.web.souvenirecommerce.model.entity.User;
+import nlu.fit.web.souvenirecommerce.model.enums.OrderStatusCode;
+import nlu.fit.web.souvenirecommerce.model.enums.PaymentMethod;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
-
-import nlu.fit.web.souvenirecommerce.features.order.repository.OrderSignedDataRepository;
-import nlu.fit.web.souvenirecommerce.features.order.service.HashService;
-import nlu.fit.web.souvenirecommerce.features.order.service.OrderSnapshotService;
-import nlu.fit.web.souvenirecommerce.model.entity.OrderSignedData;
 
 public class CheckoutService {
     private final OrderRepository orderRepository = new OrderRepository();
@@ -39,13 +35,20 @@ public class CheckoutService {
     private final ProductRepository productRepository = new ProductRepository();
     private final AddressService addressService = new AddressService();
     private final PaymentGatewayRegistry paymentGatewayRegistry = new PaymentGatewayRegistry();
+    private final OrderSignedDataService orderSignedDataService = new OrderSignedDataService();
+
     public CheckoutResult checkout(User user, Cart cart, CheckoutRequest request) {
         return checkout(user, cart, request, null);
     }
+
     public CheckoutResult checkout(User user, Cart cart, CheckoutRequest request, PaymentContext paymentContext) {
         validateUser(user);
         validateCart(cart);
-        PaymentMethod paymentMethod = request.getPaymentMethod() == null ? PaymentMethod.COD : request.getPaymentMethod();
+
+        PaymentMethod paymentMethod = request.getPaymentMethod() == null
+                ? PaymentMethod.COD
+                : request.getPaymentMethod();
+
         if (!paymentGatewayRegistry.isAvailable(paymentMethod)) {
             throw new CheckoutException("Phương thức thanh toán đã chọn hiện không khả dụng.");
         }
@@ -63,12 +66,15 @@ public class CheckoutService {
                 .build();
 
         BigDecimal totalAmount = BigDecimal.ZERO;
+
         for (CartItem cartItem : cart.getItems()) {
             Product product = productRepository.findById(cartItem.getProduct().getId())
                     .orElseThrow(() -> new CheckoutException("Sản phẩm không tồn tại"));
+
             validateStock(product, cartItem.getQuantity());
 
             BigDecimal price = BigDecimal.valueOf(cartItem.getPrice());
+
             order.addItem(OrderItem.builder()
                     .product(product)
                     .quantity(cartItem.getQuantity())
@@ -76,11 +82,13 @@ public class CheckoutService {
                     .productName(product.getName())
                     .productImage(product.getImageUrl())
                     .build());
+
             totalAmount = totalAmount.add(price.multiply(BigDecimal.valueOf(cartItem.getQuantity())));
 
             product.setStockQuantity(product.getStockQuantity() - cartItem.getQuantity());
             product.setTotalSold(product.getTotalSold() + cartItem.getQuantity());
         }
+
         order.setTotalAmount(totalAmount);
 
         Order savedOrder = orderRepository.save(order)
@@ -88,6 +96,7 @@ public class CheckoutService {
 
         PaymentGateway gateway = paymentGatewayRegistry.get(paymentMethod);
         PaymentPreparation paymentPreparation = gateway.prepare(savedOrder, paymentContext);
+
         PaymentTransaction paymentTransaction = PaymentTransaction.builder()
                 .order(savedOrder)
                 .method(paymentMethod)
@@ -98,36 +107,13 @@ public class CheckoutService {
                 .paymentUrl(paymentPreparation.getPaymentUrl())
                 .qrPayload(paymentPreparation.getQrPayload())
                 .build();
-        //savedOrder.setPaymentTransaction(paymentTransaction);
-        //orderRepository.update(savedOrder);
-        // order.setPaymentTransaction(paymentTransaction);
 
         savedOrder.setPaymentTransaction(paymentTransaction);
+        savedOrder.setSignatureStatus(OrderStatusCode.WAITING_SIGNATURE.name());
+
         orderRepository.update(savedOrder);
 
-        // ===  LOGIC SNAPSHOT & HASH  ===
-        try {
-            OrderSnapshotService snapshotService = new OrderSnapshotService();
-            HashService hashService = new HashService();
-            OrderSignedDataRepository signedDataRepo = new OrderSignedDataRepository();
-            // 1. Sinh snapshot JSON tĩnh từ đơn hàng đã lưu
-            String snapshotJson = snapshotService.createSnapshotJson(savedOrder);
-
-            // 2. Tính mã băm SHA-256 của snapshot
-            String hashValue = hashService.sha256Hex(snapshotJson);
-            // 3. Lưu vào bảng order_signed_data
-            OrderSignedData signedData = OrderSignedData.builder()
-                    .order(savedOrder)
-                    .signedDataJson(snapshotJson)
-                    .hashValue(hashValue)
-                    .hashAlgorithm("SHA-256")
-                    .createdAt(LocalDateTime.now())
-                    .build();
-            signedDataRepo.save(signedData);
-        } catch (Exception e) {
-            throw new CheckoutException("Lỗi khi tạo dữ liệu ký số đơn hàng: " + e.getMessage());
-        }
-        // ==========================================
+        orderSignedDataService.createForOrder(savedOrder);
 
         return CheckoutResult.builder()
                 .order(savedOrder)
@@ -155,7 +141,9 @@ public class CheckoutService {
                     .orElseThrow(() -> new CheckoutException("Địa chỉ giao hàng không hợp lệ"));
         }
 
-        if (isBlank(request.getReceiverName()) || isBlank(request.getReceiverPhone()) || isBlank(request.getAddressDetail())) {
+        if (isBlank(request.getReceiverName())
+                || isBlank(request.getReceiverPhone())
+                || isBlank(request.getAddressDetail())) {
             throw new CheckoutException("Vui lòng nhập đầy đủ họ tên, số điện thoại và địa chỉ giao hàng");
         }
 
@@ -170,7 +158,10 @@ public class CheckoutService {
     }
 
     private OrderStatus resolveInitialStatus(PaymentMethod method) {
-        OrderStatusCode statusCode = OrderStatusCode.WAITING_SIGNATURE;
+        OrderStatusCode statusCode = method == PaymentMethod.COD
+                ? OrderStatusCode.PENDING
+                : OrderStatusCode.PENDING_PAYMENT;
+
         return orderStatusRepository.findByDescription(statusCode.getDescription())
                 .orElseGet(() -> orderStatusRepository.save(OrderStatus.builder()
                                 .description(statusCode.getDescription())
@@ -194,6 +185,7 @@ public class CheckoutService {
         if (requestedQuantity <= 0) {
             throw new CheckoutException("Số lượng sản phẩm không hợp lệ");
         }
+
         if (product.getStockQuantity() < requestedQuantity) {
             throw new CheckoutException("Sản phẩm " + product.getName() + " không đủ tồn kho");
         }

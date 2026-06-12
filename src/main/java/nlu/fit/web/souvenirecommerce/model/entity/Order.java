@@ -34,6 +34,8 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 public class Order {
+
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -54,6 +56,13 @@ public class Order {
 
     @Column(length = 1000)
     private String note;
+
+    @Column(name = "signature_status", nullable = false, length = 30)
+    @Builder.Default
+    private String signatureStatus = "UNSIGNED";
+
+    @Column(name = "signed_at")
+    private LocalDateTime signedAt;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "status_id", nullable = false)
@@ -103,6 +112,10 @@ public class Order {
     private void prePersist() {
         if (orderDate == null) {
             orderDate = LocalDateTime.now();
+        }
+
+        if (signatureStatus == null || signatureStatus.isBlank()) {
+            signatureStatus = "UNSIGNED";
         }
     }
 }
