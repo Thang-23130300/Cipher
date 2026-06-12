@@ -27,6 +27,11 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import nlu.fit.web.souvenirecommerce.features.order.repository.OrderSignedDataRepository;
+import nlu.fit.web.souvenirecommerce.features.order.service.HashService;
+import nlu.fit.web.souvenirecommerce.features.order.service.OrderSnapshotService;
+import nlu.fit.web.souvenirecommerce.model.entity.OrderSignedData;
+
 public class CheckoutService {
     private final OrderRepository orderRepository = new OrderRepository();
     private final OrderStatusRepository orderStatusRepository = new OrderStatusRepository();
@@ -88,6 +93,29 @@ public class CheckoutService {
 
         Order savedOrder = orderRepository.save(order)
                 .orElseThrow(() -> new CheckoutException("Không thể tạo đơn hàng"));
+        // ===  LOGIC SNAPSHOT & HASH  ===
+        try {
+            OrderSnapshotService snapshotService = new OrderSnapshotService();
+            HashService hashService = new HashService();
+            OrderSignedDataRepository signedDataRepo = new OrderSignedDataRepository();
+            // 1. Sinh snapshot JSON tĩnh từ đơn hàng đã lưu
+            String snapshotJson = snapshotService.createSnapshotJson(savedOrder);
+
+            // 2. Tính mã băm SHA-256 của snapshot
+            String hashValue = hashService.sha256Hex(snapshotJson);
+            // 3. Lưu vào bảng order_signed_data
+            OrderSignedData signedData = OrderSignedData.builder()
+                    .order(savedOrder)
+                    .signedDataJson(snapshotJson)
+                    .hashValue(hashValue)
+                    .hashAlgorithm("SHA-256")
+                    .createdAt(LocalDateTime.now())
+                    .build();
+            signedDataRepo.save(signedData);
+        } catch (Exception e) {
+            throw new CheckoutException("Lỗi khi tạo dữ liệu ký số đơn hàng: " + e.getMessage());
+        }
+        // ==========================================
 
         return CheckoutResult.builder()
                 .order(savedOrder)
@@ -126,9 +154,7 @@ public class CheckoutService {
     }
 
     private OrderStatus resolveInitialStatus(PaymentMethod method) {
-        OrderStatusCode statusCode = method == PaymentMethod.COD
-                ? OrderStatusCode.PENDING
-                : OrderStatusCode.AWAITING_PAYMENT;
+        OrderStatusCode statusCode = OrderStatusCode.WAITING_SIGNATURE;
         return orderStatusRepository.findByDescription(statusCode.getDescription())
                 .orElseGet(() -> orderStatusRepository.save(OrderStatus.builder()
                                 .description(statusCode.getDescription())
