@@ -4,102 +4,170 @@
 
 <div class="page-wrapper cart-page">
     <div class="cart-layout">
+
+        <%-- ======================================================
+             LEFT PANEL: Cart Items
+             ====================================================== --%>
         <div class="cart-items-section">
+            <div class="cart-items-inner">
 
-            <div class="continue-shopping">
-                <a href="${pageContext.request.contextPath}/home">
-                    <i class="fa-solid fa-arrow-left"></i> Tiếp tục mua sắm
-                </a>
-            </div>
-
-            <div class="section-header">
-                <h2>Giỏ hàng của bạn</h2>
-                <span id="cart-total-qty">Tổng cộng: ${cart.totalQuantity()} sản phẩm</span>
-            </div>
-
-            <c:if test="${cart.totalQuantity() == 0}">
-                <div class="empty-cart" style="text-align: center; padding: 40px 0;">
-                    <p style="margin-bottom: 20px; font-size: 16px; color: #666;">Giỏ hàng của bạn đang trống.</p>
-                    <a class="checkout-btn"
-                       href="${pageContext.request.contextPath}/home"
-                       style="width: auto; display: inline-block !important; padding: 10px 30px;">
-                        Mua sắm ngay
+                <div class="continue-shopping">
+                    <a href="${pageContext.request.contextPath}/home">
+                        <i class="fa-solid fa-arrow-left"></i> Tiếp tục mua sắm
                     </a>
                 </div>
-            </c:if>
 
-            <c:forEach items="${cart.items}" var="item">
-                <div class="cart-item-card" data-product-id="${item.product.id}">
-
-                    <div class="item-image">
-                        <img src="${item.product.imageUrl}" alt="${item.product.name}">
-                    </div>
-
-                    <div class="item-details">
-                        <h3>${item.product.name}</h3>
-                        <p>
-                            Đơn giá:
-                            <fmt:formatNumber value="${item.price}" groupingUsed="true"/>₫
-                        </p>
-                    </div>
-
-                    <div class="item-price-quantity">
-                        <span class="item-price">
-                            <fmt:formatNumber value="${item.subTotal}" groupingUsed="true"/>₫
-                        </span>
-
-                        <div class="quantity-selector">
-                            <button type="button" class="qty-btn minus-btn">-</button>
-
-                            <input type="number"
-                                   class="qty-input"
-                                   value="${item.quantity}"
-                                   min="1">
-
-                            <button type="button" class="qty-btn plus-btn">+</button>
-                        </div>
-                    </div>
-
-                    <button type="button"
-                            class="remove-item-btn"
-                            data-product-id="${item.product.id}">
-                        <i class="fa-solid fa-trash-can"></i> Xóa
-                    </button>
-
-                </div>
-            </c:forEach>
-
-        </div>
-
-        <div class="order-summary-section">
-            <div class="summary-card">
-                <h2 class="summary-card-title">Tóm tắt đơn hàng</h2>
-
-                <div class="summary-row">
-                    <span>Tạm tính</span>
-                    <span id="cart-subtotal"><fmt:formatNumber value="${cart.total()}" groupingUsed="true"/>₫</span>
-                </div>
-
-                <div class="summary-total-row"
-                     style="border-top: none; margin-top: 0; padding-top: 5px; color: #666; font-size: 14px;">
-                    <span>Phí vận chuyển</span>
-                    <span>Liên hệ sau</span>
-                </div>
-
-                <div class="summary-total-row">
-                    <span>Tổng thanh toán</span>
-                    <span id="cart-total-pay" class="final-total">
-                        <fmt:formatNumber value="${cart.total()}" groupingUsed="true"/>₫
+                <div class="section-header">
+                    <h2>Giỏ hàng của bạn</h2>
+                    <span id="cart-total-qty">
+                        <i class="fa-solid fa-bag-shopping" style="font-size:11px;opacity:0.8;"></i>
+                        ${cart.totalQuantity()} sản phẩm
                     </span>
                 </div>
 
-                <a class="checkout-btn"
-                   href="${pageContext.request.contextPath}/checkout"
-                   onclick="return confirm('Xác nhận thanh toán?')">
-                    XÁC NHẬN THANH TOÁN
-                </a>
-            </div>
-        </div>
+                <%-- Empty state --%>
+                <c:if test="${cart.totalQuantity() == 0}">
+                    <div class="empty-cart">
+                        <div class="empty-cart-icon">
+                            <i class="fa-solid fa-cart-shopping"></i>
+                        </div>
+                        <div class="empty-cart-title">Giỏ hàng của bạn đang trống</div>
+                        <div class="empty-cart-desc">
+                            Hãy tiếp tục khám phá các đặc sản, quà tặng và đồ thủ công độc đáo của chúng tôi nhé!
+                        </div>
+                        <a class="btn-empty-back"
+                           href="${pageContext.request.contextPath}/home">
+                            <i class="fa-solid fa-store"></i> Quay lại mua sắm
+                        </a>
+                    </div>
+                </c:if>
 
+                <%-- Item list --%>
+                <c:forEach items="${cart.items}" var="item">
+                    <div class="cart-item-card" data-product-id="${item.product.id}">
+
+                        <%-- Image + Name + Unit price --%>
+                        <div class="item-main-info">
+                            <div class="item-image">
+                                <img src="${item.product.imageUrl}" alt="${item.product.name}">
+                            </div>
+
+                            <div class="item-details">
+                                <h3>${item.product.name}</h3>
+                                <p class="item-unit-price">
+                                    Đơn giá:
+                                    <strong><fmt:formatNumber value="${item.price}" groupingUsed="true"/>₫</strong>
+                                </p>
+                            </div>
+                        </div>
+
+                        <%-- Qty selector + subtotal --%>
+                        <div class="item-price-quantity">
+                            <div class="quantity-selector">
+                                <button type="button" class="qty-btn minus-btn" aria-label="Giảm số lượng">
+                                    <i class="fa-solid fa-minus" style="font-size:11px;"></i>
+                                </button>
+
+                                <input type="number"
+                                       class="qty-input"
+                                       value="${item.quantity}"
+                                       min="1"
+                                       aria-label="Số lượng sản phẩm">
+
+                                <button type="button" class="qty-btn plus-btn" aria-label="Tăng số lượng">
+                                    <i class="fa-solid fa-plus" style="font-size:11px;"></i>
+                                </button>
+                            </div>
+
+                            <span class="item-price">
+                                <fmt:formatNumber value="${item.subTotal}" groupingUsed="true"/>₫
+                            </span>
+                        </div>
+
+                        <%-- Remove button --%>
+                        <button type="button"
+                                class="remove-item-btn"
+                                data-product-id="${item.product.id}"
+                                aria-label="Xóa sản phẩm">
+                            <i class="fa-solid fa-trash-can"></i>
+                            <span class="remove-text">Xóa</span>
+                        </button>
+
+                    </div>
+                </c:forEach>
+
+            </div><%-- /cart-items-inner --%>
+        </div><%-- /cart-items-section --%>
+
+        <%-- ======================================================
+             RIGHT PANEL: Order Summary (desktop)
+             ====================================================== --%>
+        <div class="order-summary-section">
+            <div class="summary-card">
+
+                <div class="summary-card-header">
+                    <h2 class="summary-card-title">
+                        <i class="fa-solid fa-receipt" style="margin-right:8px;opacity:0.85;"></i>
+                        Tóm tắt đơn hàng
+                    </h2>
+                </div>
+
+                <div class="summary-card-body">
+                    <div class="summary-row">
+                        <span>Tạm tính</span>
+                        <span id="cart-subtotal">
+                            <fmt:formatNumber value="${cart.total()}" groupingUsed="true"/>₫
+                        </span>
+                    </div>
+
+                    <div class="summary-row">
+                        <span>Phí vận chuyển</span>
+                        <span class="summary-shipping-note">Liên hệ sau</span>
+                    </div>
+
+                    <div class="summary-divider"></div>
+
+                    <div class="summary-total-row">
+                        <span class="summary-total-label">Tổng thanh toán</span>
+                        <span id="cart-total-pay" class="final-total">
+                            <fmt:formatNumber value="${cart.total()}" groupingUsed="true"/>₫
+                        </span>
+                    </div>
+
+                    <a class="checkout-btn"
+                       href="${pageContext.request.contextPath}/checkout"
+                       onclick="return confirm('Xác nhận thanh toán?')">
+                        <i class="fa-solid fa-lock" style="font-size:13px;"></i>
+                        Xác nhận thanh toán
+                    </a>
+
+                    <div class="summary-trust">
+                        <i class="fa-solid fa-shield-halved"></i>
+                        Thanh toán an toàn &amp; bảo mật
+                    </div>
+                </div>
+
+            </div><%-- /summary-card --%>
+        </div><%-- /order-summary-section --%>
+
+    </div><%-- /cart-layout --%>
+</div><%-- /cart-page --%>
+
+<%-- ============================================================
+     MOBILE STICKY CHECKOUT BAR
+     (only visible on ≤ 768px via CSS)
+     ============================================================ --%>
+<div class="mobile-checkout-bar">
+    <div class="mobile-checkout-total">
+        <div class="mobile-checkout-total-label">Tổng thanh toán</div>
+        <div class="mobile-checkout-total-value">
+            <fmt:formatNumber value="${cart.total()}" groupingUsed="true"/>₫
+        </div>
     </div>
+    <a class="mobile-checkout-btn"
+       href="${pageContext.request.contextPath}/checkout"
+       onclick="return confirm('Xác nhận thanh toán?')">
+        <i class="fa-solid fa-lock" style="font-size:12px;"></i>
+        Thanh toán
+    </a>
 </div>

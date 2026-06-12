@@ -1,28 +1,2 @@
 @import url("theme.css");
-
-.checkout-btn {
-    display: block !important; /* Bắt buộc xuống dòng */
-    width: 100%;
-    margin-top: 30px !important; /* Tạo khoảng cách lớn với dòng tổng tiền */
-    padding: 15px 0;
-    text-align: center;
-
-    background-color: var(--brand-primary);
-    color: var(--text-on-primary) !important; /* Màu chữ trắng */
-    border-radius: 8px;
-    font-weight: 700;
-    text-transform: uppercase;
-    box-shadow: 0 4px 10px rgba(36, 122, 82, 0.3);
-    transition: all 0.3s;
-}
-
-.checkout-btn:hover {
-    background-color: var(--brand-primary-hover);
-    transform: translateY(-2px);
-    text-decoration: none;
-}
-
-/* Chỉnh lại khoảng cách cho phần tóm tắt */
-.summary-card {
-    padding-bottom: 30px; /* Thêm khoảng trống dưới cùng của khung */
-}
+/* Page-specific overrides for /cart are now consolidated inside ShoppingCart.css */

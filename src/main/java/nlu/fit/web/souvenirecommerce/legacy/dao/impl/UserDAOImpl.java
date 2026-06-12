@@ -1,6 +1,6 @@
 package nlu.fit.web.souvenirecommerce.legacy.dao.impl;
 
-import nlu.fit.web.souvenirecommerce.common.enums.Gender;
+import nlu.fit.web.souvenirecommerce.model.enums.Gender;
 import nlu.fit.web.souvenirecommerce.model.entity.Address;
 import nlu.fit.web.souvenirecommerce.model.entity.Role;
 import nlu.fit.web.souvenirecommerce.model.entity.User;

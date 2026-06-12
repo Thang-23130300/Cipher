@@ -6,13 +6,15 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-import nlu.fit.web.souvenirecommerce.common.enums.PaymentMethod;
+import nlu.fit.web.souvenirecommerce.model.enums.PaymentMethod;
 import nlu.fit.web.souvenirecommerce.features.cart.model.Cart;
 import nlu.fit.web.souvenirecommerce.features.cart.service.CartService;
 import nlu.fit.web.souvenirecommerce.features.order.dto.CheckoutException;
 import nlu.fit.web.souvenirecommerce.features.order.dto.CheckoutRequest;
 import nlu.fit.web.souvenirecommerce.features.order.dto.CheckoutResult;
+import nlu.fit.web.souvenirecommerce.features.order.dto.PaymentContext;
 import nlu.fit.web.souvenirecommerce.features.order.service.CheckoutService;
+import nlu.fit.web.souvenirecommerce.features.payment.VnPayUtil;
 import nlu.fit.web.souvenirecommerce.model.entity.User;
 
 import java.io.IOException;
@@ -66,7 +68,14 @@ public class CheckoutController extends HttpServlet {
         }
 
         try {
-            CheckoutResult result = checkoutService.checkout(user, cart, buildCheckoutRequest(request));
+            CheckoutResult result = checkoutService.checkout(
+                    user,
+                    cart,
+                    buildCheckoutRequest(request),
+                    PaymentContext.builder()
+                            .clientIp(VnPayUtil.getClientIp(request))
+                            .returnUrl(buildVnPayReturnUrl(request))
+                            .build());
             cartService.clearUserCart(user.getId());
             cartService.clearSessionCart(session);
             session.setAttribute("lastOrderCode", result.getOrderCode());
@@ -89,6 +98,7 @@ public class CheckoutController extends HttpServlet {
         request.setAttribute("currentUser", user);
         request.setAttribute("savedAddresses", checkoutService.getUserAddresses(user.getId()));
         request.setAttribute("provinceOptions", checkoutService.getProvinces());
+        request.setAttribute("vnpayAvailable", checkoutService.isPaymentMethodAvailable(PaymentMethod.VNPAY_QR));
     }
 
     private CheckoutRequest buildCheckoutRequest(HttpServletRequest request) {
@@ -135,6 +145,17 @@ public class CheckoutController extends HttpServlet {
         } catch (NumberFormatException e) {
             return null;
         }
+    }
+
+    private String buildVnPayReturnUrl(HttpServletRequest request) {
+        return request.getScheme() + "://" + request.getServerName()
+                + (isDefaultPort(request) ? "" : ":" + request.getServerPort())
+                + request.getContextPath() + "/payment/vnpay-return";
+    }
+
+    private boolean isDefaultPort(HttpServletRequest request) {
+        return ("http".equalsIgnoreCase(request.getScheme()) && request.getServerPort() == 80)
+                || ("https".equalsIgnoreCase(request.getScheme()) && request.getServerPort() == 443);
     }
 
 }
