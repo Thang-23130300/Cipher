@@ -1,6 +1,7 @@
 package nlu.fit.web.souvenirecommerce.common.enums;
 
 public enum OrderStatusCode {
+    WAITING_SIGNATURE("Chờ ký số"),
     PENDING("Đang xử lý"),
     AWAITING_PAYMENT("Chờ thanh toán"),
     PAID("Đã thanh toán"),
