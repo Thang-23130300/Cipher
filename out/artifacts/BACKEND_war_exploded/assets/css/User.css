@@ -1,0 +1,207 @@
+/* User page */
+
+/* Layout */
+.account-container {
+    display: flex;
+    max-width: 1200px;
+    margin: 40px auto;
+    gap: 30px;
+    padding: 0 20px;
+}
+
+/* Sidebar */
+.account-sidebar {
+    flex: 0 0 260px;
+    background: var(--bg-white);
+    border-radius: var(--radius-md);
+    padding: 20px;
+    box-shadow: var(--shadow-sm);
+    height: fit-content;
+}
+
+/* Profile */
+.sidebar-profile strong {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-heading);
+}
+
+.sidebar-profile span {
+    font-size: 14px;
+    color: var(--text-muted);
+}
+
+.btn-change-avatar {
+    border: 1px solid var(--border-normal);
+    border-radius: var(--radius-sm);
+    padding: 4px 10px;
+    font-size: 12px;
+    background: var(--bg-white);
+}
+
+.btn-change-avatar:hover {
+    background: var(--bg-light);
+}
+
+/* Menu */
+.account-menu li a {
+    color: var(--text-main);
+    border-radius: var(--radius-sm);
+}
+
+.account-menu li a:hover {
+    background: var(--bg-light);
+}
+
+.account-menu li.active a {
+    background: var(--bg-light);
+    color: var(--color-primary);
+}
+
+/* Content */
+.account-content h1 {
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--text-heading);
+}
+
+.account-content p {
+    color: var(--text-muted);
+}
+
+/* Card (extend component) */
+.profile-card {
+    padding: 30px;
+}
+
+/* Form (extend only) */
+.form-group {
+    margin-bottom: 20px;
+}
+
+/* Button (extend only) */
+.btn-save {
+}
+
+/* Address */
+.address-item {
+    border: 1px solid var(--border-light);
+    padding: 20px 25px;
+    border-radius: var(--radius-md);
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 15px;
+    background: var(--bg-white);
+    transition: 0.2s;
+}
+
+.address-item:hover {
+    border-color: var(--color-primary);
+    box-shadow: var(--shadow-sm);
+}
+
+.address-item strong {
+    color: var(--text-heading);
+}
+
+.address-item p {
+    color: var(--text-muted);
+}
+
+.default-badge {
+    background: var(--bg-light);
+    color: var(--color-sale);
+    border-radius: var(--radius-sm);
+    font-size: 11px;
+}
+
+/* Action */
+.btn-link {
+    color: var(--color-primary);
+}
+
+.btn-link:hover {
+    text-decoration: underline;
+}
+
+.btn-link.btn-delete {
+    color: var(--color-sale);
+}
+
+/* Order */
+.order-tabs {
+    background: var(--bg-white);
+    border-bottom: 1px solid var(--border-light);
+}
+
+.tab-item {
+    color: var(--text-main);
+}
+
+.tab-item.active {
+    color: var(--color-primary);
+    border-bottom-color: var(--color-primary);
+}
+
+.order-content {
+    background: var(--bg-white);
+    box-shadow: var(--shadow-sm);
+}
+
+/* Table extend */
+.order-list-table th {
+    background: var(--bg-light);
+}
+
+/* Badge (extend) */
+.badge.success {
+    background: var(--color-primary);
+    color: var(--bg-white);
+}
+
+.badge.blue {
+    background: var(--color-primary);
+    color: var(--bg-white);
+}
+
+.badge.orange {
+    background: var(--color-accent);
+    color: var(--text-main);
+}
+
+.badge.red {
+    background: var(--color-sale);
+    color: var(--bg-white);
+}
+
+.badge.gray {
+    background: var(--text-muted);
+    color: var(--bg-white);
+}
+
+/* Review */
+.review-card {
+    padding: 25px;
+}
+
+.review-content .review-comment {
+    color: var(--text-main);
+}
+
+/* Wishlist */
+.product-image-wrapper {
+    background: var(--bg-light);
+}
+
+.product-name {
+    color: var(--text-secondary);
+}
+
+.product-price {
+    color: var(--text-heading);
+}
+
+/* Pagination extend */
+.pagination {
+    margin-top: 40px;
+}

@@ -1,8 +1,7 @@
-package nlu.fit.web.souvenirecommerce.common.utils;
+package nlu.fit.web.souvenirecommerce.core.config;
 
 import jakarta.persistence.EntityManager;
-import nlu.fit.web.souvenirecommerce.features.cart.model.NewCart;
-import nlu.fit.web.souvenirecommerce.features.cart.model.NewCartItem;
+import nlu.fit.web.souvenirecommerce.common.utils.ApplicationLoader;
 import nlu.fit.web.souvenirecommerce.model.entity.*;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -48,6 +47,14 @@ public class HibernateUtil {
         configuration.addAnnotatedClass(Promotion.class);
         configuration.addAnnotatedClass(ProductSpecification.class);
         configuration.addAnnotatedClass(Review.class);
+
+        // 5 thực thể bảo mật từ nhánh Dai
+        configuration.addAnnotatedClass(UserKey.class);
+        configuration.addAnnotatedClass(OrderSignedData.class);
+        configuration.addAnnotatedClass(OrderSignature.class);
+        configuration.addAnnotatedClass(OrderAuditLog.class);
+        configuration.addAnnotatedClass(KeyCompromiseReport.class);
+        // 2 thực thể giỏ hàng từ nhánh main
         configuration.addAnnotatedClass(NewCart.class);
         configuration.addAnnotatedClass(NewCartItem.class);
     }

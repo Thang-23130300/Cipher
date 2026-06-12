@@ -4,6 +4,7 @@ import lombok.Getter;
 
 @Getter
 public enum OrderStatusCode {
+    WAITING_SIGNATURE("Chờ ký số"),
     PENDING("Đang xử lý"),
     PENDING_PAYMENT("Chờ thanh toán"),
     PAYMENT_FAILED("Thanh toán thất bại"),
