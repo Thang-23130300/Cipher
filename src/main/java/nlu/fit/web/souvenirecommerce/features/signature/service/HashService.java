@@ -1,0 +1,27 @@
+package nlu.fit.web.souvenirecommerce.features.signature.service;
+
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+
+public class HashService {
+
+    public String sha256Hex(String data) {
+        if (data == null) {
+            throw new IllegalArgumentException("Dữ liệu cần hash không được null");
+        }
+
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hashBytes = digest.digest(data.getBytes(StandardCharsets.UTF_8));
+
+            StringBuilder hex = new StringBuilder();
+            for (byte b : hashBytes) {
+                hex.append(String.format("%02x", b));
+            }
+
+            return hex.toString();
+        } catch (Exception e) {
+            throw new RuntimeException("Không thể tạo SHA-256 hash", e);
+        }
+    }
+}
