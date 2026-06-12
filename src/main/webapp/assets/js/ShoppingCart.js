@@ -7,7 +7,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const totalQtyEl = document.getElementById("cart-total-qty");
     const toast = document.getElementById("cartToast");
     const toastClose = toast?.querySelector("button");
-    const cartItemsContainer = document.getElementById("cartItemsContainer");
+    const removeAllButton = document.getElementById("removeAllCartItems");
 
     let toastTimer = null;
 
@@ -65,6 +65,16 @@ document.addEventListener("DOMContentLoaded", () => {
         checkoutButton?.classList.toggle("checkout-btn--disabled", !hasSelection);
         checkoutButton?.setAttribute("aria-disabled", String(!hasSelection));
 
+        if (checkoutButton) {
+            const selectedIds = selectedCards
+                .map((card) => card.dataset.productId)
+                .filter(Boolean)
+                .join(",");
+            checkoutButton.href = hasSelection
+                ? `${contextPath}/checkout?items=${encodeURIComponent(selectedIds)}`
+                : `${contextPath}/checkout`;
+        }
+
         updateHeaderCounts();
     }
 
@@ -119,7 +129,7 @@ document.addEventListener("DOMContentLoaded", () => {
     function removeCard(card) {
         const productId = card.dataset.productId;
 
-        syncBackend(productId, 0)
+        return syncBackend(productId, 0)
             .then((response) => response.ok ? response.json() : null)
             .then((data) => {
                 if (data && data.success === false) {
@@ -165,6 +175,23 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         selectedCards.forEach(removeCard);
+    });
+
+    removeAllButton?.addEventListener("click", () => {
+        const cards = getCards();
+
+        if (cards.length === 0) {
+            return;
+        }
+
+        if (!window.confirm("Bạn có muốn xóa tất cả sản phẩm trong giỏ hàng không?")) {
+            return;
+        }
+
+        Promise.all(cards.map(removeCard)).then(() => {
+            showRemoveToast();
+            updateSelectedSummary();
+        });
     });
 
     toastClose?.addEventListener("click", () => {

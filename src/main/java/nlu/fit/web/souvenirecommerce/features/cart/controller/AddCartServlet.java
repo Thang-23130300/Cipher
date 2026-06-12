@@ -19,7 +19,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 
 @WebServlet(name = "AddCart", value = "/cart/add")
-public class AddCart extends HttpServlet {
+public class AddCartServlet extends HttpServlet {
     private final CartPersistenceService cartPersistenceService = new CartPersistenceService();
     private final CartSummaryService cartSummaryService = new CartSummaryService();
     private final CartPriceService cartPriceService = new CartPriceService();

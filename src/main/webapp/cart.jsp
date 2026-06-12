@@ -24,9 +24,12 @@
                 <div>Đơn giá</div>
                 <div>Số lượng</div>
                 <div>Tổng giá</div>
-                <div class="cart-head-remove">
+                <button type="button"
+                        class="cart-head-remove"
+                        id="removeAllCartItems"
+                        aria-label="Xóa tất cả sản phẩm">
                     <i class="fa-regular fa-trash-can"></i>
-                </div>
+                </button>
             </div>
 
             <c:choose>

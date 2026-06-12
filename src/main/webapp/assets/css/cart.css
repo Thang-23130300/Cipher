@@ -100,8 +100,16 @@
 }
 
 .cart-head-remove {
+    border: none;
+    background: transparent;
     text-align: right;
     color: #9ca3af;
+    cursor: pointer;
+    font-size: 20px;
+}
+
+.cart-head-remove:hover {
+    color: #d9422f;
 }
 
 .cart-check {

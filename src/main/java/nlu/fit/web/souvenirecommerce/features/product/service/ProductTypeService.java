@@ -5,7 +5,7 @@ import nlu.fit.web.souvenirecommerce.legacy.dao.ProductDAO;
 import nlu.fit.web.souvenirecommerce.legacy.dao.PromotionDAO;
 import nlu.fit.web.souvenirecommerce.features.product.dto.ProductCardDTO;
 import nlu.fit.web.souvenirecommerce.features.product.dto.ProductTypeDTO;
-import nlu.fit.web.souvenirecommerce.common.enums.ProductSort;
+import nlu.fit.web.souvenirecommerce.model.enums.ProductSort;
 import nlu.fit.web.souvenirecommerce.legacy.model.Promotion;
 import nlu.fit.web.souvenirecommerce.model.entity.Category;
 import nlu.fit.web.souvenirecommerce.model.entity.Product;
