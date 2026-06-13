@@ -17,6 +17,22 @@
     </div>
 </div>
 
+<c:if test="${not empty sessionScope.success}">
+    <div class="alert alert-success"
+         style="margin-bottom: 16px; padding: 12px 16px; border-radius: 8px; background: #e8f7ee; color: #176c35; border: 1px solid #b9e6c9;">
+        <c:out value="${sessionScope.success}"/>
+    </div>
+    <c:remove var="success" scope="session"/>
+</c:if>
+
+<c:if test="${not empty sessionScope.error}">
+    <div class="alert alert-error"
+         style="margin-bottom: 16px; padding: 12px 16px; border-radius: 8px; background: #fdecec; color: #9f1c1c; border: 1px solid #f3b8b8;">
+        <c:out value="${sessionScope.error}"/>
+    </div>
+    <c:remove var="error" scope="session"/>
+</c:if>
+
 <!-- Order Detail Section -->
 <c:if test="${not empty requestScope.order}">
     <section class="profile-panel">
