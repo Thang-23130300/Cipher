@@ -375,6 +375,26 @@ public class OrderDAO {
         return false;
     }
 
+    public boolean updateSignatureStatus(int orderId, String signatureStatus, boolean signed) {
+        if (signatureStatus == null || signatureStatus.isBlank()) {
+            throw new IllegalArgumentException("signatureStatus không được rỗng");
+        }
+
+        String sql = signed
+                ? "UPDATE orders SET signature_status = ?, signed_at = NOW() WHERE id = ?"
+                : "UPDATE orders SET signature_status = ?, signed_at = NULL WHERE id = ?";
+
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, signatureStatus);
+            ps.setInt(2, orderId);
+            return ps.executeUpdate() > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
     public List<Order> getOrdersByStatus(String status, int page, int pageSize) {
         List<Order> orders = new ArrayList<>();
         int offset = (page - 1) * pageSize;
