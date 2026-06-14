@@ -15,7 +15,29 @@
             </c:otherwise>
         </c:choose>
     </div>
+    <c:if test="${empty requestScope.order}">
+        <a href="${pageContext.request.contextPath}/key-management" class="secondary-button manage-key-button">
+            <i class="fa-solid fa-shield-keyhole"></i>
+            <span>Quản lý khóa công khai</span>
+        </a>
+    </c:if>
 </div>
+
+<c:if test="${not empty sessionScope.success}">
+    <div class="alert alert-success"
+         style="margin-bottom: 16px; padding: 12px 16px; border-radius: 8px; background: #e8f7ee; color: #176c35; border: 1px solid #b9e6c9;">
+        <c:out value="${sessionScope.success}"/>
+    </div>
+    <c:remove var="success" scope="session"/>
+</c:if>
+
+<c:if test="${not empty sessionScope.error}">
+    <div class="alert alert-error"
+         style="margin-bottom: 16px; padding: 12px 16px; border-radius: 8px; background: #fdecec; color: #9f1c1c; border: 1px solid #f3b8b8;">
+        <c:out value="${sessionScope.error}"/>
+    </div>
+    <c:remove var="error" scope="session"/>
+</c:if>
 
 <!-- Order Detail Section -->
 <c:if test="${not empty requestScope.order}">
@@ -90,7 +112,8 @@
                         <article class="order-card">
                             <div class="order-card__header">
                                 <div class="order-card__info">
-                                    <h3>Đơn hàng #${order.id}</h3>
+                                    <h3>Mã đơn hàng: <c:out value="${order.orderCode}"/></h3>
+                                    <p class="order-id">Đơn hàng #${order.id}</p>
                                     <p class="order-date">
                                         <fmt:formatDate value="${order.createdAt}" pattern="dd/MM/yyyy HH:mm"/>
                                     </p>
@@ -110,6 +133,22 @@
                             </div>
 
                             <div class="order-card__body">
+                                <div class="order-meta">
+                                    <span>Trạng thái chữ ký</span>
+                                    <strong class="signature-status signature-status--${order.signatureStatus}">
+                                        <c:choose>
+                                            <c:when test="${order.signatureStatus eq 'WAITING_SIGNATURE'}">Chờ ký số</c:when>
+                                            <c:when test="${order.signatureStatus eq 'SIGNED'}">Đã ký hợp lệ</c:when>
+                                            <c:when test="${order.signatureStatus eq 'SIGNATURE_INVALID'}">Chữ ký không hợp lệ</c:when>
+                                            <c:when test="${order.signatureStatus eq 'KEY_COMPROMISED_REVIEW'}">Khóa cần xem xét</c:when>
+                                            <c:when test="${order.signatureStatus eq 'DATA_TAMPERED'}">Dữ liệu bị thay đổi</c:when>
+                                            <c:when test="${order.signatureStatus eq 'UNSIGNED'}">Chưa ký</c:when>
+                                            <c:otherwise>
+                                                <c:out value="${empty order.signatureStatus ? 'Chưa có' : order.signatureStatus}"/>
+                                            </c:otherwise>
+                                        </c:choose>
+                                    </strong>
+                                </div>
                                 <div class="order-total">
                                     <span>Tổng tiền:</span>
                                     <strong>
@@ -119,6 +158,20 @@
                             </div>
 
                             <div class="order-card__footer">
+                                <c:if test="${order.signatureStatus eq 'WAITING_SIGNATURE'}">
+                                    <a href="${pageContext.request.contextPath}/orders/sign?id=${order.id}"
+                                       class="secondary-button sign-order-button">
+                                        <i class="fa-solid fa-signature"></i>
+                                        <span>Ký đơn hàng</span>
+                                    </a>
+                                </c:if>
+                                <c:if test="${order.signatureStatus eq 'SIGNATURE_INVALID'}">
+                                    <a href="${pageContext.request.contextPath}/orders/sign?id=${order.id}"
+                                       class="secondary-button sign-order-button">
+                                        <i class="fa-solid fa-rotate-right"></i>
+                                        <span>Ký lại</span>
+                                    </a>
+                                </c:if>
                                 <a href="${pageContext.request.contextPath}/user/orders?action=detail&id=${order.id}"
                                    class="primary-button">
                                     <i class="fa-solid fa-eye"></i>

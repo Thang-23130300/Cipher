@@ -32,6 +32,7 @@ public class VnPayIpnServlet extends HttpServlet {
         return switch (outcome) {
             case PROCESSED -> "Confirm Success";
             case ALREADY_PROCESSED -> "Order already confirmed";
+            case SIGNATURE_REQUIRED -> "Order signature required";
             case ORDER_NOT_FOUND -> "Order not found";
             case INVALID_AMOUNT -> "Invalid amount";
             case INVALID_REQUEST -> "Invalid request";

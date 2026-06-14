@@ -1,9 +1,28 @@
 package nlu.fit.web.souvenirecommerce.features.signature.dao;
 
 import nlu.fit.web.souvenirecommerce.common.utils.HibernateUtil;
+import nlu.fit.web.souvenirecommerce.model.entity.OrderSignedData;
 import org.hibernate.Session;
 
+import java.util.Optional;
+
 public class OrderSignedDataDAO {
+
+    public Optional<OrderSignedData> findByOrderId(Long orderId) {
+        if (orderId == null) {
+            return Optional.empty();
+        }
+
+        Session session = HibernateUtil.getSessionFactory().getCurrentSession();
+
+        return session.createQuery("""
+                        select d
+                        from nlu.fit.web.souvenirecommerce.model.entity.OrderSignedData d
+                        where d.order.id = :orderId
+                        """, OrderSignedData.class)
+                .setParameter("orderId", orderId)
+                .uniqueResultOptional();
+    }
 
     public void saveOrUpdate(Long orderId, String signedDataJson, String hashValue) {
         if (orderId == null) {

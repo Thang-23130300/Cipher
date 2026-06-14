@@ -99,6 +99,29 @@
             color: white;
         }
 
+        .btn-secondary {
+            background: #fff;
+            color: #374151;
+            border: 1px solid #d1d5db;
+        }
+
+        .btn-secondary:hover {
+            border-color: #2563eb;
+            color: #2563eb;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            gap: 16px;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .page-header h1 {
+            margin-bottom: 0;
+        }
+
         .key-box {
             background: #f8fafc;
             border: 1px solid #dbe3ef;
@@ -148,7 +171,19 @@
 
 <body>
 <div class="key-page">
-    <h1>Quản lý khóa công khai</h1>
+    <div class="page-header">
+        <h1>Quản lý khóa công khai</h1>
+        <div>
+            <c:if test="${not empty returnUrl}">
+                <a href="${pageContext.request.contextPath}${returnUrl}" class="btn btn-primary">
+                    Tiếp tục ký đơn
+                </a>
+            </c:if>
+            <a href="${pageContext.request.contextPath}/user/orders" class="btn btn-secondary">
+                Quay lại đơn hàng
+            </a>
+        </div>
+    </div>
 
     <p class="description">
         Trang này dùng để lưu public key của bạn trên hệ thống.
@@ -173,6 +208,9 @@
         <h2>Thêm / cập nhật public key</h2>
 
         <form method="post" action="${pageContext.request.contextPath}/signature/keys/save">
+            <c:if test="${not empty returnUrl}">
+                <input type="hidden" name="returnUrl" value="${returnUrl}">
+            </c:if>
             <label for="publicKey">Public key PEM</label>
 
             <textarea id="publicKey" name="publicKey" placeholder="-----BEGIN PUBLIC KEY-----

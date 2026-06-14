@@ -14,7 +14,7 @@ import nlu.fit.web.souvenirecommerce.model.entity.User;
 import java.io.IOException;
 import java.util.List;
 
-@WebServlet("/user/orders")
+@WebServlet(urlPatterns = {"/user/orders", "/orders"})
 public class UserOrderController extends HttpServlet {
 
     private final OrderDAO orderDAO = new OrderDAO();

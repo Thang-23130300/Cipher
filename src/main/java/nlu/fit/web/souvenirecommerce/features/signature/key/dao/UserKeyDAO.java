@@ -10,6 +10,10 @@ import java.util.Optional;
 
 public class UserKeyDAO {
 
+    public Optional<UserKeyDTO> findActiveKeyByUserId(Long userId) {
+        return findActiveByUserId(userId);
+    }
+
     public Optional<UserKeyDTO> findActiveByUserId(Long userId) {
         String sql = """
                 SELECT id, user_id, public_key, key_algorithm, key_size,

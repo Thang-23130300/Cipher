@@ -10,6 +10,7 @@ public class PaymentCallbackResult {
     public enum Outcome {
         PROCESSED,
         ALREADY_PROCESSED,
+        SIGNATURE_REQUIRED,
         ORDER_NOT_FOUND,
         INVALID_AMOUNT,
         INVALID_REQUEST
@@ -24,6 +25,7 @@ public class PaymentCallbackResult {
             case PROCESSED -> "00";
             case ORDER_NOT_FOUND -> "01";
             case ALREADY_PROCESSED -> "02";
+            case SIGNATURE_REQUIRED -> "99";
             case INVALID_AMOUNT -> "04";
             case INVALID_REQUEST -> "99";
         };

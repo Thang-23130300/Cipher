@@ -29,6 +29,9 @@ public class PaymentProcessingService {
         if (transaction == null || transaction.getMethod() != PaymentMethod.VNPAY_QR) {
             return result(PaymentCallbackResult.Outcome.ORDER_NOT_FOUND, false, null);
         }
+        if (!isOrderSigned(transaction)) {
+            return result(PaymentCallbackResult.Outcome.SIGNATURE_REQUIRED, false, transaction);
+        }
 
         BigDecimal callbackAmount = BigDecimal.valueOf(amountRaw, 2);
         if (transaction.getAmount().compareTo(callbackAmount) != 0) {
@@ -67,6 +70,9 @@ public class PaymentProcessingService {
         if (transaction.getStatus() == PaymentStatus.PAID) {
             throw new CheckoutException("Đơn hàng đã được thanh toán.");
         }
+        if (!isOrderSigned(transaction)) {
+            throw new CheckoutException("Vui lòng ký đơn hàng hợp lệ trước khi thanh toán.");
+        }
 
         String paymentUrl = vnPayService.createPaymentUrl(
                 orderId,
@@ -82,6 +88,12 @@ public class PaymentProcessingService {
         transaction.getOrder().setStatus(resolveStatus(OrderStatusCode.PENDING_PAYMENT));
         paymentRepository.update(transaction);
         return paymentUrl;
+    }
+
+    private boolean isOrderSigned(PaymentTransaction transaction) {
+        return transaction != null
+                && transaction.getOrder() != null
+                && "SIGNED".equals(transaction.getOrder().getSignatureStatus());
     }
 
     private OrderStatus resolveStatus(OrderStatusCode code) {

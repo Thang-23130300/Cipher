@@ -5,7 +5,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Đặt hàng thành công - INOLA</title>
+    <title>
+        <c:choose>
+            <c:when test="${signaturePaymentSuccess}">Thanh toán thành công - INOLA</c:when>
+            <c:otherwise>Đơn hàng chờ ký - INOLA</c:otherwise>
+        </c:choose>
+    </title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/theme.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/Base.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/layout/header.css">
@@ -22,9 +27,21 @@
             <div class="payment-result__icon">
                 <i class="fa-solid fa-check" aria-hidden="true"></i>
             </div>
-            <h1>Đặt hàng thành công</h1>
+            <h1>
+                <c:choose>
+                    <c:when test="${signaturePaymentSuccess}">Ký hợp lệ, thanh toán thành công</c:when>
+                    <c:otherwise>Đơn hàng đã được tạo</c:otherwise>
+                </c:choose>
+            </h1>
             <p class="payment-result__message">
-                Đơn hàng đã được ghi nhận. INOLA sẽ liên hệ xác nhận và xử lý giao hàng trong thời gian sớm nhất.
+                <c:choose>
+                    <c:when test="${signaturePaymentSuccess}">
+                        Chữ ký số đã được xác thực. Đơn hàng của bạn đã được xác nhận và sẵn sàng xử lý.
+                    </c:when>
+                    <c:otherwise>
+                        Đơn hàng đã được tạo và đang chờ ký xác nhận. Vui lòng ký đơn hàng để hệ thống tiếp tục xử lý hoặc thanh toán.
+                    </c:otherwise>
+                </c:choose>
             </p>
             <c:if test="${not empty orderCode}">
                 <dl class="payment-result__details">
@@ -33,6 +50,12 @@
                 </dl>
             </c:if>
             <div class="payment-result__actions">
+                <c:if test="${not signaturePaymentSuccess and not empty orderId}">
+                    <a class="payment-action payment-action--primary"
+                       href="${pageContext.request.contextPath}/orders/sign?id=${orderId}">
+                        Ký đơn hàng
+                    </a>
+                </c:if>
                 <a class="payment-action payment-action--primary" href="${pageContext.request.contextPath}/user/orders">
                     Xem đơn hàng
                 </a>

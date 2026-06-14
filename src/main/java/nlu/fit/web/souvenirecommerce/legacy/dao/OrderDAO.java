@@ -3,6 +3,8 @@ package nlu.fit.web.souvenirecommerce.legacy.dao;
 import nlu.fit.web.souvenirecommerce.legacy.model.Order;
 import nlu.fit.web.souvenirecommerce.legacy.model.OrderItem;
 import nlu.fit.web.souvenirecommerce.legacy.utils.DBContext;
+import nlu.fit.web.souvenirecommerce.common.utils.HibernateUtil;
+import org.hibernate.Session;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -345,6 +347,8 @@ public class OrderDAO {
                     order.setOrderDate(rs.getTimestamp("order_date"));
                     order.setTotalAmount(rs.getDouble("total_amount"));
                     order.setStatus(rs.getString("status_name"));
+                    order.setSignatureStatus(rs.getString("signature_status"));
+                    order.setSignedAt(rs.getTimestamp("signed_at"));
 
                     // Build shipping address
                     String address = rs.getString("address_detail") + ", " +
@@ -373,6 +377,49 @@ public class OrderDAO {
             e.printStackTrace();
         }
         return false;
+    }
+
+    public boolean updateSignatureStatus(int orderId, String signatureStatus, boolean signed) {
+        System.out.println("[OrderDAO.updateSignatureStatus] START orderId=" + orderId
+                + ", signatureStatus=" + signatureStatus);
+
+        if (signatureStatus == null || signatureStatus.isBlank()) {
+            throw new IllegalArgumentException("signatureStatus không được rỗng");
+        }
+
+        try {
+            System.out.println("[OrderDAO.updateSignatureStatus] before get session");
+            Session session = HibernateUtil.getSessionFactory().getCurrentSession();
+
+            System.out.println("[OrderDAO.updateSignatureStatus] before execute update");
+            String hql = signed
+                    ? """
+                    update CustomerOrder o
+                    set o.signatureStatus = :signatureStatus,
+                        o.signedAt = current_timestamp
+                    where o.id = :orderId
+                    """
+                    : """
+                    update CustomerOrder o
+                    set o.signatureStatus = :signatureStatus,
+                        o.signedAt = null
+                    where o.id = :orderId
+                    """;
+
+            int rows = session.createMutationQuery(hql)
+                    .setParameter("signatureStatus", signatureStatus)
+                    .setParameter("orderId", (long) orderId)
+                    .executeUpdate();
+
+            System.out.println("[OrderDAO.updateSignatureStatus] after execute update rows=" + rows);
+            System.out.println("[OrderDAO.updateSignatureStatus] END orderId=" + orderId);
+            return rows > 0;
+        } catch (Exception e) {
+            System.out.println("[OrderDAO.updateSignatureStatus] ERROR orderId=" + orderId
+                    + ", message=" + e.getMessage());
+            e.printStackTrace();
+            throw e;
+        }
     }
 
     public List<Order> getOrdersByStatus(String status, int page, int pageSize) {
@@ -515,7 +562,9 @@ public class OrderDAO {
     public List<Order> getOrdersByUserId(int userId) {
         List<Order> orders = new ArrayList<>();
         String sql = """
-            SELECT o.*, os.description as status_name
+            SELECT o.id, o.user_id, o.order_date, o.total_amount,
+                   o.signature_status, o.signed_at,
+                   os.description as status_name
             FROM orders o 
             LEFT JOIN order_status os ON o.status_id = os.id
             WHERE o.user_id = ?
@@ -532,6 +581,8 @@ public class OrderDAO {
                     order.setOrderDate(rs.getTimestamp("order_date"));
                     order.setTotalAmount(rs.getDouble("total_amount"));
                     order.setStatus(rs.getString("status_name"));
+                    order.setSignatureStatus(rs.getString("signature_status"));
+                    order.setSignedAt(rs.getTimestamp("signed_at"));
                     orders.add(order);
                 }
             }

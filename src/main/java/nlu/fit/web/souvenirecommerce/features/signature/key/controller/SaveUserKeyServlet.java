@@ -9,6 +9,8 @@ import nlu.fit.web.souvenirecommerce.features.signature.key.service.UserKeyServi
 import nlu.fit.web.souvenirecommerce.model.entity.User;
 
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 
 @WebServlet("/signature/keys/save")
 public class SaveUserKeyServlet extends HttpServlet {
@@ -26,14 +28,36 @@ public class SaveUserKeyServlet extends HttpServlet {
         }
 
         String publicKey = request.getParameter("publicKey");
+        String returnUrl = sanitizeReturnUrl(request.getParameter("returnUrl"));
 
         try {
             userKeyService.saveNewPublicKey(currentUser.getId(), publicKey);
             request.getSession().setAttribute("success", "Lưu public key thành công.");
+            response.sendRedirect(request.getContextPath()
+                    + (returnUrl == null ? "/key-management" : returnUrl));
+            return;
         } catch (Exception e) {
             request.getSession().setAttribute("error", e.getMessage());
         }
 
-        response.sendRedirect(request.getContextPath() + "/signature/keys");
+        String redirectUrl = request.getContextPath() + "/key-management";
+        if (returnUrl != null) {
+            redirectUrl += "?returnUrl=" + URLEncoder.encode(returnUrl, StandardCharsets.UTF_8);
+        }
+        response.sendRedirect(redirectUrl);
+    }
+
+    private String sanitizeReturnUrl(String returnUrl) {
+        if (returnUrl == null || returnUrl.isBlank()) {
+            return null;
+        }
+
+        String trimmed = returnUrl.trim();
+        if (!trimmed.startsWith("/") || trimmed.startsWith("//")
+                || trimmed.contains("\r") || trimmed.contains("\n")) {
+            return null;
+        }
+
+        return trimmed;
     }
 }
