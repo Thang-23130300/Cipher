@@ -13,7 +13,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
-@WebServlet("/signature/keys")
+@WebServlet(urlPatterns = {"/signature/keys", "/key-management"})
 public class UserKeyPageServlet extends HttpServlet {
     private final UserKeyService userKeyService = new UserKeyService();
 
@@ -35,8 +35,23 @@ public class UserKeyPageServlet extends HttpServlet {
 
         request.setAttribute("activeKey", activeKey.orElse(null));
         request.setAttribute("keyHistory", keyHistory);
+        request.setAttribute("returnUrl", sanitizeReturnUrl(request.getParameter("returnUrl")));
 
         request.getRequestDispatcher("/WEB-INF/views/signature/user-key.jsp")
                 .forward(request, response);
+    }
+
+    private String sanitizeReturnUrl(String returnUrl) {
+        if (returnUrl == null || returnUrl.isBlank()) {
+            return null;
+        }
+
+        String trimmed = returnUrl.trim();
+        if (!trimmed.startsWith("/") || trimmed.startsWith("//")
+                || trimmed.contains("\r") || trimmed.contains("\n")) {
+            return null;
+        }
+
+        return trimmed;
     }
 }

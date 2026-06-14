@@ -17,7 +17,7 @@ public class OrderSignedDataDAO {
 
         return session.createQuery("""
                         select d
-                        from OrderSignedData d
+                        from nlu.fit.web.souvenirecommerce.model.entity.OrderSignedData d
                         where d.order.id = :orderId
                         """, OrderSignedData.class)
                 .setParameter("orderId", orderId)

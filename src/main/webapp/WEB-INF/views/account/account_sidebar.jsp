@@ -59,6 +59,11 @@
       <i class="fa-solid fa-receipt"></i>
       <span>Đơn hàng</span>
     </a>
+    <a href="${pageContext.request.contextPath}/key-management"
+       class="${requestScope.pageTitle eq 'Khóa công khai' ? 'is-active' : ''}">
+      <i class="fa-solid fa-shield-keyhole"></i>
+      <span>Khóa công khai</span>
+    </a>
     <a href="${pageContext.request.contextPath}/user/address"
        class="${requestScope.pageTitle eq 'Địa chỉ' ? 'is-active' : ''}">
       <i class="fa-solid fa-location-dot"></i>

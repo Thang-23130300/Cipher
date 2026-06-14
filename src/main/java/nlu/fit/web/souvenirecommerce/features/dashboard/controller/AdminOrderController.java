@@ -140,6 +140,20 @@ public class AdminOrderController extends HttpServlet {
 
         String newStatus = request.getParameter("status");
 
+        Order order = orderDAO.getOrderById(orderId);
+        if (order == null) {
+            log.warn("Order not found for admin status update. orderId={}", orderId);
+            response.sendRedirect(request.getContextPath() + "/admin/orders?error=true");
+            return;
+        }
+
+        if (!"SIGNED".equals(order.getSignatureStatus())) {
+            log.warn("Blocked admin status update for unsigned order. orderId={}, signatureStatus={}",
+                    orderId, order.getSignatureStatus());
+            response.sendRedirect(request.getContextPath() + "/admin/orders?error=signature_required");
+            return;
+        }
+
         log.info("Updating order status. orderId={}, newStatus={}", orderId, newStatus);
         boolean success = orderDAO.updateOrderStatus(orderId, newStatus);
 

@@ -2,6 +2,7 @@ package nlu.fit.web.souvenirecommerce.legacy.model;
 
 import lombok.*;
 
+import java.text.SimpleDateFormat;
 import java.util.Date;
 
 @Getter
@@ -19,4 +20,16 @@ public class Order {
     private String status;
     private String shippingAddress;
     private String paymentMethod;
+    private String signatureStatus;
+    private Date signedAt;
+
+    public String getOrderCode() {
+        Date codeDate = orderDate == null ? new Date() : orderDate;
+        return "ORD-" + new SimpleDateFormat("yyyyMMdd").format(codeDate)
+                + "-" + String.format("%05d", id);
+    }
+
+    public Date getCreatedAt() {
+        return orderDate;
+    }
 }

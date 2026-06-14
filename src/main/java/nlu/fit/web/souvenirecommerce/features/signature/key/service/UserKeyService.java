@@ -23,8 +23,14 @@ public class UserKeyService {
         validateUserId(userId);
         validatePublicKey(publicKey);
 
+        String normalizedPublicKey = normalizePublicKey(publicKey);
+        Optional<UserKeyDTO> activeKey = userKeyDAO.findActiveKeyByUserId(userId);
+        if (activeKey.isPresent() && samePublicKey(activeKey.get().getPublicKey(), normalizedPublicKey)) {
+            throw new IllegalArgumentException("Public key này đang được sử dụng");
+        }
+
         userKeyDAO.revokeActiveKeys(userId);
-        userKeyDAO.savePublicKey(userId, normalizePublicKey(publicKey));
+        userKeyDAO.savePublicKey(userId, normalizedPublicKey);
     }
 
     public void revokeKey(Long keyId, Long userId) {
@@ -66,5 +72,13 @@ public class UserKeyService {
 
     private String normalizePublicKey(String publicKey) {
         return publicKey == null ? null : publicKey.trim();
+    }
+
+    private boolean samePublicKey(String currentPublicKey, String newPublicKey) {
+        return compactPem(currentPublicKey).equals(compactPem(newPublicKey));
+    }
+
+    private String compactPem(String publicKey) {
+        return publicKey == null ? "" : publicKey.replaceAll("\\s", "");
     }
 }

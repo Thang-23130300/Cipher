@@ -96,11 +96,7 @@ public class CheckoutController extends HttpServlet {
             session.setAttribute("lastOrderCode", result.getOrderCode());
             session.setAttribute("lastOrderId", result.getOrder().getId());
 
-            if (result.requiresExternalPayment()) {
-                response.sendRedirect(result.getPaymentUrl());
-                return;
-            }
-            response.sendRedirect(request.getContextPath() + "/order-success");
+            response.sendRedirect(request.getContextPath() + "/orders/sign?id=" + result.getOrder().getId());
         } catch (CheckoutException e) {
             request.setAttribute("error", e.getMessage());
             prepareCheckoutHeader(request);
