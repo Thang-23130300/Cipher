@@ -158,9 +158,7 @@ public class CheckoutService {
     }
 
     private OrderStatus resolveInitialStatus(PaymentMethod method) {
-        OrderStatusCode statusCode = method == PaymentMethod.COD
-                ? OrderStatusCode.PENDING
-                : OrderStatusCode.PENDING_PAYMENT;
+        OrderStatusCode statusCode = OrderStatusCode.WAITING_SIGNATURE;
 
         return orderStatusRepository.findByDescription(statusCode.getDescription())
                 .orElseGet(() -> orderStatusRepository.save(OrderStatus.builder()
