@@ -67,7 +67,26 @@
                         </span>
                     </p>
                 </div>
+                <div class="info-item">
+                    <label>Trạng thái chữ ký</label>
+                    <p>
+                        <strong class="signature-status signature-status--${requestScope.order.signatureStatus}">
+                            <c:choose>
+                                <c:when test="${requestScope.order.signatureStatus eq 'WAITING_SIGNATURE'}">Chờ ký số</c:when>
+                                <c:when test="${requestScope.order.signatureStatus eq 'SIGNED'}">Đã ký hợp lệ</c:when>
+                                <c:when test="${requestScope.order.signatureStatus eq 'SIGNATURE_INVALID'}">Chữ ký không hợp lệ</c:when>
+                                <c:when test="${requestScope.order.signatureStatus eq 'KEY_COMPROMISED_REVIEW'}">Khóa cần xem xét</c:when>
+                                <c:when test="${requestScope.order.signatureStatus eq 'DATA_TAMPERED'}">Dữ liệu bị thay đổi</c:when>
+                                <c:when test="${requestScope.order.signatureStatus eq 'UNSIGNED'}">Chưa ký</c:when>
+                                <c:otherwise>
+                                    <c:out value="${empty requestScope.order.signatureStatus ? 'Chưa có' : requestScope.order.signatureStatus}"/>
+                                </c:otherwise>
+                            </c:choose>
+                        </strong>
+                    </p>
+                </div>
             </div>
+
             <div class="order-detail-total">
                 <span>Tổng tiền:</span>
                 <strong>
@@ -94,11 +113,23 @@
         </div>
     </section>
 
-    <div style="margin-top: 16px;">
-        <a href="${pageContext.request.contextPath}/user/orders" class="text-button">
+    <div style="margin-top: 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+        <a href="${pageContext.request.contextPath}/user/orders" class="text-button" style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
             <i class="fa-solid fa-arrow-left"></i>
             <span>Quay lại danh sách đơn hàng</span>
         </a>
+        <c:if test="${requestScope.order.signatureStatus eq 'WAITING_SIGNATURE'}">
+            <a href="${pageContext.request.contextPath}/orders/sign?id=${requestScope.order.id}" class="primary-button" style="display: inline-flex; align-items: center; gap: 8px; text-decoration: none;">
+                <i class="fa-solid fa-signature"></i>
+                <span>Ký đơn hàng</span>
+            </a>
+        </c:if>
+        <c:if test="${requestScope.order.signatureStatus eq 'SIGNATURE_INVALID'}">
+            <a href="${pageContext.request.contextPath}/orders/sign?id=${requestScope.order.id}" class="primary-button" style="background-color: var(--danger); display: inline-flex; align-items: center; gap: 8px; text-decoration: none;">
+                <i class="fa-solid fa-rotate-right"></i>
+                <span>Ký lại</span>
+            </a>
+        </c:if>
     </div>
 </c:if>
 
