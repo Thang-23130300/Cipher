@@ -7,18 +7,21 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import nlu.fit.web.souvenirecommerce.features.signature.service.OrderProcessingGateService;
 import nlu.fit.web.souvenirecommerce.legacy.dao.OrderDAO;
 import nlu.fit.web.souvenirecommerce.legacy.model.Order;
 import nlu.fit.web.souvenirecommerce.legacy.model.OrderItem;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Locale;
 
 @WebServlet("/admin/orders")
 public class AdminOrderController extends HttpServlet {
 
     private static final Logger log = LoggerFactory.getLogger(AdminOrderController.class);
     private final OrderDAO orderDAO = new OrderDAO();
+    private final OrderProcessingGateService processingGateService = new OrderProcessingGateService();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -147,9 +150,10 @@ public class AdminOrderController extends HttpServlet {
             return;
         }
 
-        if (!"SIGNED".equals(order.getSignatureStatus())) {
+        if (requiresValidSignature(newStatus) && !processingGateService.canProcess(order)) {
             log.warn("Blocked admin status update for unsigned order. orderId={}, signatureStatus={}",
                     orderId, order.getSignatureStatus());
+            request.getSession().setAttribute("error", OrderProcessingGateService.DEFAULT_BLOCK_MESSAGE);
             response.sendRedirect(request.getContextPath() + "/admin/orders?error=signature_required");
             return;
         }
@@ -164,5 +168,22 @@ public class AdminOrderController extends HttpServlet {
             log.warn("Order status update failed. orderId={}, newStatus={}", orderId, newStatus);
             response.sendRedirect(request.getContextPath() + "/admin/orders?error=true");
         }
+    }
+
+    private boolean requiresValidSignature(String newStatus) {
+        if (newStatus == null) {
+            return false;
+        }
+
+        String normalizedStatus = newStatus.trim().toUpperCase(Locale.ROOT);
+        return "PROCESSING".equals(normalizedStatus)
+                || "SHIPPING".equals(normalizedStatus)
+                || "SHIPPED".equals(normalizedStatus)
+                || "COMPLETED".equals(normalizedStatus)
+                || "PAID".equals(normalizedStatus)
+                || "ĐANG XỬ LÝ".equals(normalizedStatus)
+                || "ĐANG GIAO".equals(normalizedStatus)
+                || "HOÀN THÀNH".equals(normalizedStatus)
+                || "ĐÃ THANH TOÁN".equals(normalizedStatus);
     }
 }
