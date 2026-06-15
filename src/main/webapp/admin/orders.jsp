@@ -29,7 +29,15 @@
             <c:if test="${not empty param.success}">
                 <div class="alert alert-success">Cập nhật trạng thái đơn hàng thành công.</div>
             </c:if>
-            <c:if test="${not empty param.error}">
+            <c:set var="adminFlashError" value="${sessionScope.error}"/>
+            <c:if test="${not empty adminFlashError}">
+                <div class="alert alert-danger"><c:out value="${adminFlashError}"/></div>
+                <c:remove var="error" scope="session"/>
+            </c:if>
+            <c:if test="${param.error == 'signature_required' and empty adminFlashError}">
+                <div class="alert alert-danger">Đơn hàng chưa có chữ ký hợp lệ, không thể xử lý.</div>
+            </c:if>
+            <c:if test="${not empty param.error and param.error != 'signature_required'}">
                 <div class="alert alert-danger">Cập nhật trạng thái đơn hàng thất bại. Vui lòng thử lại.</div>
             </c:if>
 
