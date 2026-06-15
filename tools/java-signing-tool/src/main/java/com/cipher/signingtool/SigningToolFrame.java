@@ -1,5 +1,9 @@
 package com.cipher.signingtool;
 
+import com.cipher.signingtool.localapi.LocalApiServer;
+import com.cipher.signingtool.localapi.SignRequest;
+import com.cipher.signingtool.localapi.SigningApiBridge;
+
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
@@ -11,6 +15,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTextArea;
 import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
@@ -24,8 +29,9 @@ import java.nio.file.Files;
 import java.security.KeyPair;
 import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.lang.reflect.InvocationTargetException;
 
-public class SigningToolFrame extends JFrame {
+public class SigningToolFrame extends JFrame implements SigningApiBridge {
     private final KeyPairService keyPairService = new KeyPairService();
     private final SignatureService signatureService = new SignatureService();
     private final KeyLoader keyLoader = new KeyLoader();
@@ -34,6 +40,9 @@ public class SigningToolFrame extends JFrame {
     private final JTextArea hashValueArea = createTextArea(5);
     private final JTextArea signatureArea = createTextArea(7);
     private final JLabel statusLabel = new JLabel("Ready", SwingConstants.LEFT);
+    private final LocalApiServer localApiServer = new LocalApiServer(this);
+    private final JButton startApiButton = new JButton("Start API Server");
+    private final JButton stopApiButton = new JButton("Stop API Server");
 
     private PrivateKey currentPrivateKey;
     private PublicKey currentPublicKey;
@@ -47,6 +56,12 @@ public class SigningToolFrame extends JFrame {
 
         add(createContentPanel(), BorderLayout.CENTER);
         add(createStatusPanel(), BorderLayout.SOUTH);
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            @Override
+            public void windowClosing(java.awt.event.WindowEvent event) {
+                localApiServer.stop();
+            }
+        });
 
         pack();
     }
@@ -87,11 +102,17 @@ public class SigningToolFrame extends JFrame {
         exportPrivateButton.addActionListener(event -> exportPrivateKey());
         loadPrivateButton.addActionListener(event -> loadPrivateKey());
 
+        startApiButton.addActionListener(event -> startApiServer());
+        stopApiButton.addActionListener(event -> stopApiServer());
+        stopApiButton.setEnabled(false);
+
         actions.add(generateButton);
         actions.add(copyPublicButton);
         actions.add(exportPublicButton);
         actions.add(exportPrivateButton);
         actions.add(loadPrivateButton);
+        actions.add(startApiButton);
+        actions.add(stopApiButton);
 
         panel.add(actions, BorderLayout.NORTH);
         panel.add(new JScrollPane(publicKeyArea), BorderLayout.CENTER);
@@ -231,6 +252,85 @@ public class SigningToolFrame extends JFrame {
         } catch (Exception e) {
             showError(e.getMessage());
         }
+    }
+
+    private void startApiServer() {
+        try {
+            localApiServer.start();
+            startApiButton.setEnabled(false);
+            stopApiButton.setEnabled(true);
+            setStatus("Local API Server started at http://localhost:" + localApiServer.getPort());
+        } catch (Exception e) {
+            showError(e.getMessage());
+        }
+    }
+
+    private void stopApiServer() {
+        localApiServer.stop();
+        startApiButton.setEnabled(true);
+        stopApiButton.setEnabled(false);
+        setStatus("Local API Server stopped.");
+    }
+
+    @Override
+    public String getPublicKeyPem() {
+        if (currentPublicKey == null) {
+            throw new IllegalStateException("No public key available. Generate a key pair first.");
+        }
+        return PemUtils.publicKeyToPem(currentPublicKey);
+    }
+
+    @Override
+    public boolean hasPrivateKey() {
+        return currentPrivateKey != null;
+    }
+
+    @Override
+    public boolean isSha256Hex(String hashValue) {
+        return signatureService.isSha256Hex(hashValue);
+    }
+
+    @Override
+    public boolean confirmSigning(SignRequest request) {
+        final int[] option = new int[] {JOptionPane.NO_OPTION};
+
+        Runnable dialogTask = () -> option[0] = JOptionPane.showConfirmDialog(
+                this,
+                "Website requests signing confirmation.\n\n"
+                        + "Order ID: " + safeText(request.getOrderId()) + "\n"
+                        + "Merchant: " + safeText(request.getMerchantName()) + "\n"
+                        + "Hash algorithm: " + safeText(request.getHashAlgorithm()) + "\n"
+                        + "Signature algorithm: SHA256withRSA\n\n"
+                        + "Hash value:\n" + safeText(request.getHashValue()) + "\n\n"
+                        + "Do you agree to sign this hash?",
+                "Confirm signing request",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.WARNING_MESSAGE
+        );
+
+        try {
+            if (SwingUtilities.isEventDispatchThread()) {
+                dialogTask.run();
+            } else {
+                SwingUtilities.invokeAndWait(dialogTask);
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return false;
+        } catch (InvocationTargetException e) {
+            return false;
+        }
+
+        return option[0] == JOptionPane.YES_OPTION;
+    }
+
+    @Override
+    public String signHashValue(String hashValue) {
+        return signatureService.signHashValue(hashValue, currentPrivateKey);
+    }
+
+    private String safeText(String value) {
+        return value == null || value.isBlank() ? "N/A" : value.trim();
     }
 
     private JFileChooser createPemChooser() {
