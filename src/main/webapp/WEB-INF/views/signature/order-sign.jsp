@@ -164,6 +164,13 @@
             cursor: default;
         }
 
+        .textarea-custom:disabled {
+            background: var(--surface-muted);
+            border-color: var(--border-subtle);
+            color: var(--text-soft);
+            cursor: not-allowed;
+        }
+
         .textarea-signature {
             height: 140px;
         }
@@ -372,7 +379,7 @@
         <div class="order-summary-grid">
             <div class="summary-item">
                 <label>Mã Đơn hàng</label>
-                <span>#${order.id}</span>
+                <span><c:out value="${order.orderCode}"/></span>
             </div>
             <div class="summary-item">
                 <label>Ngày đặt</label>
@@ -430,7 +437,7 @@
                 <div class="input-group-textarea">
                         <textarea id="signatureValue" name="signatureValue" class="textarea-custom textarea-signature"
                                   placeholder="Dán chữ ký Base64 từ Signing Tool vào đây hoặc nhấn 'Ký bằng Signing Tool' để kết nối tự động..."
-                                  <c:if test="${hasActivePublicKey eq false}">disabled</c:if></textarea>
+                                  <c:if test="${hasActivePublicKey eq false}">disabled</c:if>></textarea>
                 </div>
             </div>
 
