@@ -166,6 +166,15 @@
             color: #777;
             font-style: italic;
         }
+        .status-lost {
+            color: #d97706;
+            font-weight: bold;
+        }
+
+        .status-compromised {
+            color: #dc2626;
+            font-weight: bold;
+        }
     </style>
 </head>
 
@@ -246,13 +255,40 @@ MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8A...
 
                 <div class="key-box"><c:out value="${activeKey.publicKey}"/></div>
 
-                <form method="post" action="${pageContext.request.contextPath}/signature/keys/revoke" style="margin-top: 12px;">
-                    <input type="hidden" name="keyId" value="${activeKey.id}">
-                    <button type="submit" class="btn btn-danger"
-                            onclick="return confirm('Bạn chắc chắn muốn thu hồi public key này?');">
-                        Thu hồi key
-                    </button>
-                </form>
+                <div style="display: flex; gap: 20px; margin-top: 20px; flex-wrap: wrap;">
+                    <!-- Form thu hồi thường -->
+                    <div style="flex: 1; min-width: 280px; border: 1px solid #e2e8f0; padding: 16px; border-radius: 8px; background: #fff;">
+                        <h4 style="margin-top:0; color: #374151;">Thu hồi khóa thông thường</h4>
+                        <p style="color:#64748b; font-size:0.85rem; margin-bottom:12px;">Các đơn hàng cũ vẫn giữ trạng thái hợp lệ.</p>
+                        <form method="post" action="${pageContext.request.contextPath}/signature/keys/revoke">
+                            <input type="hidden" name="keyId" value="${activeKey.id}">
+                            <button type="submit" class="btn btn-secondary" onclick="return confirm('Xác nhận thu hồi?');">Thu hồi thông thường</button>
+                        </form>
+                    </div>
+                    <!-- Form báo cáo sự cố bảo mật -->
+                    <div style="flex: 1; min-width: 280px; border: 1px solid #fee2e2; padding: 16px; border-radius: 8px; background: #fff5f5;">
+                        <h4 style="margin-top: 0; color: #991b1b;">Báo cáo sự cố bảo mật</h4>
+                        <form method="post" action="${pageContext.request.contextPath}/signature/keys/report">
+                            <input type="hidden" name="keyId" value="${activeKey.id}">
+                            <div style="margin-bottom: 10px;">
+                                <label style="font-weight:normal; font-size:0.9rem; display: block; margin-bottom: 4px;">Loại sự cố:</label>
+                                <select name="reportType" id="reportType" style="width:100%; padding:8px; border-radius:6px; border:1px solid #cbd5e1;" onchange="toggleCompromisedTime(this.value)">
+                                    <option value="LOST">Báo mất khóa (LOST)</option>
+                                    <option value="COMPROMISED">Báo lộ khóa (COMPROMISED)</option>
+                                </select>
+                            </div>
+                            <div id="compromisedTimeGroup" style="margin-bottom: 10px; display: none;">
+                                <label style="font-weight:normal; font-size:0.9rem; color:#b91c1c; display: block; margin-bottom: 4px;">Mốc thời gian bị lộ:</label>
+                                <input type="datetime-local" name="compromisedFrom" id="compromisedFrom" style="width:100%; padding:8px; border-radius:6px; border:1px solid #cbd5e1;">
+                            </div>
+                            <div style="margin-bottom: 10px;">
+                                <label style="font-weight:normal; font-size:0.9rem; display: block; margin-bottom: 4px;">Mô tả chi tiết:</label>
+                                <textarea name="description" style="width: 100%; min-height: 70px; border-radius:6px; border:1px solid #cbd5e1; font-family: inherit; font-size: inherit;"></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-danger" style="width: 100%;" onclick="return confirmIncidentReport();">Gửi báo cáo</button>
+                        </form>
+                    </div>
+                </div>
             </c:when>
 
             <c:otherwise>
@@ -285,6 +321,12 @@ MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8A...
                                     <c:when test="${key.keyStatus == 'ACTIVE'}">
                                         <span class="status-active">ACTIVE</span>
                                     </c:when>
+                                    <c:when test="${key.keyStatus == 'LOST'}">
+                                        <span class="status-lost">LOST</span>
+                                    </c:when>
+                                    <c:when test="${key.keyStatus == 'COMPROMISED'}">
+                                        <span class="status-compromised">COMPROMISED</span>
+                                    </c:when>
                                     <c:otherwise>
                                         <span class="status-revoked">
                                             <c:out value="${key.keyStatus}"/>
@@ -311,5 +353,29 @@ MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8A...
         </c:choose>
     </div>
 </div>
+<script>
+    function toggleCompromisedTime(type) {
+        var group = document.getElementById('compromisedTimeGroup');
+        var input = document.getElementById('compromisedFrom');
+        if (type === 'COMPROMISED') {
+            group.style.display = 'block';
+            input.required = true;
+            var now = new Date();
+            var offset = now.getTimezoneOffset() * 60000;
+            input.value = (new Date(now - offset)).toISOString().slice(0, 16);
+        } else {
+            group.style.display = 'none';
+            input.required = false;
+            input.value = '';
+        }
+    }
+    function confirmIncidentReport() {
+        var type = document.getElementById('reportType').value;
+        if (type === 'COMPROMISED') {
+            return confirm('Cảnh báo: Báo cáo lộ khóa sẽ rà soát quét hồi tố toàn bộ đơn hàng! Bạn muốn tiếp tục?');
+        }
+        return confirm('Xác nhận báo mất khóa? Khóa sẽ bị hủy ngay.');
+    }
+</script>
 </body>
 </html>
