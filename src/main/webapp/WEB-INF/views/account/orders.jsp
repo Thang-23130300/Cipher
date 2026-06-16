@@ -95,6 +95,16 @@
             </div>
         </div>
 
+        <c:if test="${requestScope.order.signatureStatus ne 'SIGNED'}">
+            <div class="alert alert-error"
+                 style="margin-top: 16px; padding: 12px 16px; border-radius: 8px; background: #fff4e5; color: #8a4b00; border: 1px solid #ffd7a8;">
+                Đơn hàng chưa có chữ ký hợp lệ, không thể xử lý.
+                <a href="${pageContext.request.contextPath}/key-management" style="color: inherit; font-weight: 700;">
+                    Quản lý khóa công khai
+                </a>
+            </div>
+        </c:if>
+
         <h3 style="margin-top: 24px; margin-bottom: 16px;">Sản phẩm</h3>
         <div class="order-items">
             <c:forEach items="${requestScope.orderItems}" var="item">
