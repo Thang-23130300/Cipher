@@ -631,4 +631,159 @@ public class OrderDAO {
             throw e;
         }
     }
+    public List<Order> getOrdersFiltered(String orderStatus, String signatureStatus, int page, int pageSize) {
+        List<Order> orders = new ArrayList<>();
+        int offset = (page - 1) * pageSize;
+
+        List<Object> params = new ArrayList<>();
+        StringBuilder sql = new StringBuilder("""
+            SELECT o.*, os.description as status_name, u.full_name, u.email 
+            FROM orders o 
+            LEFT JOIN order_status os ON o.status_id = os.id
+            LEFT JOIN users u ON o.user_id = u.id 
+            WHERE 1=1
+        """);
+
+        if (orderStatus != null && !orderStatus.isEmpty() && !"all".equals(orderStatus)) {
+            sql.append(" AND os.description = ?");
+            params.add(orderStatus);
+        }
+
+        if (signatureStatus != null && !signatureStatus.isEmpty() && !"all".equals(signatureStatus)) {
+            sql.append(" AND o.signature_status = ?");
+            params.add(signatureStatus);
+        }
+
+        sql.append(" ORDER BY o.id DESC LIMIT ? OFFSET ?");
+        params.add(pageSize);
+        params.add(offset);
+
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+            for (int i = 0; i < params.size(); i++) {
+                Object p = params.get(i);
+                if (p instanceof Integer) {
+                    ps.setInt(i + 1, (Integer) p);
+                } else if (p instanceof String) {
+                    ps.setString(i + 1, (String) p);
+                }
+            }
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Order order = new Order();
+                    order.setId(rs.getInt("id"));
+                    order.setUserId(rs.getInt("user_id"));
+                    order.setCustomerName(rs.getString("full_name"));
+                    order.setCustomerEmail(rs.getString("email"));
+                    order.setOrderDate(rs.getTimestamp("order_date"));
+                    order.setTotalAmount(rs.getDouble("total_amount"));
+                    order.setStatus(rs.getString("status_name"));
+                    order.setSignatureStatus(rs.getString("signature_status"));
+                    order.setSignedAt(rs.getTimestamp("signed_at"));
+                    orders.add(order);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return orders;
+    }
+
+    public int getOrderCountFiltered(String orderStatus, String signatureStatus) {
+        List<Object> params = new ArrayList<>();
+        StringBuilder sql = new StringBuilder("""
+            SELECT COUNT(*) as total
+            FROM orders o 
+            LEFT JOIN order_status os ON o.status_id = os.id
+            WHERE 1=1
+        """);
+
+        if (orderStatus != null && !orderStatus.isEmpty() && !"all".equals(orderStatus)) {
+            sql.append(" AND os.description = ?");
+            params.add(orderStatus);
+        }
+
+        if (signatureStatus != null && !signatureStatus.isEmpty() && !"all".equals(signatureStatus)) {
+            sql.append(" AND o.signature_status = ?");
+            params.add(signatureStatus);
+        }
+
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+            for (int i = 0; i < params.size(); i++) {
+                Object p = params.get(i);
+                if (p instanceof String) {
+                    ps.setString(i + 1, (String) p);
+                }
+            }
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("total");
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    public Map<String, Object> getOrderSignatureInfo(int orderId) {
+        Map<String, Object> info = new HashMap<>();
+        String sql = """
+            SELECT key_id, signature_value, verify_status, signed_at 
+            FROM order_signatures 
+            WHERE order_id = ?
+        """;
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, orderId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    info.put("key_id", rs.getLong("key_id"));
+                    info.put("signature_value", rs.getString("signature_value"));
+                    info.put("verify_status", rs.getString("verify_status"));
+                    info.put("signed_at", rs.getTimestamp("signed_at"));
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return info;
+    }
+
+    public List<nlu.fit.web.souvenirecommerce.model.entity.OrderAuditLog> getOrderAuditLogs(int orderId) {
+        List<nlu.fit.web.souvenirecommerce.model.entity.OrderAuditLog> logs = new ArrayList<>();
+        String sql = """
+            SELECT id, actor_id, actor_role, action_type, field_name, old_value, new_value, is_signed_field, created_at
+            FROM order_audit_logs
+            WHERE order_id = ?
+            ORDER BY id DESC
+        """;
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, orderId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    nlu.fit.web.souvenirecommerce.model.entity.OrderAuditLog log = new nlu.fit.web.souvenirecommerce.model.entity.OrderAuditLog();
+                    log.setId(rs.getLong("id"));
+                    log.setActorId(rs.getObject("actor_id") != null ? rs.getLong("actor_id") : null);
+                    log.setActorRole(rs.getString("actor_role"));
+                    log.setActionType(rs.getString("action_type"));
+                    log.setFieldName(rs.getString("field_name"));
+                    log.setOldValue(rs.getString("old_value"));
+                    log.setNewValue(rs.getString("new_value"));
+                    log.setSignedField(rs.getBoolean("is_signed_field"));
+
+                    java.sql.Timestamp ts = rs.getTimestamp("created_at");
+                    if (ts != null) {
+                        log.setCreatedAt(ts.toLocalDateTime());
+                    }
+                    logs.add(log);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return logs;
+    }
 }
