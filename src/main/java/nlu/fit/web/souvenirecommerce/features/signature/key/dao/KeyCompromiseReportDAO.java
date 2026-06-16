@@ -1,0 +1,32 @@
+package nlu.fit.web.souvenirecommerce.features.signature.key.dao;
+
+import nlu.fit.web.souvenirecommerce.common.utils.HibernateUtil;
+import org.hibernate.Session;
+
+import java.time.LocalDateTime;
+
+public class KeyCompromiseReportDAO {
+
+    public void saveReport(Long userId,
+                           Long keyId,
+                           String reportType,
+                           LocalDateTime compromisedFrom,
+                           String description) {
+        String sql = """
+                INSERT INTO key_compromise_reports
+                    (user_id, key_id, report_type, compromised_from, description, created_at)
+                VALUES
+                    (:userId, :keyId, :reportType, :compromisedFrom, :description, NOW())
+                """;
+
+        Session session = HibernateUtil.getSessionFactory().getCurrentSession();
+
+        session.createNativeMutationQuery(sql)
+                .setParameter("userId", userId)
+                .setParameter("keyId", keyId)
+                .setParameter("reportType", reportType)
+                .setParameter("compromisedFrom", compromisedFrom)
+                .setParameter("description", description)
+                .executeUpdate();
+    }
+}

@@ -17,7 +17,8 @@ public class UserKeyDAO {
     public Optional<UserKeyDTO> findActiveByUserId(Long userId) {
         String sql = """
                 SELECT id, user_id, public_key, key_algorithm, key_size,
-                       signature_algorithm, key_status, created_at, revoked_at
+                       signature_algorithm, key_status, created_at, revoked_at,
+                       compromised_from, note
                 FROM user_keys
                 WHERE user_id = :userId
                   AND key_status = 'ACTIVE'
@@ -37,7 +38,8 @@ public class UserKeyDAO {
     public List<UserKeyDTO> findAllByUserId(Long userId) {
         String sql = """
                 SELECT id, user_id, public_key, key_algorithm, key_size,
-                       signature_algorithm, key_status, created_at, revoked_at
+                       signature_algorithm, key_status, created_at, revoked_at,
+                       compromised_from, note
                 FROM user_keys
                 WHERE user_id = :userId
                 ORDER BY id DESC
@@ -106,6 +108,33 @@ public class UserKeyDAO {
                 .executeUpdate();
     }
 
+    public int markKeyAsReported(Long keyId,
+                                 Long userId,
+                                 String keyStatus,
+                                 LocalDateTime compromisedFrom,
+                                 String note) {
+        String sql = """
+                UPDATE user_keys
+                SET key_status = :keyStatus,
+                    revoked_at = NOW(),
+                    compromised_from = :compromisedFrom,
+                    note = :note
+                WHERE id = :keyId
+                  AND user_id = :userId
+                  AND key_status = 'ACTIVE'
+                """;
+
+        Session session = HibernateUtil.getSessionFactory().getCurrentSession();
+
+        return session.createNativeMutationQuery(sql)
+                .setParameter("keyId", keyId)
+                .setParameter("userId", userId)
+                .setParameter("keyStatus", keyStatus)
+                .setParameter("compromisedFrom", compromisedFrom)
+                .setParameter("note", note)
+                .executeUpdate();
+    }
+
     private UserKeyDTO mapRow(Object[] row) {
         return UserKeyDTO.builder()
                 .id(((Number) row[0]).longValue())
@@ -117,6 +146,8 @@ public class UserKeyDAO {
                 .keyStatus((String) row[6])
                 .createdAt(toLocalDateTime(row[7]))
                 .revokedAt(toLocalDateTime(row[8]))
+                .compromisedFrom(toLocalDateTime(row[9]))
+                .note((String) row[10])
                 .build();
     }
 

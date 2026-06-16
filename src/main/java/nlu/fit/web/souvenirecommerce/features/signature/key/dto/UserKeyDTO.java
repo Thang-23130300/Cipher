@@ -23,4 +23,6 @@ public class UserKeyDTO {
     private String keyStatus;
     private LocalDateTime createdAt;
     private LocalDateTime revokedAt;
+    private LocalDateTime compromisedFrom;
+    private String note;
 }
