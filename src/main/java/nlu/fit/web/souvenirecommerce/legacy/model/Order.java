@@ -21,6 +21,7 @@ public class Order {
     private String shippingAddress;
     private String paymentMethod;
     private String signatureStatus;
+    private String verifyStatus;
     private Date signedAt;
 
     public String getOrderCode() {

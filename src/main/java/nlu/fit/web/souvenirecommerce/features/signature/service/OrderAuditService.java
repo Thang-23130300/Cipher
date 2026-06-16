@@ -122,7 +122,11 @@ public class OrderAuditService {
                 sigValid = false;
             }
 
-            if (!sigValid || tampered) {
+            if (tampered) {
+                return "DATA_TAMPERED";
+            }
+
+            if (!sigValid) {
                 return "SIGNATURE_INVALID";
             }
 

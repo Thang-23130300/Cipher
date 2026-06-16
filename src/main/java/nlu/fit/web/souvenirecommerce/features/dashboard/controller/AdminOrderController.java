@@ -157,6 +157,13 @@ public class AdminOrderController extends HttpServlet {
         }
 
         String newStatus = request.getParameter("status");
+        if (isSignatureStatusValue(newStatus)) {
+            log.warn("Blocked attempt to set signature status through order status form. orderId={}, submittedStatus={}",
+                    orderId, newStatus);
+            request.getSession().setAttribute("error", "Staff/Admin không được tự chuyển trạng thái chữ ký của đơn hàng.");
+            response.sendRedirect(request.getContextPath() + "/admin/orders?error=signature_required");
+            return;
+        }
 
         Order order = orderDAO.getOrderById(orderId);
         if (order == null) {
@@ -201,5 +208,19 @@ public class AdminOrderController extends HttpServlet {
                 || "ĐANG GIAO".equals(normalizedStatus)
                 || "HOÀN THÀNH".equals(normalizedStatus)
                 || "ĐÃ THANH TOÁN".equals(normalizedStatus);
+    }
+
+    private boolean isSignatureStatusValue(String newStatus) {
+        if (newStatus == null) {
+            return false;
+        }
+
+        String normalizedStatus = newStatus.trim().toUpperCase(Locale.ROOT);
+        return "SIGNED".equals(normalizedStatus)
+                || "WAITING_SIGNATURE".equals(normalizedStatus)
+                || "SIGNATURE_INVALID".equals(normalizedStatus)
+                || "KEY_COMPROMISED_REVIEW".equals(normalizedStatus)
+                || "DATA_TAMPERED".equals(normalizedStatus)
+                || "UNSIGNED".equals(normalizedStatus);
     }
 }
