@@ -6,10 +6,12 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.KeyPair;
+import java.security.PublicKey;
 import java.security.Signature;
 import java.util.Base64;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -39,6 +41,34 @@ class SigningToolCoreTest {
     }
 
     @Test
+    void localConfigStoresOnlyLastPrivateKeyPath() throws Exception {
+        Path configFile = Files.createTempFile("signing-tool-config", ".properties");
+        Path privateKeyFile = Files.createTempFile("signing-tool-private-key", ".pem");
+        LocalConfigService configService = new LocalConfigService(configFile);
+
+        configService.saveLastPrivateKeyPath(privateKeyFile);
+
+        String configText = Files.readString(configFile, StandardCharsets.UTF_8);
+        assertTrue(configText.contains("lastPrivateKeyPath="));
+        assertTrue(configService.getLastPrivateKeyPath().isPresent());
+        assertEquals(privateKeyFile.toAbsolutePath().normalize(), configService.getLastPrivateKeyPath().get());
+    }
+
+    @Test
+    void publicKeyCanBeDerivedFromLoadedPrivateKey() throws Exception {
+        KeyPair keyPair = new KeyPairService().generateKeyPair();
+        Path privateKeyFile = Files.createTempFile("signing-tool-private-key", ".pem");
+        Files.writeString(privateKeyFile, PemUtils.privateKeyToPem(keyPair.getPrivate()), StandardCharsets.UTF_8);
+
+        KeyLoader keyLoader = new KeyLoader();
+        PublicKey derivedPublicKey = keyLoader.derivePublicKey(keyLoader.loadPrivateKey(privateKeyFile));
+
+        String hashValue = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef";
+        String signatureBase64 = new SignatureService().signHashValue(hashValue, keyPair.getPrivate());
+        assertTrue(verify(hashValue, signatureBase64, derivedPublicKey));
+    }
+
+    @Test
     void emptyHashIsRejected() {
         KeyPair keyPair = new KeyPairService().generateKeyPair();
 
@@ -58,8 +88,12 @@ class SigningToolCoreTest {
     }
 
     private boolean verify(String hashValue, String signatureBase64, KeyPair keyPair) throws Exception {
+        return verify(hashValue, signatureBase64, keyPair.getPublic());
+    }
+
+    private boolean verify(String hashValue, String signatureBase64, PublicKey publicKey) throws Exception {
         Signature verifier = Signature.getInstance("SHA256withRSA");
-        verifier.initVerify(keyPair.getPublic());
+        verifier.initVerify(publicKey);
         verifier.update(hashValue.getBytes(StandardCharsets.UTF_8));
         return verifier.verify(Base64.getDecoder().decode(signatureBase64));
     }

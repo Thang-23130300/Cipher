@@ -5,6 +5,7 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import nlu.fit.web.souvenirecommerce.features.signature.service.OrderProcessingGateService;
 
 import java.io.IOException;
 import java.util.Map;
@@ -43,7 +44,7 @@ public class VnPayReturnServlet extends HttpServlet {
                     ? "Giao dịch đã được xác nhận thành công."
                     : "Giao dịch chưa hoàn tất hoặc đã bị hủy.";
             case ALREADY_PROCESSED -> "Đơn hàng này đã được thanh toán trước đó.";
-            case SIGNATURE_REQUIRED -> "Vui lòng ký đơn hàng hợp lệ trước khi thanh toán.";
+            case SIGNATURE_REQUIRED -> OrderProcessingGateService.DEFAULT_BLOCK_MESSAGE;
             case ORDER_NOT_FOUND -> "Không tìm thấy đơn hàng tương ứng với giao dịch.";
             case INVALID_AMOUNT -> "Số tiền thanh toán không khớp với đơn hàng.";
             case INVALID_REQUEST -> "Phản hồi thanh toán không hợp lệ.";

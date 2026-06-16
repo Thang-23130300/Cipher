@@ -515,7 +515,13 @@
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ hash: hash })
+                body: JSON.stringify({
+                    orderId: '${requestScope.order.id}',
+                    merchantName: 'INOLA',
+                    hashAlgorithm: 'SHA-256',
+                    signatureAlgorithm: 'SHA256withRSA',
+                    hashValue: hash
+                })
             });
 
             if (!response.ok) {

@@ -155,10 +155,12 @@ public class OrderDAO {
     public List<Order> getAllOrders() {
         List<Order> orders = new ArrayList<>();
         String sql = """
-            SELECT o.*, os.description as status_name, u.full_name, u.email 
+            SELECT o.*, os.description as status_name, u.full_name, u.email,
+                   sig.verify_status as signature_verify_status
             FROM orders o 
             LEFT JOIN order_status os ON o.status_id = os.id
             LEFT JOIN users u ON o.user_id = u.id 
+            LEFT JOIN order_signatures sig ON sig.order_id = o.id
             ORDER BY o.id DESC
         """;
         try (Connection conn = DBContext.getConnection();
@@ -176,6 +178,7 @@ public class OrderDAO {
 
                 order.setSignatureStatus(rs.getString("signature_status"));
                 order.setSignedAt(rs.getTimestamp("signed_at"));
+                order.setVerifyStatus(rs.getString("signature_verify_status"));
 
                 orders.add(order);
             }
@@ -189,10 +192,12 @@ public class OrderDAO {
         List<Order> orders = new ArrayList<>();
         int offset = (page - 1) * pageSize;
         String sql = """
-            SELECT o.*, os.description as status_name, u.full_name, u.email 
+            SELECT o.*, os.description as status_name, u.full_name, u.email,
+                   sig.verify_status as signature_verify_status
             FROM orders o 
             LEFT JOIN order_status os ON o.status_id = os.id
             LEFT JOIN users u ON o.user_id = u.id 
+            LEFT JOIN order_signatures sig ON sig.order_id = o.id
             ORDER BY o.id DESC
             LIMIT ? OFFSET ?
         """;
@@ -213,6 +218,7 @@ public class OrderDAO {
 
                     order.setSignatureStatus(rs.getString("signature_status"));
                     order.setSignedAt(rs.getTimestamp("signed_at"));
+                    order.setVerifyStatus(rs.getString("signature_verify_status"));
                     orders.add(order);
                 }
             }
@@ -335,11 +341,13 @@ public class OrderDAO {
     public Order getOrderById(int orderId) {
         String sql = """
             SELECT o.*, os.description as status_name, u.full_name, u.email, u.phone,
-                   a.address_detail, a.city, a.district, a.ward
+                   a.address_detail, a.city, a.district, a.ward,
+                   sig.verify_status as signature_verify_status
             FROM orders o 
             LEFT JOIN order_status os ON o.status_id = os.id
             LEFT JOIN users u ON o.user_id = u.id
             LEFT JOIN addresses a ON o.address_id = a.id
+            LEFT JOIN order_signatures sig ON sig.order_id = o.id
             WHERE o.id = ?
         """;
         try (Connection conn = DBContext.getConnection();
@@ -357,6 +365,7 @@ public class OrderDAO {
                     order.setStatus(rs.getString("status_name"));
                     order.setSignatureStatus(rs.getString("signature_status"));
                     order.setSignedAt(rs.getTimestamp("signed_at"));
+                    order.setVerifyStatus(rs.getString("signature_verify_status"));
 
                     // Build shipping address
                     String address = rs.getString("address_detail") + ", " +
@@ -434,10 +443,12 @@ public class OrderDAO {
         List<Order> orders = new ArrayList<>();
         int offset = (page - 1) * pageSize;
         String sql = """
-            SELECT o.*, os.description as status_name, u.full_name, u.email 
+            SELECT o.*, os.description as status_name, u.full_name, u.email,
+                   sig.verify_status as signature_verify_status
             FROM orders o 
             LEFT JOIN order_status os ON o.status_id = os.id
             LEFT JOIN users u ON o.user_id = u.id 
+            LEFT JOIN order_signatures sig ON sig.order_id = o.id
             WHERE os.description = ?
             ORDER BY o.id DESC
             LIMIT ? OFFSET ?
@@ -460,6 +471,7 @@ public class OrderDAO {
 
                     order.setSignatureStatus(rs.getString("signature_status"));
                     order.setSignedAt(rs.getTimestamp("signed_at"));
+                    order.setVerifyStatus(rs.getString("signature_verify_status"));
                     orders.add(order);
                 }
             }
@@ -502,10 +514,12 @@ public class OrderDAO {
     public List<Order> getRecentOrders(int limit) {
         List<Order> orders = new ArrayList<>();
         String sql = """
-            SELECT o.*, os.description as status_name, u.full_name, u.email 
+            SELECT o.*, os.description as status_name, u.full_name, u.email,
+                   sig.verify_status as signature_verify_status
             FROM orders o 
             LEFT JOIN order_status os ON o.status_id = os.id
             LEFT JOIN users u ON o.user_id = u.id 
+            LEFT JOIN order_signatures sig ON sig.order_id = o.id
             ORDER BY o.id DESC
             LIMIT ?
         """;
@@ -525,6 +539,7 @@ public class OrderDAO {
 
                     order.setSignatureStatus(rs.getString("signature_status"));
                     order.setSignedAt(rs.getTimestamp("signed_at"));
+                    order.setVerifyStatus(rs.getString("signature_verify_status"));
                     orders.add(order);
                 }
             }

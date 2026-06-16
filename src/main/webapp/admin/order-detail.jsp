@@ -86,6 +86,17 @@
                                             </p>
                                         </div>
                                     </c:when>
+                                    <c:when test="${order.signatureStatus != 'SIGNED'}">
+                                        <div class="alert alert-warning mb-4" style="border-left: 5px solid #f59e0b; background-color: #fffbeb; border-radius: 8px; padding: 20px;">
+                                            <h4 class="alert-heading text-warning" style="font-weight: 700; font-size: 1.05rem; display: flex; align-items: center; gap: 10px; color: #b45309 !important;">
+                                                <i class="fas fa-lock" style="font-size: 1.2rem;"></i>
+                                                Đơn hàng chưa có chữ ký hợp lệ
+                                            </h4>
+                                            <p class="mb-0 mt-2" style="color: #78350f; font-size: 0.95rem; line-height: 1.6;">
+                                                Đơn hàng chưa có chữ ký hợp lệ, không thể xử lý.
+                                            </p>
+                                        </div>
+                                    </c:when>
                                 </c:choose>
 
                                 <!-- Danh sách sản phẩm trong đơn hàng -->
@@ -320,6 +331,22 @@
                                                 </c:choose>
                                             </div>
                                         </div>
+                                        <div class="mt-3 pt-3 border-top">
+                                            <div class="text-muted small mb-1">Verify status</div>
+                                            <div style="font-weight: 500; color: #4a5568;">
+                                                <c:out value="${empty order.verifyStatus ? 'Chưa có chữ ký để verify' : order.verifyStatus}"/>
+                                            </div>
+                                        </div>
+                                        <div class="mt-3 pt-3 border-top">
+                                            <div class="text-muted small mb-1">Đánh giá rủi ro khóa</div>
+                                            <div style="font-weight: 500; color: #4a5568;">
+                                                <c:choose>
+                                                    <c:when test="${order.signatureStatus == 'KEY_COMPROMISED_REVIEW'}">Khóa cần xem xét</c:when>
+                                                    <c:when test="${order.signatureStatus == 'SIGNED'}">Không phát hiện rủi ro</c:when>
+                                                    <c:otherwise>Chưa đủ điều kiện đánh giá</c:otherwise>
+                                                </c:choose>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
 
@@ -353,12 +380,20 @@
                                                         <i class="fas fa-radiation"></i> Dữ liệu bị giả mạo
                                                     </span>
                                                 </c:when>
+                                                <c:when test="${order.signatureStatus == 'WAITING_SIGNATURE'}">
+                                                    <span class="badge bg-warning text-dark py-2 px-3 fs-6 d-inline-flex align-items-center gap-2" style="border-radius: 20px; font-weight: normal; font-size: 0.85rem !important;">
+                                                        <i class="fas fa-clock"></i> Chờ ký số
+                                                    </span>
+                                                </c:when>
                                                 <c:otherwise>
                                                     <span class="badge bg-secondary text-white py-2 px-3 fs-6 d-inline-flex align-items-center gap-2" style="border-radius: 20px; font-weight: normal; font-size: 0.85rem !important;">
-                                                        <i class="fas fa-question-circle"></i> Chưa ký số
+                                                        <i class="fas fa-question-circle"></i> <c:out value="${empty order.signatureStatus ? 'Chưa ký số' : order.signatureStatus}"/>
                                                     </span>
                                                 </c:otherwise>
                                             </c:choose>
+                                            <div class="text-muted mt-2" style="font-size: 0.82rem;">
+                                                Verify: <c:out value="${empty order.verifyStatus ? 'N/A' : order.verifyStatus}"/>
+                                            </div>
                                         </div>
 
                                         <!-- Trạng thái đơn hàng hiện tại -->
@@ -425,7 +460,7 @@
                                                         <i class="fas fa-ban me-2"></i>Không thể cập nhật
                                                     </button>
                                                     <small class="text-danger d-block mt-2 text-center" style="font-size: 0.8rem;">
-                                                        Đơn hàng chưa được ký số.
+                                                        Đơn hàng chưa có chữ ký hợp lệ, không thể xử lý.
                                                     </small>
                                                 </c:otherwise>
                                             </c:choose>

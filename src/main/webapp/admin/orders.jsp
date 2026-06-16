@@ -29,7 +29,15 @@
             <c:if test="${not empty param.success}">
                 <div class="alert alert-success">Cập nhật trạng thái đơn hàng thành công.</div>
             </c:if>
-            <c:if test="${not empty param.error}">
+            <c:set var="adminFlashError" value="${sessionScope.error}"/>
+            <c:if test="${not empty adminFlashError}">
+                <div class="alert alert-danger"><c:out value="${adminFlashError}"/></div>
+                <c:remove var="error" scope="session"/>
+            </c:if>
+            <c:if test="${param.error == 'signature_required' and empty adminFlashError}">
+                <div class="alert alert-danger">Đơn hàng chưa có chữ ký hợp lệ, không thể xử lý.</div>
+            </c:if>
+            <c:if test="${not empty param.error and param.error != 'signature_required'}">
                 <div class="alert alert-danger">Cập nhật trạng thái đơn hàng thất bại. Vui lòng thử lại.</div>
             </c:if>
 
@@ -106,6 +114,7 @@
                             <th>Ngày đặt</th>
                             <th>Tổng tiền</th>
                             <th>Trạng thái</th>
+                            <th>Chữ ký</th>
                             <th>Phương thức</th>
                             <th>Hành động</th>
                         </tr>
@@ -114,7 +123,7 @@
                         <c:choose>
                             <c:when test="${empty orders}">
                                 <tr>
-                                    <td colspan="7" class="orders-empty-state">
+                                    <td colspan="8" class="orders-empty-state">
                                         <i class="fas fa-inbox orders-empty-icon"></i>
                                         <p>Chưa có đơn hàng nào.</p>
                                         <p class="orders-empty-note">Đơn hàng sẽ xuất hiện ở đây khi khách hàng đặt hàng.</p>
@@ -192,17 +201,58 @@
                                                 </c:otherwise>
                                             </c:choose>
                                         </td>
+                                        <td>
+                                            <c:choose>
+                                                <c:when test="${order.signatureStatus == 'SIGNED'}">
+                                                    <span class="badge badge-success">Đã ký hợp lệ</span>
+                                                </c:when>
+                                                <c:when test="${order.signatureStatus == 'WAITING_SIGNATURE'}">
+                                                    <span class="badge badge-warning">Chờ ký số</span>
+                                                </c:when>
+                                                <c:when test="${order.signatureStatus == 'SIGNATURE_INVALID'}">
+                                                    <span class="badge badge-danger">Chữ ký không hợp lệ</span>
+                                                </c:when>
+                                                <c:when test="${order.signatureStatus == 'KEY_COMPROMISED_REVIEW'}">
+                                                    <span class="badge" style="background-color: #f97316; color: white;">Khóa cần xem xét</span>
+                                                </c:when>
+                                                <c:when test="${order.signatureStatus == 'DATA_TAMPERED'}">
+                                                    <span class="badge badge-danger">Dữ liệu bị thay đổi</span>
+                                                </c:when>
+                                                <c:otherwise>
+                                                    <span class="badge badge-secondary">
+                                                        <c:out value="${empty order.signatureStatus ? 'Chưa ký' : order.signatureStatus}"/>
+                                                    </span>
+                                                </c:otherwise>
+                                            </c:choose>
+                                            <c:if test="${not empty order.verifyStatus}">
+                                                <div class="text-muted" style="font-size: 0.78rem; margin-top: 4px;">
+                                                    Verify: <c:out value="${order.verifyStatus}"/>
+                                                </div>
+                                            </c:if>
+                                            <c:if test="${not empty order.signedAt}">
+                                                <div class="text-muted" style="font-size: 0.78rem; margin-top: 2px;">
+                                                    <fmt:formatDate value="${order.signedAt}" pattern="dd/MM/yyyy HH:mm"/>
+                                                </div>
+                                            </c:if>
+                                        </td>
                                         <td>${not empty order.paymentMethod ? order.paymentMethod : 'COD'}</td>
                                         <td>
                                             <div class="action-buttons">
                                                 <a href="${pageContext.request.contextPath}/admin/orders?action=view&id=${order.id}" class="btn-icon" title="Xem chi tiết">
                                                     <i class="fas fa-eye"></i>
                                                 </a>
-                                                <c:if test="${canUpdateOrder}">
-                                                    <button type="button" class="btn-icon" title="Cập nhật trạng thái" onclick="showUpdateStatusModal(${order.id}, '${order.status}')">
-                                                        <i class="fas fa-edit"></i>
-                                                    </button>
-                                                </c:if>
+                                                <c:choose>
+                                                    <c:when test="${canUpdateOrder and order.signatureStatus == 'SIGNED'}">
+                                                        <button type="button" class="btn-icon" title="Cập nhật trạng thái" onclick="showUpdateStatusModal(${order.id}, '${order.status}')">
+                                                            <i class="fas fa-edit"></i>
+                                                        </button>
+                                                    </c:when>
+                                                    <c:when test="${canUpdateOrder}">
+                                                        <button type="button" class="btn-icon" title="Đơn hàng chưa có chữ ký hợp lệ, không thể xử lý." disabled style="opacity: 0.5; cursor: not-allowed;">
+                                                            <i class="fas fa-lock"></i>
+                                                        </button>
+                                                    </c:when>
+                                                </c:choose>
                                             </div>
                                         </td>
                                     </tr>

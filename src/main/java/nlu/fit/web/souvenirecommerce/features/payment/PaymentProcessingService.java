@@ -3,6 +3,7 @@ package nlu.fit.web.souvenirecommerce.features.payment;
 import nlu.fit.web.souvenirecommerce.features.order.dto.CheckoutException;
 import nlu.fit.web.souvenirecommerce.features.order.repository.OrderStatusRepository;
 import nlu.fit.web.souvenirecommerce.features.order.repository.PaymentTransactionRepository;
+import nlu.fit.web.souvenirecommerce.features.signature.service.OrderProcessingGateService;
 import nlu.fit.web.souvenirecommerce.model.entity.OrderStatus;
 import nlu.fit.web.souvenirecommerce.model.entity.PaymentTransaction;
 import nlu.fit.web.souvenirecommerce.model.enums.OrderStatusCode;
@@ -17,6 +18,7 @@ public class PaymentProcessingService {
     private final PaymentTransactionRepository paymentRepository = new PaymentTransactionRepository();
     private final OrderStatusRepository orderStatusRepository = new OrderStatusRepository();
     private final VnPayService vnPayService = new VnPayService();
+    private final OrderProcessingGateService processingGateService = new OrderProcessingGateService();
 
     public PaymentCallbackResult processVnPayCallback(Map<String, String> fields) {
         Long orderId = parseLong(fields.get("vnp_TxnRef"));
@@ -29,7 +31,7 @@ public class PaymentProcessingService {
         if (transaction == null || transaction.getMethod() != PaymentMethod.VNPAY_QR) {
             return result(PaymentCallbackResult.Outcome.ORDER_NOT_FOUND, false, null);
         }
-        if (!isOrderSigned(transaction)) {
+        if (!processingGateService.canProcess(transaction.getOrder())) {
             return result(PaymentCallbackResult.Outcome.SIGNATURE_REQUIRED, false, transaction);
         }
 
@@ -70,8 +72,8 @@ public class PaymentProcessingService {
         if (transaction.getStatus() == PaymentStatus.PAID) {
             throw new CheckoutException("Đơn hàng đã được thanh toán.");
         }
-        if (!isOrderSigned(transaction)) {
-            throw new CheckoutException("Vui lòng ký đơn hàng hợp lệ trước khi thanh toán.");
+        if (!processingGateService.canProcess(transaction.getOrder())) {
+            throw new CheckoutException(OrderProcessingGateService.DEFAULT_BLOCK_MESSAGE);
         }
 
         String paymentUrl = vnPayService.createPaymentUrl(
@@ -88,12 +90,6 @@ public class PaymentProcessingService {
         transaction.getOrder().setStatus(resolveStatus(OrderStatusCode.PENDING_PAYMENT));
         paymentRepository.update(transaction);
         return paymentUrl;
-    }
-
-    private boolean isOrderSigned(PaymentTransaction transaction) {
-        return transaction != null
-                && transaction.getOrder() != null
-                && "SIGNED".equals(transaction.getOrder().getSignatureStatus());
     }
 
     private OrderStatus resolveStatus(OrderStatusCode code) {
