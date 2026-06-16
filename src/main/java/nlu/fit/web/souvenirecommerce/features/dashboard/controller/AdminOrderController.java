@@ -14,6 +14,7 @@ import nlu.fit.web.souvenirecommerce.legacy.model.OrderItem;
 import java.io.IOException;
 import java.util.List;
 
+import nlu.fit.web.souvenirecommerce.features.signature.service.OrderAuditService;
 @WebServlet("/admin/orders")
 public class AdminOrderController extends HttpServlet {
 
@@ -63,6 +64,16 @@ public class AdminOrderController extends HttpServlet {
         }
 
         int totalPages = (int) Math.ceil((double) totalOrders / pageSize);
+
+        OrderAuditService orderAuditService = new OrderAuditService();
+        if (orders != null) {
+            for (Order o : orders) {
+                if (o != null ) {
+                    String dynamicStatus = orderAuditService.auditOrderSignature((long) o.getId());
+                    o.setSignatureStatus(dynamicStatus);
+                }
+            }
+        }
 
         log.info("Loaded admin orders page {} with {} records (statusFilter={})",
                 page, orders.size(), statusFilter == null || statusFilter.isBlank() ? "all" : statusFilter);
@@ -117,6 +128,11 @@ public class AdminOrderController extends HttpServlet {
         }
 
         Order order = orderDAO.getOrderById(orderId);
+        if (order != null ) {
+            OrderAuditService orderAuditService = new OrderAuditService();
+            String dynamicStatus = orderAuditService.auditOrderSignature((long) order.getId());
+            order.setSignatureStatus(dynamicStatus);
+        }
         List<OrderItem> orderItems = orderDAO.getOrderItems(orderId);
 
         log.info("Opened admin order detail for orderId={}", orderId);
