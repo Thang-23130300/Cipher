@@ -13,6 +13,7 @@ import nlu.fit.web.souvenirecommerce.legacy.model.OrderItem;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 import nlu.fit.web.souvenirecommerce.features.signature.service.OrderAuditService;
 @WebServlet("/admin/orders")
@@ -34,8 +35,9 @@ public class AdminOrderController extends HttpServlet {
             return;
         }
 
-        // Get filter parameter
+        // Get filter parameters
         String statusFilter = request.getParameter("status");
+        String signatureStatusFilter = request.getParameter("signatureStatus");
 
         // Get pagination parameters
         int page = 1;
@@ -51,17 +53,9 @@ public class AdminOrderController extends HttpServlet {
             }
         }
 
-        // Get orders with pagination and filter
-        List<Order> orders;
-        int totalOrders;
-
-        if (statusFilter != null && !statusFilter.isEmpty() && !"all".equals(statusFilter)) {
-            orders = orderDAO.getOrdersByStatus(statusFilter, page, pageSize);
-            totalOrders = orderDAO.getOrderCountByStatus(statusFilter);
-        } else {
-            orders = orderDAO.getOrdersPaginated(page, pageSize);
-            totalOrders = orderDAO.getTotalOrders();
-        }
+        // Get orders with pagination and filters
+        List<Order> orders = orderDAO.getOrdersFiltered(statusFilter, signatureStatusFilter, page, pageSize);
+        int totalOrders = orderDAO.getOrderCountFiltered(statusFilter, signatureStatusFilter);
 
         int totalPages = (int) Math.ceil((double) totalOrders / pageSize);
 
@@ -90,6 +84,7 @@ public class AdminOrderController extends HttpServlet {
         request.setAttribute("totalPages", totalPages);
         request.setAttribute("totalOrders", totalOrders);
         request.setAttribute("statusFilter", statusFilter);
+        request.setAttribute("signatureStatusFilter", signatureStatusFilter);
         request.setAttribute("pendingCount", pendingCount);
         request.setAttribute("processingCount", processingCount);
         request.setAttribute("shippingCount", shippingCount);
@@ -137,8 +132,13 @@ public class AdminOrderController extends HttpServlet {
 
         log.info("Opened admin order detail for orderId={}", orderId);
 
+        Map<String, Object> signatureInfo = orderDAO.getOrderSignatureInfo(orderId);
+        List<nlu.fit.web.souvenirecommerce.model.entity.OrderAuditLog> auditLogs = orderDAO.getOrderAuditLogs(orderId);
+
         request.setAttribute("order", order);
         request.setAttribute("orderItems", orderItems);
+        request.setAttribute("signatureInfo", signatureInfo);
+        request.setAttribute("auditLogs", auditLogs);
         request.getRequestDispatcher("/admin/order-detail.jsp").forward(request, response);
     }
 

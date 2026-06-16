@@ -122,17 +122,34 @@ public class OrderAuditService {
                 sigValid = false;
             }
 
-            if (!sigValid || tampered) {
-                return "SIGNATURE_INVALID";
+            String determinedStatus = "SIGNED";
+            if (!sigValid) {
+                determinedStatus = "SIGNATURE_INVALID";
+            } else if (tampered) {
+                determinedStatus = "DATA_TAMPERED";
+            } else {
+                // 7. Kiểm tra tiếp rủi ro lộ khóa tại thời điểm ký
+                String riskStatus = keyRiskService.checkKeyRisk(keyId, signedAt);
+                if ("KEY_COMPROMISED_REVIEW".equals(riskStatus)) {
+                    determinedStatus = "KEY_COMPROMISED_REVIEW";
+                }
             }
 
-            // 7. Kiểm tra tiếp rủi ro lộ khóa tại thời điểm ký
-            String riskStatus = keyRiskService.checkKeyRisk(keyId, signedAt);
-            if ("KEY_COMPROMISED_REVIEW".equals(riskStatus)) {
-                return "KEY_COMPROMISED_REVIEW";
+            // Đồng bộ trạng thái chữ ký số xác định được vào CSDL (orders.signature_status)
+            String currentStatusSql = "SELECT signature_status FROM orders WHERE id = :orderId";
+            String currentStatus = (String) session.createNativeQuery(currentStatusSql)
+                    .setParameter("orderId", orderId)
+                    .uniqueResult();
+
+            if (!determinedStatus.equals(currentStatus)) {
+                String updateSql = "UPDATE orders SET signature_status = :status WHERE id = :orderId";
+                session.createNativeQuery(updateSql)
+                        .setParameter("status", determinedStatus)
+                        .setParameter("orderId", orderId)
+                        .executeUpdate();
             }
 
-            return "SIGNED";
+            return determinedStatus;
         } catch (Exception e) {
             e.printStackTrace();
             return "SIGNATURE_INVALID";
