@@ -81,4 +81,21 @@ public class OrderSignatureDAO {
 
         return result == null ? null : ((Number) result).longValue();
     }
+    public void markSignaturesAsCompromisedReview(Long keyId, java.time.LocalDateTime compromisedFrom) {
+        if (keyId == null || compromisedFrom == null) {
+            return;
+        }
+        Session session = HibernateUtil.getSessionFactory().getCurrentSession();
+        String sql = """
+                UPDATE order_signatures
+                SET verify_status = 'KEY_COMPROMISED_REVIEW',
+                    verified_at = NOW()
+                WHERE key_id = :keyId
+                  AND signed_at >= :compromisedFrom
+                """;
+        session.createNativeMutationQuery(sql)
+                .setParameter("keyId", keyId)
+                .setParameter("compromisedFrom", compromisedFrom)
+                .executeUpdate();
+    }
 }
