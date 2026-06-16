@@ -26,6 +26,7 @@ import java.awt.datatransfer.StringSelection;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.security.KeyPair;
 import java.security.PrivateKey;
 import java.security.PublicKey;
@@ -35,11 +36,13 @@ public class SigningToolFrame extends JFrame implements SigningApiBridge {
     private final KeyPairService keyPairService = new KeyPairService();
     private final SignatureService signatureService = new SignatureService();
     private final KeyLoader keyLoader = new KeyLoader();
+    private final LocalConfigService localConfigService = new LocalConfigService();
 
     private final JTextArea publicKeyArea = createTextArea(8);
     private final JTextArea hashValueArea = createTextArea(5);
     private final JTextArea signatureArea = createTextArea(7);
     private final JLabel statusLabel = new JLabel("Ready", SwingConstants.LEFT);
+    private final JLabel lastPrivateKeyPathLabel = new JLabel("Recent private key: none", SwingConstants.LEFT);
     private final LocalApiServer localApiServer = new LocalApiServer(this);
     private final JButton startApiButton = new JButton("Start API Server");
     private final JButton stopApiButton = new JButton("Stop API Server");
@@ -56,6 +59,7 @@ public class SigningToolFrame extends JFrame implements SigningApiBridge {
 
         add(createContentPanel(), BorderLayout.CENTER);
         add(createStatusPanel(), BorderLayout.SOUTH);
+        refreshLastPrivateKeyPathLabel();
         addWindowListener(new java.awt.event.WindowAdapter() {
             @Override
             public void windowClosing(java.awt.event.WindowEvent event) {
@@ -95,12 +99,14 @@ public class SigningToolFrame extends JFrame implements SigningApiBridge {
         JButton exportPublicButton = new JButton("Export Public Key");
         JButton exportPrivateButton = new JButton("Export Private Key");
         JButton loadPrivateButton = new JButton("Load Private Key");
+        JButton loadRecentPrivateButton = new JButton("Load key gần nhất");
 
         generateButton.addActionListener(event -> generateKeyPair());
         copyPublicButton.addActionListener(event -> copyPublicKey());
         exportPublicButton.addActionListener(event -> exportPublicKey());
         exportPrivateButton.addActionListener(event -> exportPrivateKey());
         loadPrivateButton.addActionListener(event -> loadPrivateKey());
+        loadRecentPrivateButton.addActionListener(event -> loadRecentPrivateKey());
 
         startApiButton.addActionListener(event -> startApiServer());
         stopApiButton.addActionListener(event -> stopApiServer());
@@ -111,10 +117,15 @@ public class SigningToolFrame extends JFrame implements SigningApiBridge {
         actions.add(exportPublicButton);
         actions.add(exportPrivateButton);
         actions.add(loadPrivateButton);
+        actions.add(loadRecentPrivateButton);
         actions.add(startApiButton);
         actions.add(stopApiButton);
 
-        panel.add(actions, BorderLayout.NORTH);
+        JPanel topPanel = new JPanel(new BorderLayout(4, 4));
+        topPanel.add(actions, BorderLayout.NORTH);
+        topPanel.add(lastPrivateKeyPathLabel, BorderLayout.SOUTH);
+
+        panel.add(topPanel, BorderLayout.NORTH);
         panel.add(new JScrollPane(publicKeyArea), BorderLayout.CENTER);
         return panel;
     }
@@ -202,7 +213,10 @@ public class SigningToolFrame extends JFrame implements SigningApiBridge {
             return;
         }
 
-        chooseAndWritePem("private-key.pem", PemUtils.privateKeyToPem(currentPrivateKey));
+        Path exportedPath = chooseAndWritePem("private-key.pem", PemUtils.privateKeyToPem(currentPrivateKey));
+        if (exportedPath != null) {
+            saveLastPrivateKeyPath(exportedPath);
+        }
     }
 
     private void loadPrivateKey() {
@@ -214,13 +228,47 @@ public class SigningToolFrame extends JFrame implements SigningApiBridge {
         }
 
         try {
-            currentPrivateKey = keyLoader.loadPrivateKey(chooser.getSelectedFile().toPath());
-            currentPublicKey = null;
-            publicKeyArea.setText("Private key loaded. Public key is not available from this file.");
-            setStatus("Loaded private key from file.");
+            loadPrivateKeyFromPath(chooser.getSelectedFile().toPath(), true);
         } catch (Exception e) {
             showError(e.getMessage());
         }
+    }
+
+    private void loadRecentPrivateKey() {
+        Path recentPrivateKeyPath;
+        try {
+            recentPrivateKeyPath = localConfigService.getLastPrivateKeyPath().orElse(null);
+        } catch (Exception e) {
+            showError(e.getMessage());
+            return;
+        }
+
+        if (recentPrivateKeyPath == null || !Files.exists(recentPrivateKeyPath)) {
+            showError("Không tìm thấy private key cũ, vui lòng chọn lại.");
+            return;
+        }
+
+        try {
+            loadPrivateKeyFromPath(recentPrivateKeyPath, false);
+        } catch (Exception e) {
+            showError(e.getMessage());
+        }
+    }
+
+    private void loadPrivateKeyFromPath(Path privateKeyPath, boolean rememberPath) {
+        currentPrivateKey = keyLoader.loadPrivateKey(privateKeyPath);
+        try {
+            currentPublicKey = keyLoader.derivePublicKey(currentPrivateKey);
+            publicKeyArea.setText(PemUtils.publicKeyToPem(currentPublicKey));
+        } catch (Exception e) {
+            currentPublicKey = null;
+            publicKeyArea.setText("Private key loaded. Public key could not be derived from this key.");
+        }
+
+        if (rememberPath) {
+            saveLastPrivateKeyPath(privateKeyPath);
+        }
+        setStatus("Private key đã được load.");
     }
 
     private void signHashValue() {
@@ -339,20 +387,42 @@ public class SigningToolFrame extends JFrame implements SigningApiBridge {
         return chooser;
     }
 
-    private void chooseAndWritePem(String defaultFileName, String pem) {
+    private Path chooseAndWritePem(String defaultFileName, String pem) {
         JFileChooser chooser = createPemChooser();
         chooser.setDialogTitle("Export PEM");
         chooser.setSelectedFile(new java.io.File(defaultFileName));
 
         if (chooser.showSaveDialog(this) != JFileChooser.APPROVE_OPTION) {
-            return;
+            return null;
         }
 
         try {
-            Files.writeString(chooser.getSelectedFile().toPath(), pem, StandardCharsets.UTF_8);
+            Path selectedPath = chooser.getSelectedFile().toPath();
+            Files.writeString(selectedPath, pem, StandardCharsets.UTF_8);
             setStatus("Exported " + chooser.getSelectedFile().getName());
+            return selectedPath;
         } catch (IOException e) {
             showError("Could not export PEM file: " + e.getMessage());
+            return null;
+        }
+    }
+
+    private void saveLastPrivateKeyPath(Path privateKeyPath) {
+        try {
+            localConfigService.saveLastPrivateKeyPath(privateKeyPath);
+            refreshLastPrivateKeyPathLabel();
+        } catch (Exception e) {
+            showError(e.getMessage());
+        }
+    }
+
+    private void refreshLastPrivateKeyPathLabel() {
+        try {
+            lastPrivateKeyPathLabel.setText(localConfigService.getLastPrivateKeyPath()
+                    .map(path -> "Recent private key: " + path)
+                    .orElse("Recent private key: none"));
+        } catch (Exception e) {
+            lastPrivateKeyPathLabel.setText("Recent private key: could not read config");
         }
     }
 
