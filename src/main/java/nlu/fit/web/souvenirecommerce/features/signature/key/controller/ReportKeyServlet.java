@@ -74,6 +74,6 @@ public class ReportKeyServlet extends HttpServlet {
     }
 
     private void redirectToKeyManagement(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        response.sendRedirect(request.getContextPath() + "/key-management");
+        response.sendRedirect(request.getContextPath() + "/signature/keys");
     }
 }

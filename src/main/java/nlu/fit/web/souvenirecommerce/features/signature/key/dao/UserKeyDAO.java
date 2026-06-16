@@ -140,6 +140,33 @@ public class UserKeyDAO {
                 .executeUpdate();
     }
 
+    public int markKeyAsReported(Long keyId,
+                                 Long userId,
+                                 String keyStatus,
+                                 LocalDateTime compromisedFrom,
+                                 String note) {
+        String sql = """
+                UPDATE user_keys
+                SET key_status = :keyStatus,
+                    revoked_at = NOW(),
+                    compromised_from = :compromisedFrom,
+                    note = :note
+                WHERE id = :keyId
+                  AND user_id = :userId
+                  AND key_status = 'ACTIVE'
+                """;
+
+        Session session = HibernateUtil.getSessionFactory().getCurrentSession();
+
+        return session.createNativeMutationQuery(sql)
+                .setParameter("keyId", keyId)
+                .setParameter("userId", userId)
+                .setParameter("keyStatus", keyStatus)
+                .setParameter("compromisedFrom", compromisedFrom)
+                .setParameter("note", note)
+                .executeUpdate();
+    }
+
     private UserKeyDTO mapRow(Object[] row) {
         return UserKeyDTO.builder()
                 .id(((Number) row[0]).longValue())
