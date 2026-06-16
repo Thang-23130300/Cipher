@@ -78,14 +78,22 @@
                         <h3>Danh sách đơn hàng</h3>
                         <p class="orders-card-subtitle">Tổng đơn: ${totalOrders}</p>
                     </div>
-                    <div class="filter-group">
-                        <select onchange="filterByStatus(this.value)">
-                            <option value="all" ${empty statusFilter || statusFilter == 'all' ? 'selected' : ''}>Tất cả trạng thái</option>
+                    <div class="filter-group" style="display: flex; gap: 10px;">
+                        <select id="statusFilterSelect" onchange="applyFilters()">
+                            <option value="all" ${empty statusFilter || statusFilter == 'all' ? 'selected' : ''}>Tất cả trạng thái đơn</option>
                             <option value="Chờ xác nhận" ${statusFilter == 'Chờ xác nhận' ? 'selected' : ''}>Chờ xác nhận</option>
                             <option value="Đang xử lý" ${statusFilter == 'Đang xử lý' ? 'selected' : ''}>Đang xử lý</option>
                             <option value="Đang giao" ${statusFilter == 'Đang giao' ? 'selected' : ''}>Đang giao</option>
                             <option value="Hoàn thành" ${statusFilter == 'Hoàn thành' ? 'selected' : ''}>Hoàn thành</option>
                             <option value="Đã hủy" ${statusFilter == 'Đã hủy' ? 'selected' : ''}>Đã hủy</option>
+                        </select>
+                        <select id="signatureStatusFilterSelect" onchange="applyFilters()">
+                            <option value="all" ${empty signatureStatusFilter || signatureStatusFilter == 'all' ? 'selected' : ''}>Tất cả chữ ký</option>
+                            <option value="WAITING_SIGNATURE" ${signatureStatusFilter == 'WAITING_SIGNATURE' ? 'selected' : ''}>Chờ ký số</option>
+                            <option value="SIGNED" ${signatureStatusFilter == 'SIGNED' ? 'selected' : ''}>Đã ký số</option>
+                            <option value="SIGNATURE_INVALID" ${signatureStatusFilter == 'SIGNATURE_INVALID' ? 'selected' : ''}>Chữ ký lỗi</option>
+                            <option value="KEY_COMPROMISED_REVIEW" ${signatureStatusFilter == 'KEY_COMPROMISED_REVIEW' ? 'selected' : ''}>Bị lộ khóa</option>
+                            <option value="DATA_TAMPERED" ${signatureStatusFilter == 'DATA_TAMPERED' ? 'selected' : ''}>Dữ liệu bị sửa đổi</option>
                         </select>
                     </div>
                 </div>
@@ -118,20 +126,43 @@
                                     <tr>
                                         <td>
                                             #${order.id}
-                                            <c:if test="${order.signatureStatus == 'KEY_COMPROMISED_REVIEW'}">
-                                                <div style="margin-top: 4px;">
-                                                    <span class="badge" style="font-size: 0.75rem; background-color: #f97316; color: white; padding: 2px 6px; font-weight: normal; border-radius: 4px; display: inline-block;">
-                                                        <i class="fas fa-exclamation-triangle"></i> Lộ khóa
-                                                    </span>
-                                                </div>
-                                            </c:if>
-                                            <c:if test="${order.signatureStatus == 'SIGNATURE_INVALID'}">
-                                                <div style="margin-top: 4px;">
-                                                    <span class="badge" style="font-size: 0.75rem; background-color: #dc2626; color: white; padding: 2px 6px; font-weight: normal; border-radius: 4px; display: inline-block;">
-                                                        <i class="fas fa-times-circle"></i> Chữ ký lỗi
-                                                    </span>
-                                                </div>
-                                            </c:if>
+                                            <c:choose>
+                                                <c:when test="${order.signatureStatus == 'KEY_COMPROMISED_REVIEW'}">
+                                                    <div style="margin-top: 4px;">
+                                                        <span class="badge" style="font-size: 0.75rem; background-color: #f97316; color: white; padding: 2px 6px; font-weight: normal; border-radius: 4px; display: inline-block;">
+                                                            <i class="fas fa-exclamation-triangle"></i> Lộ khóa
+                                                        </span>
+                                                    </div>
+                                                </c:when>
+                                                <c:when test="${order.signatureStatus == 'SIGNATURE_INVALID'}">
+                                                    <div style="margin-top: 4px;">
+                                                        <span class="badge" style="font-size: 0.75rem; background-color: #dc2626; color: white; padding: 2px 6px; font-weight: normal; border-radius: 4px; display: inline-block;">
+                                                            <i class="fas fa-times-circle"></i> Chữ ký lỗi
+                                                        </span>
+                                                    </div>
+                                                </c:when>
+                                                <c:when test="${order.signatureStatus == 'DATA_TAMPERED'}">
+                                                    <div style="margin-top: 4px;">
+                                                        <span class="badge" style="font-size: 0.75rem; background-color: #ef4444; color: white; padding: 2px 6px; font-weight: normal; border-radius: 4px; display: inline-block;">
+                                                            <i class="fas fa-radiation"></i> Dữ liệu bị sửa đổi
+                                                        </span>
+                                                    </div>
+                                                </c:when>
+                                                <c:when test="${order.signatureStatus == 'SIGNED'}">
+                                                    <div style="margin-top: 4px;">
+                                                        <span class="badge" style="font-size: 0.75rem; background-color: #10b981; color: white; padding: 2px 6px; font-weight: normal; border-radius: 4px; display: inline-block;">
+                                                            <i class="fas fa-check-double"></i> Đã ký số
+                                                        </span>
+                                                    </div>
+                                                </c:when>
+                                                <c:otherwise>
+                                                    <div style="margin-top: 4px;">
+                                                        <span class="badge" style="font-size: 0.75rem; background-color: #6b7280; color: white; padding: 2px 6px; font-weight: normal; border-radius: 4px; display: inline-block;">
+                                                            <i class="fas fa-signature"></i> Chờ ký số
+                                                        </span>
+                                                    </div>
+                                                </c:otherwise>
+                                            </c:choose>
                                         </td>
                                         <td>
                                             <div class="orders-customer-name">${order.customerName}</div>
@@ -185,8 +216,8 @@
                     <c:if test="${totalPages > 1}">
                         <c:forEach var="pageIndex" begin="1" end="${totalPages}">
                             <a class="pagination-link ${currentPage == pageIndex ? 'active' : ''}"
-                               href="${pageContext.request.contextPath}/admin/orders?page=${pageIndex}${not empty statusFilter && statusFilter != 'all' ? '&status=' + statusFilter : ''}">
-                                ${pageIndex}
+                               href="${pageContext.request.contextPath}/admin/orders?page=${pageIndex}${not empty statusFilter && statusFilter != 'all' ? '&status=' + statusFilter : ''}${not empty signatureStatusFilter && signatureStatusFilter != 'all' ? '&signatureStatus=' + signatureStatusFilter : ''}">
+                                    ${pageIndex}
                             </a>
                         </c:forEach>
                     </c:if>
@@ -234,11 +265,18 @@
 </div>
 
 <script>
-    function filterByStatus(status) {
-        let url = '${pageContext.request.contextPath}/admin/orders?status=' + encodeURIComponent(status);
-        if (status === 'all') {
-            url = '${pageContext.request.contextPath}/admin/orders';
+    function applyFilters() {
+        let status = document.getElementById('statusFilterSelect').value;
+        let sigStatus = document.getElementById('signatureStatusFilterSelect').value;
+        let url = '${pageContext.request.contextPath}/admin/orders?';
+        let params = [];
+        if (status && status !== 'all') {
+            params.push('status=' + encodeURIComponent(status));
         }
+        if (sigStatus && sigStatus !== 'all') {
+            params.push('signatureStatus=' + encodeURIComponent(sigStatus));
+        }
+        url += params.join('&');
         window.location.href = url;
     }
 
