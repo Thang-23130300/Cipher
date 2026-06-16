@@ -88,7 +88,8 @@ public class AdminOrderController extends HttpServlet {
         }
 
         log.info("Loaded admin orders page {} with {} records (statusFilter={})",
-                page, orders == null ? 0 : orders.size(),
+                page,
+                orders == null ? 0 : orders.size(),
                 statusFilter == null || statusFilter.isBlank() ? "all" : statusFilter);
 
         int pendingCount = orderDAO.getOrderCountByStatus("Chờ xác nhận");
@@ -170,6 +171,7 @@ public class AdminOrderController extends HttpServlet {
         }
 
         String newStatus = request.getParameter("status");
+
         if (isSignatureStatusValue(newStatus)) {
             log.warn("Blocked attempt to set signature status through order status form. orderId={}, submittedStatus={}",
                     orderId, newStatus);
@@ -191,7 +193,6 @@ public class AdminOrderController extends HttpServlet {
                 actor == null ? null : actor.getId(),
                 resolveActorRole(actor)
         );
-
         order.setSignatureStatus(auditedSignatureStatus);
 
         if (requiresValidSignature(newStatus) && !processingGateService.canProcess(order)) {
@@ -246,10 +247,6 @@ public class AdminOrderController extends HttpServlet {
     }
 
     private String resolveActorRole(User actor) {
-        if (actor == null) {
-            return "ADMIN_OR_STAFF";
-        }
-
         return "ADMIN_OR_STAFF";
     }
 }

@@ -17,7 +17,6 @@ import org.hibernate.Session;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -60,11 +59,13 @@ public class OrderAuditService {
 
             Optional<UserKeyDTO> keyDtoOpt = userKeyDAO.findById(keyId);
             if (keyDtoOpt.isEmpty()) {
+                syncOrderSignatureStatus(session, orderId, "SIGNATURE_INVALID");
                 return "SIGNATURE_INVALID";
             }
 
             Object[] signedDataRow = findSignedDataRow(session, orderId);
             if (signedDataRow == null) {
+                syncOrderSignatureStatus(session, orderId, "SIGNATURE_INVALID");
                 return "SIGNATURE_INVALID";
             }
 
@@ -73,6 +74,7 @@ public class OrderAuditService {
 
             Order order = session.find(Order.class, orderId);
             if (order == null) {
+                syncOrderSignatureStatus(session, orderId, "SIGNATURE_INVALID");
                 return "SIGNATURE_INVALID";
             }
 
@@ -92,16 +94,19 @@ public class OrderAuditService {
                 sigValid = false;
             }
 
+            String determinedStatus = "SIGNED";
+
             if (!sigValid) {
-                return "SIGNATURE_INVALID";
+                determinedStatus = "SIGNATURE_INVALID";
+            } else {
+                String riskStatus = keyRiskService.checkKeyRisk(keyId, signedAt);
+                if ("KEY_COMPROMISED_REVIEW".equals(riskStatus)) {
+                    determinedStatus = "KEY_COMPROMISED_REVIEW";
+                }
             }
 
-            String riskStatus = keyRiskService.checkKeyRisk(keyId, signedAt);
-            if ("KEY_COMPROMISED_REVIEW".equals(riskStatus)) {
-                return "KEY_COMPROMISED_REVIEW";
-            }
-
-            return "SIGNED";
+            syncOrderSignatureStatus(session, orderId, determinedStatus);
+            return determinedStatus;
         } catch (Exception e) {
             e.printStackTrace();
             return "SIGNATURE_INVALID";
@@ -167,8 +172,9 @@ public class OrderAuditService {
         addDiffIfChanged(diffs, "receiver_phone", storedDto.getReceiverPhone(), address == null ? null : address.getReceiverPhone());
         addDiffIfChanged(diffs, "shipping_address", storedDto.getShippingAddress(), buildAddressText(address));
         addDiffIfChanged(diffs, "total_amount", storedDto.getTotalAmount(), order.getTotalAmount());
+
         // Không audit order_date để tránh lệch format thời gian giữa signed_data_json và LocalDateTime từ DB.
-       // addDiffIfChanged(diffs, "order_date", storedDto.getOrderDate(), formatOrderDate(order));
+        // addDiffIfChanged(diffs, "order_date", storedDto.getOrderDate(), formatOrderDate(order));
 
         compareItems(diffs, storedDto.getItems(), order.getItems());
 
@@ -183,11 +189,17 @@ public class OrderAuditService {
         List<OrderItem> safeCurrentItems = currentItems == null
                 ? List.of()
                 : currentItems.stream()
-                .sorted(Comparator.comparing(item -> item.getProduct() == null ? Long.MIN_VALUE : item.getProduct().getId()))
+                .sorted(Comparator.comparing(item -> item.getProduct() == null
+                        ? Long.MIN_VALUE
+                        : item.getProduct().getId()))
                 .toList();
 
         if (safeStoredItems.size() != safeCurrentItems.size()) {
-            diffs.add(new FieldDiff("items.size", String.valueOf(safeStoredItems.size()), String.valueOf(safeCurrentItems.size())));
+            diffs.add(new FieldDiff(
+                    "items.size",
+                    String.valueOf(safeStoredItems.size()),
+                    String.valueOf(safeCurrentItems.size())
+            ));
         }
 
         int max = Math.max(safeStoredItems.size(), safeCurrentItems.size());
@@ -235,7 +247,7 @@ public class OrderAuditService {
     }
 
     private void addDiffIfChanged(List<FieldDiff> diffs, String fieldName, Object oldValue, Object newValue) {
-        if (oldValue instanceof BigDecimal oldDecimal || newValue instanceof BigDecimal newDecimal) {
+        if (oldValue instanceof BigDecimal || newValue instanceof BigDecimal) {
             BigDecimal oldBd = oldValue instanceof BigDecimal ? (BigDecimal) oldValue : null;
             BigDecimal newBd = newValue instanceof BigDecimal ? (BigDecimal) newValue : null;
 
@@ -301,14 +313,6 @@ public class OrderAuditService {
         builder.append(value.trim());
     }
 
-    private String formatOrderDate(Order order) {
-        if (order == null || order.getOrderDate() == null) {
-            return null;
-        }
-
-        return order.getOrderDate().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
-    }
-
     private void writeTamperLogs(Long orderId, Long actorId, String actorRole, List<FieldDiff> diffs) {
         String normalizedActorRole = actorRole == null || actorRole.isBlank()
                 ? "SYSTEM"
@@ -339,6 +343,31 @@ public class OrderAuditService {
         session.createNativeMutationQuery(sql)
                 .setParameter("orderId", orderId)
                 .executeUpdate();
+    }
+
+    private void syncOrderSignatureStatus(Session session, Long orderId, String determinedStatus) {
+        String currentStatusSql = """
+                SELECT signature_status
+                FROM orders
+                WHERE id = :orderId
+                """;
+
+        String currentStatus = (String) session.createNativeQuery(currentStatusSql)
+                .setParameter("orderId", orderId)
+                .uniqueResult();
+
+        if (!Objects.equals(determinedStatus, currentStatus)) {
+            String updateSql = """
+                    UPDATE orders
+                    SET signature_status = :status
+                    WHERE id = :orderId
+                    """;
+
+            session.createNativeMutationQuery(updateSql)
+                    .setParameter("status", determinedStatus)
+                    .setParameter("orderId", orderId)
+                    .executeUpdate();
+        }
     }
 
     private LocalDateTime toLocalDateTime(Object value) {
