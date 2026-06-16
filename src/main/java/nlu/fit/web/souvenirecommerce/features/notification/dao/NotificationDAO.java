@@ -28,7 +28,12 @@ public class NotificationDAO {
                     String type = (String) row[4];
                     String title = (String) row[5];
                     String message = (String) row[6];
-                    boolean isRead = ((Number) row[7]).intValue() == 1;
+                    boolean isRead = false;
+                    if (row[7] instanceof Boolean) {
+                        isRead = (Boolean) row[7];
+                    } else if (row[7] instanceof Number) {
+                        isRead = ((Number) row[7]).intValue() == 1;
+                    }
                     LocalDateTime createdAt = toLocalDateTime(row[8]);
                     String orderCode = null;
                     if (orderId != null && createdAt != null) {
