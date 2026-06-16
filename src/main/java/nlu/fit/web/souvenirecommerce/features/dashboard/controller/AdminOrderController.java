@@ -147,13 +147,12 @@ public class AdminOrderController extends HttpServlet {
             return;
         }
 
-        if (!"SIGNED".equals(order.getSignatureStatus())) {
+        if (!"SIGNED".equals(order.getSignatureStatus()) && !"KEY_COMPROMISED_REVIEW".equals(order.getSignatureStatus())) {
             log.warn("Blocked admin status update for unsigned order. orderId={}, signatureStatus={}",
                     orderId, order.getSignatureStatus());
             response.sendRedirect(request.getContextPath() + "/admin/orders?error=signature_required");
             return;
         }
-
         log.info("Updating order status. orderId={}, newStatus={}", orderId, newStatus);
         boolean success = orderDAO.updateOrderStatus(orderId, newStatus);
 
