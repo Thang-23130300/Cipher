@@ -73,6 +73,28 @@
                                             </p>
                                         </div>
                                     </c:when>
+                                    <c:when test="${order.signatureStatus == 'DATA_TAMPERED'}">
+                                        <div class="alert alert-danger mb-4" style="border-left: 5px solid #dc2626; background-color: #fef2f2; border-radius: 8px; padding: 20px;">
+                                            <h4 class="alert-heading text-danger" style="font-weight: 700; font-size: 1.15rem; display: flex; align-items: center; gap: 10px; color: #dc2626 !important;">
+                                                <i class="fas fa-triangle-exclamation" style="font-size: 1.3rem;"></i>
+                                                CẢNH BÁO NGUY HIỂM: DỮ LIỆU ĐƠN HÀNG BỊ THAY ĐỔI
+                                            </h4>
+                                            <p class="mb-0 mt-2" style="color: #7f1d1d; font-size: 0.95rem; line-height: 1.6;">
+                                                Dữ liệu hiện tại không còn khớp với snapshot/hash đã ký. Đơn hàng bị chặn xử lý cho đến khi được kiểm tra lại.
+                                            </p>
+                                        </div>
+                                    </c:when>
+                                    <c:when test="${order.signatureStatus != 'SIGNED'}">
+                                        <div class="alert alert-warning mb-4" style="border-left: 5px solid #f59e0b; background-color: #fffbeb; border-radius: 8px; padding: 20px;">
+                                            <h4 class="alert-heading text-warning" style="font-weight: 700; font-size: 1.05rem; display: flex; align-items: center; gap: 10px; color: #b45309 !important;">
+                                                <i class="fas fa-lock" style="font-size: 1.2rem;"></i>
+                                                Đơn hàng chưa có chữ ký hợp lệ
+                                            </h4>
+                                            <p class="mb-0 mt-2" style="color: #78350f; font-size: 0.95rem; line-height: 1.6;">
+                                                Đơn hàng chưa có chữ ký hợp lệ, không thể xử lý.
+                                            </p>
+                                        </div>
+                                    </c:when>
                                 </c:choose>
 
                                 <!-- Danh sách sản phẩm trong đơn hàng -->
@@ -180,6 +202,22 @@
                                                 </c:choose>
                                             </div>
                                         </div>
+                                        <div class="mt-3 pt-3 border-top">
+                                            <div class="text-muted small mb-1">Verify status</div>
+                                            <div style="font-weight: 500; color: #4a5568;">
+                                                <c:out value="${empty order.verifyStatus ? 'Chưa có chữ ký để verify' : order.verifyStatus}"/>
+                                            </div>
+                                        </div>
+                                        <div class="mt-3 pt-3 border-top">
+                                            <div class="text-muted small mb-1">Đánh giá rủi ro khóa</div>
+                                            <div style="font-weight: 500; color: #4a5568;">
+                                                <c:choose>
+                                                    <c:when test="${order.signatureStatus == 'KEY_COMPROMISED_REVIEW'}">Khóa cần xem xét</c:when>
+                                                    <c:when test="${order.signatureStatus == 'SIGNED'}">Không phát hiện rủi ro</c:when>
+                                                    <c:otherwise>Chưa đủ điều kiện đánh giá</c:otherwise>
+                                                </c:choose>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
 
@@ -208,12 +246,25 @@
                                                         <i class="fas fa-times-circle"></i> Chữ ký lỗi (Invalid)
                                                     </span>
                                                 </c:when>
+                                                <c:when test="${order.signatureStatus == 'DATA_TAMPERED'}">
+                                                    <span class="badge bg-danger text-white py-2 px-3 fs-6 d-inline-flex align-items-center gap-2" style="border-radius: 20px; font-weight: normal; font-size: 0.85rem !important;">
+                                                        <i class="fas fa-triangle-exclamation"></i> Dữ liệu bị thay đổi
+                                                    </span>
+                                                </c:when>
+                                                <c:when test="${order.signatureStatus == 'WAITING_SIGNATURE'}">
+                                                    <span class="badge bg-warning text-dark py-2 px-3 fs-6 d-inline-flex align-items-center gap-2" style="border-radius: 20px; font-weight: normal; font-size: 0.85rem !important;">
+                                                        <i class="fas fa-clock"></i> Chờ ký số
+                                                    </span>
+                                                </c:when>
                                                 <c:otherwise>
                                                     <span class="badge bg-secondary text-white py-2 px-3 fs-6 d-inline-flex align-items-center gap-2" style="border-radius: 20px; font-weight: normal; font-size: 0.85rem !important;">
-                                                        <i class="fas fa-question-circle"></i> Chưa ký số
+                                                        <i class="fas fa-question-circle"></i> <c:out value="${empty order.signatureStatus ? 'Chưa ký số' : order.signatureStatus}"/>
                                                     </span>
                                                 </c:otherwise>
                                             </c:choose>
+                                            <div class="text-muted mt-2" style="font-size: 0.82rem;">
+                                                Verify: <c:out value="${empty order.verifyStatus ? 'N/A' : order.verifyStatus}"/>
+                                            </div>
                                         </div>
 
                                         <!-- Trạng thái đơn hàng hiện tại -->
@@ -252,7 +303,7 @@
                                                         Chữ ký lỗi. Không được phép thay đổi trạng thái đơn hàng.
                                                     </small>
                                                 </c:when>
-                                                <c:when test="${order.signatureStatus == 'SIGNED' || order.signatureStatus == 'KEY_COMPROMISED_REVIEW'}">
+                                                <c:when test="${order.signatureStatus == 'SIGNED'}">
                                                     <c:choose>
                                                         <c:when test="${canUpdateOrder}">
                                                             <button type="button" class="btn btn-primary w-100 py-2.5" style="border-radius: 8px;"
@@ -272,7 +323,7 @@
                                                         <i class="fas fa-ban me-2"></i>Không thể cập nhật
                                                     </button>
                                                     <small class="text-danger d-block mt-2 text-center" style="font-size: 0.8rem;">
-                                                        Đơn hàng chưa được ký số.
+                                                        Đơn hàng chưa có chữ ký hợp lệ, không thể xử lý.
                                                     </small>
                                                 </c:otherwise>
                                             </c:choose>
