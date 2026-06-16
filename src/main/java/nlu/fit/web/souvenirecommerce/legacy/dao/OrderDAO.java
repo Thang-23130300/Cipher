@@ -16,6 +16,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import java.time.LocalDateTime;
 public class OrderDAO {
 
     public int getTotalOrders() {
@@ -172,6 +173,10 @@ public class OrderDAO {
                 order.setOrderDate(rs.getTimestamp("order_date"));
                 order.setTotalAmount(rs.getDouble("total_amount"));
                 order.setStatus(rs.getString("status_name"));
+
+                order.setSignatureStatus(rs.getString("signature_status"));
+                order.setSignedAt(rs.getTimestamp("signed_at"));
+
                 orders.add(order);
             }
         } catch (Exception e) {
@@ -205,6 +210,9 @@ public class OrderDAO {
                     order.setOrderDate(rs.getTimestamp("order_date"));
                     order.setTotalAmount(rs.getDouble("total_amount"));
                     order.setStatus(rs.getString("status_name"));
+
+                    order.setSignatureStatus(rs.getString("signature_status"));
+                    order.setSignedAt(rs.getTimestamp("signed_at"));
                     orders.add(order);
                 }
             }
@@ -449,6 +457,9 @@ public class OrderDAO {
                     order.setOrderDate(rs.getTimestamp("order_date"));
                     order.setTotalAmount(rs.getDouble("total_amount"));
                     order.setStatus(rs.getString("status_name"));
+
+                    order.setSignatureStatus(rs.getString("signature_status"));
+                    order.setSignedAt(rs.getTimestamp("signed_at"));
                     orders.add(order);
                 }
             }
@@ -511,6 +522,9 @@ public class OrderDAO {
                     order.setOrderDate(rs.getTimestamp("order_date"));
                     order.setTotalAmount(rs.getDouble("total_amount"));
                     order.setStatus(rs.getString("status_name"));
+
+                    order.setSignatureStatus(rs.getString("signature_status"));
+                    order.setSignedAt(rs.getTimestamp("signed_at"));
                     orders.add(order);
                 }
             }
@@ -590,5 +604,31 @@ public class OrderDAO {
             e.printStackTrace();
         }
         return orders;
+    }
+
+    public void markOrdersAsCompromisedReview(Long keyId, LocalDateTime compromisedFrom) {
+        if (keyId == null || compromisedFrom == null) {
+            return;
+        }
+        try {
+            Session session = HibernateUtil.getSessionFactory().getCurrentSession();
+            String sql = """
+                UPDATE orders o
+                SET o.signature_status = 'KEY_COMPROMISED_REVIEW'
+                WHERE o.id IN (
+                    SELECT os.order_id 
+                    FROM order_signatures os 
+                    WHERE os.key_id = :keyId 
+                      AND os.signed_at >= :compromisedFrom
+                )
+                """;
+            session.createNativeMutationQuery(sql)
+                    .setParameter("keyId", keyId)
+                    .setParameter("compromisedFrom", compromisedFrom)
+                    .executeUpdate();
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw e;
+        }
     }
 }
