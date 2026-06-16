@@ -22,6 +22,14 @@ public class OrderSignedDataService {
             .disableHtmlEscaping()
             .create();
 
+    public String getSignedDataJson(Order order) {
+        if (order == null) {
+            return null;
+        }
+        OrderSignedDataDTO dto = buildSignedData(order);
+        return gson.toJson(dto);
+    }
+
     public void createForOrder(Order order) {
         if (order == null || order.getId() == null) {
             throw new IllegalArgumentException("Order không hợp lệ để tạo dữ liệu ký");

@@ -124,7 +124,23 @@
                             <c:otherwise>
                                 <c:forEach items="${orders}" var="order">
                                     <tr>
-                                        <td>#${order.id}</td>
+                                        <td>
+                                            #${order.id}
+                                            <c:if test="${order.signatureStatus == 'KEY_COMPROMISED_REVIEW'}">
+                                                <div style="margin-top: 4px;">
+                                                    <span class="badge" style="font-size: 0.75rem; background-color: #f97316; color: white; padding: 2px 6px; font-weight: normal; border-radius: 4px; display: inline-block;">
+                                                        <i class="fas fa-exclamation-triangle"></i> Lộ khóa
+                                                    </span>
+                                                </div>
+                                            </c:if>
+                                            <c:if test="${order.signatureStatus == 'SIGNATURE_INVALID'}">
+                                                <div style="margin-top: 4px;">
+                                                    <span class="badge" style="font-size: 0.75rem; background-color: #dc2626; color: white; padding: 2px 6px; font-weight: normal; border-radius: 4px; display: inline-block;">
+                                                        <i class="fas fa-times-circle"></i> Chữ ký lỗi
+                                                    </span>
+                                                </div>
+                                            </c:if>
+                                        </td>
                                         <td>
                                             <div class="orders-customer-name">${order.customerName}</div>
                                             <div class="orders-customer-email">${order.customerEmail}</div>

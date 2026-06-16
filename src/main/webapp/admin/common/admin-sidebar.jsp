@@ -92,6 +92,10 @@
                 <span class="nav-text">Settings</span>
             </a>
         </c:if>
+        <a class="nav-link ${navActivePage == 'notifications' ? 'active' : ''}" href="${ctx}/admin/notifications" ${navActivePage == 'notifications' ? 'aria-current="page"' : ''}>
+            <span class="nav-icon"><i class="bi bi-shield-exclamation" aria-hidden="true"></i></span>
+            <span class="nav-text">Security Alerts</span>
+        </a>
         <c:if test="${canViewLogs}">
             <a class="nav-link ${navActivePage == 'logs' ? 'active' : ''}" href="${ctx}/admin/logs" ${navActivePage == 'logs' ? 'aria-current="page"' : ''}>
                 <span class="nav-icon"><i class="bi bi-journal-text" aria-hidden="true"></i></span>

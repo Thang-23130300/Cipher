@@ -23,4 +23,7 @@ public class UserKeyDTO {
     private String keyStatus;
     private LocalDateTime createdAt;
     private LocalDateTime revokedAt;
+
+    private LocalDateTime compromisedFrom; //bị lộ Mốc thời gian
+    private String note;//Ghi chú sự cố
 }

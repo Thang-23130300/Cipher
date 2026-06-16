@@ -8,6 +8,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import nlu.fit.web.souvenirecommerce.features.signature.service.OrderProcessingGateService;
+import nlu.fit.web.souvenirecommerce.features.signature.service.OrderAuditService;
 import nlu.fit.web.souvenirecommerce.legacy.dao.OrderDAO;
 import nlu.fit.web.souvenirecommerce.legacy.model.Order;
 import nlu.fit.web.souvenirecommerce.legacy.model.OrderItem;
@@ -22,6 +23,7 @@ public class AdminOrderController extends HttpServlet {
     private static final Logger log = LoggerFactory.getLogger(AdminOrderController.class);
     private final OrderDAO orderDAO = new OrderDAO();
     private final OrderProcessingGateService processingGateService = new OrderProcessingGateService();
+    private final OrderAuditService orderAuditService = new OrderAuditService();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -66,6 +68,15 @@ public class AdminOrderController extends HttpServlet {
         }
 
         int totalPages = (int) Math.ceil((double) totalOrders / pageSize);
+
+        if (orders != null) {
+            for (Order o : orders) {
+                if (o != null ) {
+                    String dynamicStatus = orderAuditService.auditOrderSignature((long) o.getId());
+                    o.setSignatureStatus(dynamicStatus);
+                }
+            }
+        }
 
         log.info("Loaded admin orders page {} with {} records (statusFilter={})",
                 page, orders.size(), statusFilter == null || statusFilter.isBlank() ? "all" : statusFilter);
@@ -120,6 +131,10 @@ public class AdminOrderController extends HttpServlet {
         }
 
         Order order = orderDAO.getOrderById(orderId);
+        if (order != null ) {
+            String dynamicStatus = orderAuditService.auditOrderSignature((long) order.getId());
+            order.setSignatureStatus(dynamicStatus);
+        }
         List<OrderItem> orderItems = orderDAO.getOrderItems(orderId);
 
         log.info("Opened admin order detail for orderId={}", orderId);
@@ -150,6 +165,8 @@ public class AdminOrderController extends HttpServlet {
             return;
         }
 
+        String auditedSignatureStatus = orderAuditService.auditOrderSignature((long) orderId);
+        order.setSignatureStatus(auditedSignatureStatus);
         if (requiresValidSignature(newStatus) && !processingGateService.canProcess(order)) {
             log.warn("Blocked admin status update for unsigned order. orderId={}, signatureStatus={}",
                     orderId, order.getSignatureStatus());
@@ -157,7 +174,6 @@ public class AdminOrderController extends HttpServlet {
             response.sendRedirect(request.getContextPath() + "/admin/orders?error=signature_required");
             return;
         }
-
         log.info("Updating order status. orderId={}, newStatus={}", orderId, newStatus);
         boolean success = orderDAO.updateOrderStatus(orderId, newStatus);
 
