@@ -22,6 +22,9 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 
+import java.time.LocalDateTime;
+import nlu.fit.web.souvenirecommerce.features.signature.key.service.KeyRiskService;
+
 @WebServlet("/orders/submit-signature")
 public class SubmitSignatureServlet extends HttpServlet {
     private static final String VERIFY_VALID = "VALID";
@@ -123,6 +126,15 @@ public class SubmitSignatureServlet extends HttpServlet {
             String verifyStatus = valid ? VERIFY_VALID : VERIFY_INVALID;
             String orderSignatureStatus = valid ? ORDER_SIGNED : ORDER_SIGNATURE_INVALID;
 
+            if (valid) {
+                KeyRiskService keyRiskService = new KeyRiskService();
+                String riskStatus = keyRiskService.checkKeyRisk(activeKey.getId(), LocalDateTime.now());
+                if ("KEY_COMPROMISED_REVIEW".equals(riskStatus)) {
+                    verifyStatus = "KEY_COMPROMISED_REVIEW";
+                    orderSignatureStatus = "KEY_COMPROMISED_REVIEW";
+                }
+            }
+
             System.out.println("[SubmitSignatureServlet] before save orderId=" + orderId + ", verifyStatus=" + verifyStatus);
             orderSignatureDAO.saveOrUpdate(
                     orderId,
@@ -140,11 +152,14 @@ public class SubmitSignatureServlet extends HttpServlet {
                 session.setAttribute("lastOrderId", orderId);
                 session.setAttribute("lastOrderCode", order.getOrderCode());
                 session.setAttribute("signaturePaymentSuccess", Boolean.TRUE);
-                setSuccess(session, "Ký hợp lệ. Thanh toán thành công.");
+                    if ("KEY_COMPROMISED_REVIEW".equals(orderSignatureStatus)) {
+                        setSuccess(session, "Đơn hàng đã được ký nhưng khóa của bạn có cảnh báo sự cố rò rỉ bảo mật. Đơn hàng đang chờ xem xét.");
+                    } else {
+                        setSuccess(session, "Ký hợp lệ. Thanh toán thành công.");
+                    }
                 response.sendRedirect(request.getContextPath() + "/order-success");
                 return;
             }
-
             setSuccess(session, "Chữ ký không hợp lệ. Vui lòng kiểm tra lại chữ ký và hash đơn hàng.");
             redirectToOrders(request, response);
             return;
