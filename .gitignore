@@ -49,3 +49,4 @@ hibernate.properties
 
 ### Logs ###
 /logs
+tools/java-signing-tool/dist/
