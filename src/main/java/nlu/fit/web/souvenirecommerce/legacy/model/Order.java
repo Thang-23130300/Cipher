@@ -4,7 +4,6 @@ import lombok.*;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.List;
 
 @Getter
 @Setter
@@ -24,9 +23,6 @@ public class Order {
     private String signatureStatus;
     private String verifyStatus;
     private Date signedAt;
-    private List<OrderItem> items;
-    private String paymentUrl;
-    private String paymentStatus;
 
     public String getOrderCode() {
         Date codeDate = orderDate == null ? new Date() : orderDate;

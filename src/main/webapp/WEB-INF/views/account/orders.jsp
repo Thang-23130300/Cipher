@@ -115,7 +115,7 @@
                     <div class="item-details">
                         <span>x${item.quantity}</span>
                         <span class="item-price">
-                        <fmt:formatNumber value="${item.priceAtPurchase}" type="currency" currencySymbol="₫"/>
+                            <fmt:formatNumber value="${item.unitPrice}" type="currency" currencySymbol="₫"/>
                         </span>
                     </div>
                 </div>
@@ -145,25 +145,6 @@
 
 <!-- Order List Section -->
 <c:if test="${empty requestScope.order}">
-    <section class="profile-panel orders-filter-panel">
-        <form method="get" action="${pageContext.request.contextPath}/user/orders" class="orders-search-form">
-            <input type="text"
-                   name="q"
-                   value="${requestScope.q}"
-                   placeholder="Tìm theo mã đơn hoặc tên sản phẩm"
-                   class="orders-search-input"/>
-
-            <button type="submit" class="primary-button">
-                <i class="fa-solid fa-magnifying-glass"></i>
-                <span>Tìm kiếm</span>
-            </button>
-
-            <a href="${pageContext.request.contextPath}/user/orders" class="secondary-button">
-                <span>Xóa lọc</span>
-            </a>
-        </form>
-
-    </section>
     <c:choose>
         <c:when test="${not empty requestScope.orderList}">
             <section class="profile-panel orders-section">
@@ -193,50 +174,6 @@
                             </div>
 
                             <div class="order-card__body">
-                                <div class="order-products">
-                                    <c:choose>
-                                        <c:when test="${not empty order.items}">
-                                            <c:forEach items="${order.items}" var="item">
-                                                <div class="order-product-row">
-                                                    <div class="order-product-image">
-                                                        <c:choose>
-                                                            <c:when test="${not empty item.productImage}">
-                                                                <img src="${item.productImage}" alt="${item.productName}"/>
-                                                            </c:when>
-                                                            <c:otherwise>
-                                                                <div class="order-product-placeholder">
-                                                                    <i class="fa-regular fa-image"></i>
-                                                                </div>
-                                                            </c:otherwise>
-                                                        </c:choose>
-                                                    </div>
-
-                                                    <div class="order-product-info">
-                                                        <a href="${pageContext.request.contextPath}/product?id=${item.productId}"
-                                                           class="order-product-name">
-                                                            <c:out value="${item.productName}"/>
-                                                        </a>
-                                                        <div class="order-product-meta">
-                                                            <span>Số lượng: x${item.quantity}</span>
-                                                            <span>
-                                    Giá:
-                                    <fmt:formatNumber value="${item.priceAtPurchase}" type="currency" currencySymbol="₫"/>
-                                </span>
-                                                        </div>
-                                                    </div>
-
-                                                    <div class="order-product-subtotal">
-                                                        <fmt:formatNumber value="${item.subTotal}" type="currency" currencySymbol="₫"/>
-                                                    </div>
-                                                </div>
-                                            </c:forEach>
-                                        </c:when>
-                                        <c:otherwise>
-                                            <p class="order-products-empty">Không có dữ liệu sản phẩm.</p>
-                                        </c:otherwise>
-                                    </c:choose>
-                                </div>
-
                                 <div class="order-meta">
                                     <span>Trạng thái chữ ký</span>
                                     <strong class="signature-status signature-status--${order.signatureStatus}">
@@ -253,7 +190,6 @@
                                         </c:choose>
                                     </strong>
                                 </div>
-
                                 <div class="order-total">
                                     <span>Tổng tiền:</span>
                                     <strong>
