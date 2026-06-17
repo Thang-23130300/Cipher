@@ -493,6 +493,36 @@
 
     <div class="section">
         <div class="section-title">
+            <h2>Tải công cụ ký đơn hàng</h2>
+        </div>
+
+        <p class="description">
+            INOLA Signing Tool là ứng dụng chạy trên máy cá nhân của bạn để tạo khóa và ký đơn hàng.
+            Website chỉ lưu Public Key, không lưu Private Key.
+        </p>
+
+        <div style="display: flex; gap: 12px; flex-wrap: wrap; margin: 16px 0;">
+            <a href="${pageContext.request.contextPath}/downloads/INOLA-Signing-Tool.zip"
+               class="btn btn-primary"
+               download>
+                <i class="fa-solid fa-download"></i>
+                Tải INOLA Signing Tool
+            </a>
+        </div>
+
+        <div class="description" style="line-height: 1.7;">
+            <strong>Hướng dẫn sử dụng nhanh:</strong><br>
+            1. Tải file ZIP và giải nén INOLA Signing Tool trên máy cá nhân.<br>
+            2. Mở file <strong>INOLA-Signing-Tool.exe</strong> trong thư mục vừa giải nén.<br>
+            3. Bấm <strong>Tạo cặp khóa mới</strong> trong Tool.<br>
+            3. Bấm <strong>Lưu Private Key</strong> để lưu khóa bí mật trên máy của bạn.<br>
+            4. Copy <strong>Public Key</strong> từ Tool và dán vào ô bên dưới.<br>
+            5. Khi ký đơn hàng, mở Tool, tải Private Key và bấm <strong>Bật kết nối với website</strong>.
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">
             <h2>Thêm / cập nhật public key</h2>
         </div>
 
