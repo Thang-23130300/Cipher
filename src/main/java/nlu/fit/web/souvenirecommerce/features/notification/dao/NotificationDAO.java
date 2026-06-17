@@ -3,6 +3,7 @@ package nlu.fit.web.souvenirecommerce.features.notification.dao;
 import nlu.fit.web.souvenirecommerce.common.utils.HibernateUtil;
 import nlu.fit.web.souvenirecommerce.features.notification.dto.NotificationDTO;
 import org.hibernate.Session;
+import org.hibernate.Transaction;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -67,14 +68,23 @@ public class NotificationDAO {
                 INSERT INTO notifications (recipient_user_id, order_id, type, title, message, is_read, created_at)
                 VALUES (:recipientUserId, :orderId, :type, :title, :message, 0, NOW())
                 """;
-        Session session = HibernateUtil.getSessionFactory().getCurrentSession();
-        session.createNativeMutationQuery(sql)
-                .setParameter("recipientUserId", recipientUserId)
-                .setParameter("orderId", orderId)
-                .setParameter("type", type)
-                .setParameter("title", title)
-                .setParameter("message", message)
-                .executeUpdate();
+        Transaction transaction = null;
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            transaction = session.beginTransaction();
+            session.createNativeMutationQuery(sql)
+                    .setParameter("recipientUserId", recipientUserId)
+                    .setParameter("orderId", orderId)
+                    .setParameter("type", type)
+                    .setParameter("title", title)
+                    .setParameter("message", message)
+                    .executeUpdate();
+            transaction.commit();
+        } catch (Exception e) {
+            if (transaction != null && transaction.isActive()) {
+                transaction.rollback();
+            }
+            throw e;
+        }
     }
 
     private LocalDateTime toLocalDateTime(Object value) {
