@@ -5,6 +5,7 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import nlu.fit.web.souvenirecommerce.features.notification.service.AdminNotificationService;
 import nlu.fit.web.souvenirecommerce.features.signature.service.OrderAuditService;
 import nlu.fit.web.souvenirecommerce.features.signature.service.OrderProcessingGateService;
 import nlu.fit.web.souvenirecommerce.legacy.dao.OrderDAO;
@@ -26,6 +27,7 @@ public class AdminOrderController extends HttpServlet {
     private final OrderDAO orderDAO = new OrderDAO();
     private final OrderProcessingGateService processingGateService = new OrderProcessingGateService();
     private final OrderAuditService orderAuditService = new OrderAuditService();
+    private final AdminNotificationService adminNotificationService = new AdminNotificationService();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -198,6 +200,11 @@ public class AdminOrderController extends HttpServlet {
         if (requiresValidSignature(newStatus) && !processingGateService.canProcess(order)) {
             log.warn("Blocked admin status update for unsigned order. orderId={}, signatureStatus={}",
                     orderId, order.getSignatureStatus());
+            adminNotificationService.notifyBlockedOrderProcessing(
+                    (long) orderId,
+                    getActorId(request),
+                    order.getSignatureStatus()
+            );
             request.getSession().setAttribute("error", OrderProcessingGateService.DEFAULT_BLOCK_MESSAGE);
             response.sendRedirect(request.getContextPath() + "/admin/orders?error=signature_required");
             return;
@@ -244,6 +251,21 @@ public class AdminOrderController extends HttpServlet {
                 || "KEY_COMPROMISED_REVIEW".equals(normalizedStatus)
                 || "DATA_TAMPERED".equals(normalizedStatus)
                 || "UNSIGNED".equals(normalizedStatus);
+    }
+
+    private Long getActorId(HttpServletRequest request) {
+        Object user = request.getSession(false) == null ? null : request.getSession(false).getAttribute("user");
+        if (user instanceof User currentUser) {
+            return currentUser.getId();
+        }
+
+        user = request.getSession(false) == null ? null : request.getSession(false).getAttribute("userInSession");
+        if (user instanceof User currentUser) {
+            return currentUser.getId();
+        }
+
+        user = request.getSession(false) == null ? null : request.getSession(false).getAttribute("currentUser");
+        return user instanceof User currentUser ? currentUser.getId() : null;
     }
 
     private String resolveActorRole(User actor) {

@@ -4,7 +4,7 @@ import nlu.fit.web.souvenirecommerce.features.signature.key.dao.UserKeyDAO;
 import nlu.fit.web.souvenirecommerce.features.signature.key.dao.KeyCompromiseReportDAO;
 import nlu.fit.web.souvenirecommerce.features.signature.key.dto.UserKeyDTO;
 import nlu.fit.web.souvenirecommerce.features.signature.dao.OrderSignatureDAO;
-import nlu.fit.web.souvenirecommerce.features.notification.dao.NotificationDAO;
+import nlu.fit.web.souvenirecommerce.features.notification.service.AdminNotificationService;
 import nlu.fit.web.souvenirecommerce.legacy.dao.OrderDAO;
 import nlu.fit.web.souvenirecommerce.model.entity.KeyCompromiseReport;
 import nlu.fit.web.souvenirecommerce.model.entity.User;
@@ -19,7 +19,7 @@ public class KeyCompromiseService {
     private final KeyCompromiseReportDAO reportDAO = new KeyCompromiseReportDAO();
     private final OrderDAO orderDAO = new OrderDAO();
     private final OrderSignatureDAO signatureDAO = new OrderSignatureDAO();
-    private final NotificationDAO notificationDAO = new NotificationDAO();
+    private final AdminNotificationService adminNotificationService = new AdminNotificationService();
 
     public void reportIncident(Long userId, Long keyId, String reportType, LocalDateTime compromisedFrom, String description) {
         if (userId == null || keyId == null) throw new IllegalArgumentException("Dữ liệu không hợp lệ.");
@@ -47,28 +47,30 @@ public class KeyCompromiseService {
                 .build();
         reportDAO.save(report);
 
+        if ("LOST".equalsIgnoreCase(reportType)) {
+            adminNotificationService.notifyLostKey(userId, keyId);
+        }
+
         if ("COMPROMISED".equalsIgnoreCase(reportType)) {
+            adminNotificationService.notifyCompromisedKey(userId, keyId);
             signatureDAO.markSignaturesAsCompromisedReview(keyId, compromisedFrom);
             orderDAO.markOrdersAsCompromisedReview(keyId, compromisedFrom);
 
             String affectedOrdersSql = """
-                    SELECT o.id, o.user_id 
+                    SELECT o.id
                     FROM orders o
                     JOIN order_signatures os ON o.id = os.order_id
                     WHERE os.key_id = :keyId
                       AND os.signed_at >= :compromisedFrom
                     """;
-            java.util.List<Object[]> affected = session.createNativeQuery(affectedOrdersSql)
+            java.util.List<?> affected = session.createNativeQuery(affectedOrdersSql)
                     .setParameter("keyId", keyId)
                     .setParameter("compromisedFrom", compromisedFrom)
                     .list();
 
-            for (Object[] row : affected) {
-                Long orderId = ((Number) row[0]).longValue();
-                Long ownerId = ((Number) row[1]).longValue();
-                notificationDAO.save(ownerId, orderId, "KEY_COMPROMISED",
-                        "Cảnh báo bảo mật: Đơn hàng #" + orderId,
-                        "Đơn hàng này được ký bằng khóa đã bị báo lộ (COMPROMISED). Trạng thái chuyển thành xem xét.");
+            for (Object row : affected) {
+                Long orderId = ((Number) row).longValue();
+                adminNotificationService.notifyKeyRisk(orderId, keyId, userId);
             }
         }
     }

@@ -93,6 +93,21 @@
                                                             <i class="fas fa-times-circle"></i> Lỗi chữ ký
                                                         </span>
                                                     </c:when>
+                                                    <c:when test="${noti.type == 'ORDER_PROCESSING_BLOCKED'}">
+                                                        <span class="badge bg-warning text-dark" style="padding: 4px 8px; border-radius: 4px; font-weight: 500;">
+                                                            <i class="fas fa-lock"></i> Bị chặn
+                                                        </span>
+                                                    </c:when>
+                                                    <c:when test="${noti.type == 'KEY_LOST'}">
+                                                        <span class="badge bg-secondary text-white" style="padding: 4px 8px; border-radius: 4px; font-weight: 500;">
+                                                            <i class="fas fa-key"></i> Mất khóa
+                                                        </span>
+                                                    </c:when>
+                                                    <c:when test="${noti.type == 'KEY_RISK'}">
+                                                        <span class="badge bg-warning text-dark" style="padding: 4px 8px; border-radius: 4px; font-weight: 500;">
+                                                            <i class="fas fa-shield-halved"></i> Rủi ro khóa
+                                                        </span>
+                                                    </c:when>
                                                     <c:otherwise>
                                                         <span class="badge bg-info text-white" style="padding: 4px 8px; border-radius: 4px; font-weight: 500;">
                                                             <i class="fas fa-info-circle"></i> Hệ thống
