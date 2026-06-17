@@ -43,6 +43,7 @@ public class AdminOrderController extends HttpServlet {
         }
 
         String statusFilter = request.getParameter("status");
+        String signatureStatusFilter = request.getParameter("signatureStatus");
 
         int page = 1;
         int pageSize = 20;
@@ -62,13 +63,8 @@ public class AdminOrderController extends HttpServlet {
         List<Order> orders;
         int totalOrders;
 
-        if (statusFilter != null && !statusFilter.isEmpty() && !"all".equals(statusFilter)) {
-            orders = orderDAO.getOrdersByStatus(statusFilter, page, pageSize);
-            totalOrders = orderDAO.getOrderCountByStatus(statusFilter);
-        } else {
-            orders = orderDAO.getOrdersPaginated(page, pageSize);
-            totalOrders = orderDAO.getTotalOrders();
-        }
+        orders = orderDAO.getOrdersFiltered(statusFilter, signatureStatusFilter, page, pageSize);
+        totalOrders = orderDAO.getOrderCountFiltered(statusFilter, signatureStatusFilter);
 
         int totalPages = (int) Math.ceil((double) totalOrders / pageSize);
 
@@ -104,6 +100,7 @@ public class AdminOrderController extends HttpServlet {
         request.setAttribute("totalPages", totalPages);
         request.setAttribute("totalOrders", totalOrders);
         request.setAttribute("statusFilter", statusFilter);
+        request.setAttribute("signatureStatusFilter", signatureStatusFilter);
         request.setAttribute("pendingCount", pendingCount);
         request.setAttribute("processingCount", processingCount);
         request.setAttribute("shippingCount", shippingCount);
@@ -157,6 +154,9 @@ public class AdminOrderController extends HttpServlet {
 
         request.setAttribute("order", order);
         request.setAttribute("orderItems", orderItems);
+        request.setAttribute("signatureInfo", orderDAO.getOrderSignatureInfo(orderId));
+        request.setAttribute("auditLogs", orderDAO.getOrderAuditLogs(orderId));
+
         request.getRequestDispatcher("/admin/order-detail.jsp").forward(request, response);
     }
 
