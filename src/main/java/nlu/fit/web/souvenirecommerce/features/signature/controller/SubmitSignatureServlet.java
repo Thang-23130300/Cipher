@@ -11,6 +11,7 @@ import nlu.fit.web.souvenirecommerce.features.signature.dao.OrderSignedDataDAO;
 import nlu.fit.web.souvenirecommerce.features.signature.key.dao.UserKeyDAO;
 import nlu.fit.web.souvenirecommerce.features.signature.key.dto.UserKeyDTO;
 import nlu.fit.web.souvenirecommerce.features.signature.service.SignatureVerifyService;
+import nlu.fit.web.souvenirecommerce.features.notification.service.AdminNotificationService;
 import nlu.fit.web.souvenirecommerce.common.utils.HibernateUtil;
 import nlu.fit.web.souvenirecommerce.legacy.dao.OrderDAO;
 import nlu.fit.web.souvenirecommerce.model.entity.OrderSignedData;
@@ -37,6 +38,7 @@ public class SubmitSignatureServlet extends HttpServlet {
     private final OrderSignatureDAO orderSignatureDAO = new OrderSignatureDAO();
     private final UserKeyDAO userKeyDAO = new UserKeyDAO();
     private final SignatureVerifyService signatureVerifyService = new SignatureVerifyService();
+    private final AdminNotificationService adminNotificationService = new AdminNotificationService();
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
@@ -146,6 +148,12 @@ public class SubmitSignatureServlet extends HttpServlet {
 
             System.out.println("[SubmitSignatureServlet] before update orderId=" + orderId + ", signatureStatus=" + orderSignatureStatus);
             orderDAO.updateSignatureStatus(orderId.intValue(), orderSignatureStatus, valid);
+
+            if (VERIFY_INVALID.equals(verifyStatus)) {
+                adminNotificationService.notifySignatureInvalid(orderId, currentUser.getId());
+            } else if ("KEY_COMPROMISED_REVIEW".equals(verifyStatus)) {
+                adminNotificationService.notifyKeyRisk(orderId, activeKey.getId(), currentUser.getId());
+            }
 
             System.out.println("[SubmitSignatureServlet] END orderId=" + orderId);
             if (valid) {
