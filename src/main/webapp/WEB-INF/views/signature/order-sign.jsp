@@ -305,6 +305,11 @@
             color: var(--danger);
             border: 1px solid var(--danger-border);
         }
+        .status-alert-warning {
+            background-color: var(--warning-bg);
+            color: var(--warning);
+            border: 1px solid var(--warning-border);
+        }
 
         .warning-banner {
             background-color: var(--warning-bg);
@@ -472,6 +477,8 @@
 <script src="${pageContext.request.contextPath}/assets/js/header.js?v=8"></script>
 
 <script>
+    const SIGNING_TOOL_API_BASE = 'http://127.0.0.1:9090';
+
     // Copy hash value to clipboard
     function copyHash() {
         const hashTextarea = document.getElementById('hashValue');
@@ -500,17 +507,37 @@
         const signatureTextarea = document.getElementById('signatureValue');
         const btnSign = document.getElementById('btnSignTool');
 
-        // Clear status alert
+        function showToolStatus(type, html) {
+            statusDiv.style.display = 'block';
+            statusDiv.className = 'status-alert status-alert-' + type;
+            statusDiv.innerHTML = html;
+        }
+
         statusDiv.style.display = 'none';
         statusDiv.className = 'status-alert';
         statusDiv.innerHTML = '';
 
+        if (!hash) {
+            showToolStatus(
+                'danger',
+                '<i class="fa-solid fa-circle-exclamation"></i> Không tìm thấy mã băm đơn hàng. Vui lòng tải lại trang.'
+            );
+            return;
+        }
+
         btnSign.disabled = true;
         const originalBtnHtml = btnSign.innerHTML;
-        btnSign.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang kết nối...';
+        btnSign.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang gửi yêu cầu ký...';
+
+        showToolStatus(
+            'warning',
+            '<i class="fa-solid fa-clock"></i> ' +
+            '<strong>Đang gửi yêu cầu ký đến Java Signing Tool...</strong><br>' +
+            'Vui lòng mở cửa sổ Java Signing Tool và bấm <strong>Xác nhận ký</strong> khi Tool hiển thị yêu cầu.'
+        );
 
         try {
-            const response = await fetch('http://localhost:9090/api/sign', {
+            const response = await fetch(SIGNING_TOOL_API_BASE + '/api/sign', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -524,42 +551,117 @@
                 })
             });
 
-            if (!response.ok) {
-                throw new Error('Signing Tool local trả về mã lỗi HTTP: ' + response.status);
-            }
-
             const responseText = await response.text();
             let signature = responseText.trim();
+            let data = null;
 
-            // Flexible parsing of plain text or JSON output
             try {
-                const data = JSON.parse(responseText);
-                if (data && data.signature) {
+                data = JSON.parse(responseText);
+            } catch (e) {
+                // Tool có thể trả plain text khi ký thành công.
+            }
+
+            if (!response.ok) {
+                const message = (data && (data.message || data.errorMessage)) ? (data.message || data.errorMessage) : '';
+                const normalizedMessage = message.toLowerCase();
+                if (
+                    data &&
+                    (
+                        data.errorCode === 'USER_REJECTED' ||
+                        String(data.message || '').toLowerCase().includes('reject')
+                    )
+                ) {
+                    showToolStatus(
+                        'warning',
+                        '<i class="fa-solid fa-triangle-exclamation"></i> ' +
+                        '<strong>Bạn đã từ chối ký đơn hàng trên Tool.</strong><br>' +
+                        'Nếu muốn ký lại, hãy bấm nút <strong>Ký bằng Signing Tool</strong> và chọn <strong>Xác nhận ký</strong> trên Tool.'
+                    );
+                    return;
+                }
+                if (message.toLowerCase().includes('private key')) {
+                    showToolStatus(
+                        'danger',
+                        '<i class="fa-solid fa-circle-exclamation"></i> ' +
+                        '<strong>Tool chưa tải Private Key.</strong><br>' +
+                        'Vui lòng mở Java Signing Tool, bấm <strong>Load Private K...</strong> hoặc tạo cặp khóa mới, rồi thử ký lại.'
+                    );
+                    return;
+                }
+
+                showToolStatus(
+                    'danger',
+                    '<i class="fa-solid fa-circle-exclamation"></i> ' +
+                    '<strong>Tool không thể ký đơn hàng.</strong><br>' +
+                    (message || ('Mã lỗi HTTP: ' + response.status))
+                );
+                return;
+            }
+
+            try {
+                if (!data) {
+                    data = JSON.parse(responseText);
+                }
+                if (data && data.success === false) {
+                    if (data.errorCode === 'USER_REJECTED') {
+                        showToolStatus(
+                            'warning',
+                            '<i class="fa-solid fa-triangle-exclamation"></i> Bạn đã từ chối ký đơn hàng trên Tool.'
+                        );
+                        return;
+                    }
+
+                    if (data.errorCode === 'PRIVATE_KEY_NOT_LOADED') {
+                        showToolStatus(
+                            'danger',
+                            '<i class="fa-solid fa-circle-exclamation"></i> ' +
+                            '<strong>Tool chưa tải Private Key.</strong><br>' +
+                            'Vui lòng mở Java Signing Tool, tải Private Key rồi thử ký lại.'
+                        );
+                        return;
+                    }
+
+                    showToolStatus(
+                        'danger',
+                        '<i class="fa-solid fa-circle-exclamation"></i> ' +
+                        (data.message || data.errorMessage || 'Tool không thể ký đơn hàng.')
+                    );
+                    return;
+                }
+
+                if (data && data.signatureBase64) {
+                    signature = data.signatureBase64.trim();
+                } else if (data && data.signature) {
                     signature = data.signature.trim();
                 } else if (data && data.signatureValue) {
                     signature = data.signatureValue.trim();
                 }
             } catch (e) {
-                // responseText is plain text, keep signature as responseText
+                // Nếu Tool trả plain text thì giữ nguyên responseText làm chữ ký.
             }
 
             if (!signature) {
-                throw new Error('Chữ ký nhận được từ tool bị rỗng.');
+                throw new Error('Chữ ký nhận được từ Tool bị rỗng.');
             }
 
             signatureTextarea.value = signature;
 
-            // Show success status
-            statusDiv.style.display = 'block';
-            statusDiv.className = 'status-alert status-alert-success';
-            statusDiv.innerHTML = '<i class="fa-solid fa-circle-check"></i> Đã tự động ký thành công từ Local Signing Tool!';
+            showToolStatus(
+                'success',
+                '<i class="fa-solid fa-circle-check"></i> ' +
+                '<strong>Đã ký thành công bằng Java Signing Tool.</strong><br>' +
+                'Chữ ký đã được điền vào ô bên dưới. Bạn có thể bấm gửi để hệ thống xác minh chữ ký.'
+            );
         } catch (error) {
             console.error('Lỗi khi gọi API ký: ', error);
-            statusDiv.style.display = 'block';
-            statusDiv.className = 'status-alert status-alert-danger';
-            statusDiv.innerHTML = `<i class="fa-solid fa-circle-exclamation"></i> <strong>Không thể kết nối tới Local Signing Tool!</strong><br>
-                                       Vui lòng đảm bảo phần mềm Signing Tool đã được bật và đang lắng nghe cổng 9090 trên máy tính của bạn.<br>
-                                       Hoặc bạn có thể sao chép mã băm ở trên, dán vào tool để ký thủ công, rồi sao chép chữ ký dán ngược lại vào ô bên dưới.`;
+
+            showToolStatus(
+                'danger',
+                '<i class="fa-solid fa-circle-exclamation"></i> ' +
+                '<strong>Không thể kết nối tới Java Signing Tool!</strong><br>' +
+                'Bạn cần mở ứng dụng Java Signing Tool trước khi ký đơn hàng.<br>' +
+                'Sau khi Tool đã sẵn sàng, hãy bấm lại nút <strong>Ký bằng Tool</strong>.'
+            );
         } finally {
             btnSign.disabled = false;
             btnSign.innerHTML = originalBtnHtml;

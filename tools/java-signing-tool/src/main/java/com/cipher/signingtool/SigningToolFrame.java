@@ -342,18 +342,31 @@ public class SigningToolFrame extends JFrame implements SigningApiBridge {
     public boolean confirmSigning(SignRequest request) {
         final int[] option = new int[] {JOptionPane.NO_OPTION};
 
-        Runnable dialogTask = () -> option[0] = JOptionPane.showConfirmDialog(
+        String hashValue = safeText(request.getHashValue());
+        String shortHash = hashValue.length() > 80
+                ? hashValue.substring(0, 40) + "\n" + hashValue.substring(40, 80) + "..."
+                : hashValue;
+
+        String message =
+                "Website INOLA đang yêu cầu ký xác nhận đơn hàng.\n\n"
+                        + "Mã đơn hàng: #" + safeText(request.getOrderId()) + "\n"
+                        + "Website: " + safeText(request.getMerchantName()) + "\n"
+                        + "Thuật toán băm: " + safeText(request.getHashAlgorithm()) + "\n"
+                        + "Thuật toán ký: SHA256withRSA\n\n"
+                        + "Mã băm đơn hàng:\n" + shortHash + "\n\n"
+                        + "Bạn có đồng ý dùng Private Key hiện tại để ký đơn hàng này không?";
+
+        Object[] options = {"Xác nhận ký", "Từ chối"};
+
+        Runnable dialogTask = () -> option[0] = JOptionPane.showOptionDialog(
                 this,
-                "Website requests signing confirmation.\n\n"
-                        + "Order ID: " + safeText(request.getOrderId()) + "\n"
-                        + "Merchant: " + safeText(request.getMerchantName()) + "\n"
-                        + "Hash algorithm: " + safeText(request.getHashAlgorithm()) + "\n"
-                        + "Signature algorithm: SHA256withRSA\n\n"
-                        + "Hash value:\n" + safeText(request.getHashValue()) + "\n\n"
-                        + "Do you agree to sign this hash?",
-                "Confirm signing request",
+                message,
+                "Xác nhận ký đơn hàng",
                 JOptionPane.YES_NO_OPTION,
-                JOptionPane.WARNING_MESSAGE
+                JOptionPane.WARNING_MESSAGE,
+                null,
+                options,
+                options[0]
         );
 
         try {
