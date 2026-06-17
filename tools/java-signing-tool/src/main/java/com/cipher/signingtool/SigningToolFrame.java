@@ -41,17 +41,17 @@ public class SigningToolFrame extends JFrame implements SigningApiBridge {
     private final JTextArea publicKeyArea = createTextArea(8);
     private final JTextArea hashValueArea = createTextArea(5);
     private final JTextArea signatureArea = createTextArea(7);
-    private final JLabel statusLabel = new JLabel("Ready", SwingConstants.LEFT);
-    private final JLabel lastPrivateKeyPathLabel = new JLabel("Recent private key: none", SwingConstants.LEFT);
+    private final JLabel statusLabel = new JLabel("Sẵn sàng.", SwingConstants.LEFT);
+    private final JLabel lastPrivateKeyPathLabel = new JLabel("Private Key gần nhất: chưa có", SwingConstants.LEFT);
     private final LocalApiServer localApiServer = new LocalApiServer(this);
-    private final JButton startApiButton = new JButton("Start API Server");
-    private final JButton stopApiButton = new JButton("Stop API Server");
+    private final JButton startApiButton = new JButton("Bật kết nối với website");
+    private final JButton stopApiButton = new JButton("Tắt kết nối");
 
     private PrivateKey currentPrivateKey;
     private PublicKey currentPublicKey;
 
     public SigningToolFrame() {
-        super("Java Signing Tool - RSA SHA256withRSA");
+        super("INOLA Signing Tool - Ký đơn hàng bằng chữ ký số");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setMinimumSize(new Dimension(900, 680));
         setLocationRelativeTo(null);
@@ -88,18 +88,19 @@ public class SigningToolFrame extends JFrame implements SigningApiBridge {
 
     private JPanel createKeyPanel() {
         JPanel panel = new JPanel(new BorderLayout(8, 8));
-        panel.setBorder(BorderFactory.createTitledBorder("Key management"));
+        panel.setBorder(BorderFactory.createTitledBorder("Quản lý khóa chữ ký số"));
 
         publicKeyArea.setEditable(false);
-        publicKeyArea.setText("Generate a key pair to show the public key PEM here.");
+        publicKeyArea.setText("Public Key sẽ hiển thị tại đây sau khi bạn bấm \"Tạo cặp khóa mới\".\n"
+                + "Chỉ copy Public Key này lên website. Không gửi Private Key cho bất kỳ ai.");
 
         JPanel actions = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        JButton generateButton = new JButton("Generate Key Pair");
+        JButton generateButton = new JButton("Tạo cặp khóa mới");
         JButton copyPublicButton = new JButton("Copy Public Key");
-        JButton exportPublicButton = new JButton("Export Public Key");
-        JButton exportPrivateButton = new JButton("Export Private Key");
-        JButton loadPrivateButton = new JButton("Load Private Key");
-        JButton loadRecentPrivateButton = new JButton("Load key gần nhất");
+        JButton exportPublicButton = new JButton("Lưu Public Key");
+        JButton exportPrivateButton = new JButton("Lưu Private Key");
+        JButton loadPrivateButton = new JButton("Tải Private Key");
+        JButton loadRecentPrivateButton = new JButton("Tải key gần nhất");
 
         generateButton.addActionListener(event -> generateKeyPair());
         copyPublicButton.addActionListener(event -> copyPublicKey());
@@ -132,23 +133,23 @@ public class SigningToolFrame extends JFrame implements SigningApiBridge {
 
     private JPanel createSigningPanel() {
         JPanel panel = new JPanel(new BorderLayout(8, 8));
-        panel.setBorder(BorderFactory.createTitledBorder("Manual signing"));
+        panel.setBorder(BorderFactory.createTitledBorder("Ký thủ công"));
 
         JPanel inputPanel = new JPanel(new BorderLayout(6, 6));
-        inputPanel.add(new JLabel("hash_value"), BorderLayout.NORTH);
+        inputPanel.add(new JLabel("Mã băm đơn hàng cần ký"), BorderLayout.NORTH);
         inputPanel.add(new JScrollPane(hashValueArea), BorderLayout.CENTER);
 
         JPanel signaturePanel = new JPanel(new BorderLayout(6, 6));
         signatureArea.setEditable(false);
-        signaturePanel.add(new JLabel("Signature Base64"), BorderLayout.NORTH);
+        signaturePanel.add(new JLabel("Chữ ký Base64 sau khi ký"), BorderLayout.NORTH);
         signaturePanel.add(new JScrollPane(signatureArea), BorderLayout.CENTER);
 
         JPanel actions = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        JButton signButton = new JButton("Sign Hash");
-        JButton copySignatureButton = new JButton("Copy Signature");
+        JButton signButton = new JButton("Ký mã băm");
+        JButton copySignatureButton = new JButton("Copy chữ ký");
 
         signButton.addActionListener(event -> signHashValue());
-        copySignatureButton.addActionListener(event -> copyText(signatureArea.getText(), "Signature copied."));
+        copySignatureButton.addActionListener(event -> copyText(signatureArea.getText(), "Đã copy chữ ký."));
 
         actions.add(signButton);
         actions.add(copySignatureButton);
@@ -183,7 +184,7 @@ public class SigningToolFrame extends JFrame implements SigningApiBridge {
             currentPrivateKey = keyPair.getPrivate();
             currentPublicKey = keyPair.getPublic();
             publicKeyArea.setText(PemUtils.publicKeyToPem(currentPublicKey));
-            setStatus("Generated RSA 2048 key pair.");
+            setStatus("Đã tạo cặp khóa RSA 2048. Hãy lưu Private Key và copy Public Key lên website.");
         } catch (Exception e) {
             showError(e.getMessage());
         }
@@ -191,7 +192,7 @@ public class SigningToolFrame extends JFrame implements SigningApiBridge {
 
     private void exportPublicKey() {
         if (currentPublicKey == null) {
-            showError("No public key available. Generate a key pair first.");
+            showError("Chưa có Public Key. Vui lòng tạo cặp khóa trước.");
             return;
         }
 
@@ -200,16 +201,16 @@ public class SigningToolFrame extends JFrame implements SigningApiBridge {
 
     private void copyPublicKey() {
         if (currentPublicKey == null) {
-            showError("No public key available. Generate a key pair first.");
+            showError("Chưa có Public Key. Vui lòng tạo cặp khóa trước.");
             return;
         }
 
-        copyText(PemUtils.publicKeyToPem(currentPublicKey), "Public key copied.");
+        copyText(PemUtils.publicKeyToPem(currentPublicKey), "Đã copy Public Key.");
     }
 
     private void exportPrivateKey() {
         if (currentPrivateKey == null) {
-            showError("No private key available. Generate or load a private key first.");
+            showError("Chưa có Private Key. Vui lòng tạo cặp khóa mới hoặc tải Private Key trước.");
             return;
         }
 
@@ -221,7 +222,7 @@ public class SigningToolFrame extends JFrame implements SigningApiBridge {
 
     private void loadPrivateKey() {
         JFileChooser chooser = createPemChooser();
-        chooser.setDialogTitle("Load Private Key");
+        chooser.setDialogTitle("Tải Private Key");
 
         if (chooser.showOpenDialog(this) != JFileChooser.APPROVE_OPTION) {
             return;
@@ -244,7 +245,8 @@ public class SigningToolFrame extends JFrame implements SigningApiBridge {
         }
 
         if (recentPrivateKeyPath == null || !Files.exists(recentPrivateKeyPath)) {
-            showError("Không tìm thấy private key cũ, vui lòng chọn lại.");
+            lastPrivateKeyPathLabel.setText("Private Key gần nhất: file không còn tồn tại");
+            showError("Không tìm thấy Private Key gần nhất. Vui lòng chọn lại file Private Key.");
             return;
         }
 
@@ -262,28 +264,28 @@ public class SigningToolFrame extends JFrame implements SigningApiBridge {
             publicKeyArea.setText(PemUtils.publicKeyToPem(currentPublicKey));
         } catch (Exception e) {
             currentPublicKey = null;
-            publicKeyArea.setText("Private key loaded. Public key could not be derived from this key.");
+            publicKeyArea.setText("Đã tải Private Key, nhưng không thể suy ra Public Key từ khóa này.");
         }
 
         if (rememberPath) {
             saveLastPrivateKeyPath(privateKeyPath);
         }
-        setStatus("Private key đã được load.");
+        setStatus("Đã tải Private Key thành công.");
     }
 
     private void signHashValue() {
         String hashValue = hashValueArea.getText() == null ? "" : hashValueArea.getText().trim();
 
         if (hashValue.isEmpty()) {
-            showError("hash_value must not be empty.");
+            showError("Mã băm không được để trống.");
             return;
         }
 
         if (!signatureService.isSha256Hex(hashValue)) {
             int option = JOptionPane.showConfirmDialog(
                     this,
-                    "hash_value is not a 64-character SHA-256 hex string. Sign it anyway?",
-                    "Hash format warning",
+                    "Mã băm không đúng định dạng SHA-256 hex 64 ký tự. Bạn vẫn muốn ký tiếp?",
+                    "Cảnh báo định dạng mã băm",
                     JOptionPane.YES_NO_OPTION,
                     JOptionPane.WARNING_MESSAGE
             );
@@ -296,7 +298,7 @@ public class SigningToolFrame extends JFrame implements SigningApiBridge {
         try {
             String signature = signatureService.signHashValue(hashValue, currentPrivateKey);
             signatureArea.setText(signature);
-            setStatus("Signed hash_value with SHA256withRSA.");
+            setStatus("Đã ký mã băm bằng thuật toán SHA256withRSA.");
         } catch (Exception e) {
             showError(e.getMessage());
         }
@@ -307,7 +309,7 @@ public class SigningToolFrame extends JFrame implements SigningApiBridge {
             localApiServer.start();
             startApiButton.setEnabled(false);
             stopApiButton.setEnabled(true);
-            setStatus("Local API Server started at http://localhost:" + localApiServer.getPort());
+            setStatus("Đã bật kết nối với website tại http://127.0.0.1:" + localApiServer.getPort());
         } catch (Exception e) {
             showError(e.getMessage());
         }
@@ -317,13 +319,13 @@ public class SigningToolFrame extends JFrame implements SigningApiBridge {
         localApiServer.stop();
         startApiButton.setEnabled(true);
         stopApiButton.setEnabled(false);
-        setStatus("Local API Server stopped.");
+        setStatus("Đã tắt kết nối với website.");
     }
 
     @Override
     public String getPublicKeyPem() {
         if (currentPublicKey == null) {
-            throw new IllegalStateException("No public key available. Generate a key pair first.");
+            throw new IllegalStateException("Chưa có Public Key. Vui lòng tạo cặp khóa trước.");
         }
         return PemUtils.publicKeyToPem(currentPublicKey);
     }
@@ -396,13 +398,13 @@ public class SigningToolFrame extends JFrame implements SigningApiBridge {
 
     private JFileChooser createPemChooser() {
         JFileChooser chooser = new JFileChooser();
-        chooser.setFileFilter(new FileNameExtensionFilter("PEM files (*.pem)", "pem"));
+        chooser.setFileFilter(new FileNameExtensionFilter("Tệp PEM (*.pem)", "pem"));
         return chooser;
     }
 
     private Path chooseAndWritePem(String defaultFileName, String pem) {
         JFileChooser chooser = createPemChooser();
-        chooser.setDialogTitle("Export PEM");
+        chooser.setDialogTitle("Lưu tệp PEM");
         chooser.setSelectedFile(new java.io.File(defaultFileName));
 
         if (chooser.showSaveDialog(this) != JFileChooser.APPROVE_OPTION) {
@@ -412,10 +414,10 @@ public class SigningToolFrame extends JFrame implements SigningApiBridge {
         try {
             Path selectedPath = chooser.getSelectedFile().toPath();
             Files.writeString(selectedPath, pem, StandardCharsets.UTF_8);
-            setStatus("Exported " + chooser.getSelectedFile().getName());
+            setStatus("Đã lưu tệp " + chooser.getSelectedFile().getName());
             return selectedPath;
         } catch (IOException e) {
-            showError("Could not export PEM file: " + e.getMessage());
+            showError("Không thể lưu tệp PEM: " + e.getMessage());
             return null;
         }
     }
@@ -431,17 +433,27 @@ public class SigningToolFrame extends JFrame implements SigningApiBridge {
 
     private void refreshLastPrivateKeyPathLabel() {
         try {
-            lastPrivateKeyPathLabel.setText(localConfigService.getLastPrivateKeyPath()
-                    .map(path -> "Recent private key: " + path)
-                    .orElse("Recent private key: none"));
+            Path lastPath = localConfigService.getLastPrivateKeyPath().orElse(null);
+
+            if (lastPath == null) {
+                lastPrivateKeyPathLabel.setText("Private Key gần nhất: chưa có");
+                return;
+            }
+
+            if (!Files.exists(lastPath)) {
+                lastPrivateKeyPathLabel.setText("Private Key gần nhất: file không còn tồn tại");
+                return;
+            }
+
+            lastPrivateKeyPathLabel.setText("Private Key gần nhất: " + lastPath);
         } catch (Exception e) {
-            lastPrivateKeyPathLabel.setText("Recent private key: could not read config");
+            lastPrivateKeyPathLabel.setText("Private Key gần nhất: không thể đọc cấu hình");
         }
     }
 
     private void copyText(String text, String successMessage) {
         if (text == null || text.isBlank()) {
-            showError("Nothing to copy.");
+            showError("Không có nội dung để copy.");
             return;
         }
 
@@ -456,7 +468,7 @@ public class SigningToolFrame extends JFrame implements SigningApiBridge {
     }
 
     private void showError(String message) {
-        JOptionPane.showMessageDialog(this, message, "Error", JOptionPane.ERROR_MESSAGE);
-        setStatus("Error: " + message);
+        JOptionPane.showMessageDialog(this, message, "Lỗi", JOptionPane.ERROR_MESSAGE);
+        setStatus("Lỗi: " + message);
     }
 }
