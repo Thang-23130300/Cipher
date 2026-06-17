@@ -48,6 +48,7 @@
                             <!-- Cột bên trái: Chi tiết sản phẩm & Cảnh báo chữ ký -->
                             <div class="col-lg-8 mb-4">
                                 <!-- Báo cáo chữ ký / Cảnh báo bảo mật -->
+                                <!-- Báo cáo chữ ký / Cảnh báo bảo mật -->
                                 <c:choose>
                                     <c:when test="${order.signatureStatus == 'KEY_COMPROMISED_REVIEW'}">
                                         <div class="alert alert-warning mb-4" style="border-left: 5px solid #f97316; background-color: #fffbeb; border-radius: 8px; padding: 20px;">
@@ -65,22 +66,23 @@
                                         <div class="alert alert-danger mb-4" style="border-left: 5px solid #dc2626; background-color: #fef2f2; border-radius: 8px; padding: 20px;">
                                             <h4 class="alert-heading text-danger" style="font-weight: 700; font-size: 1.15rem; display: flex; align-items: center; gap: 10px; color: #dc2626 !important;">
                                                 <i class="fas fa-times-circle" style="font-size: 1.3rem;"></i>
-                                                CẢNH BÁO NGUY HIỂM: CHỮ KÝ LỖI / SAI LỆCH DỮ LIỆU
+                                                CẢNH BÁO NGUY HIỂM: CHỮ KÝ LỖI (INVALID)
                                             </h4>
                                             <p class="mb-0 mt-2" style="color: #7f1d1d; font-size: 0.95rem; line-height: 1.6;">
-                                                Chữ ký số của đơn hàng không trùng khớp với dữ liệu đặt hàng hoặc khóa công khai của người dùng đã bị thay đổi trái phép. Dữ liệu đơn hàng có thể đã bị sửa đổi sau khi đặt hàng.
+                                                Chữ ký số của đơn hàng không trùng khớp hoặc khóa công khai của người dùng đã bị thay đổi trái phép.
                                                 <br/><strong>Hệ thống bảo mật:</strong> Đã vô hiệu hóa chức năng cập nhật trạng thái đơn hàng để đảm bảo an toàn tài chính.
                                             </p>
                                         </div>
                                     </c:when>
                                     <c:when test="${order.signatureStatus == 'DATA_TAMPERED'}">
-                                        <div class="alert alert-danger mb-4" style="border-left: 5px solid #dc2626; background-color: #fef2f2; border-radius: 8px; padding: 20px;">
-                                            <h4 class="alert-heading text-danger" style="font-weight: 700; font-size: 1.15rem; display: flex; align-items: center; gap: 10px; color: #dc2626 !important;">
-                                                <i class="fas fa-triangle-exclamation" style="font-size: 1.3rem;"></i>
-                                                CẢNH BÁO NGUY HIỂM: DỮ LIỆU ĐƠN HÀNG BỊ THAY ĐỔI
+                                        <div class="alert alert-danger mb-4" style="border-left: 5px solid #ef4444; background-color: #fef2f2; border-radius: 8px; padding: 20px;">
+                                            <h4 class="alert-heading text-danger" style="font-weight: 700; font-size: 1.15rem; display: flex; align-items: center; gap: 10px; color: #ef4444 !important;">
+                                                <i class="fas fa-radiation" style="font-size: 1.3rem;"></i>
+                                                CẢNH BÁO KHẨN CẤP: DỮ LIỆU ĐÃ KÝ BỊ GIẢ MẠO / SAI LỆCH TRONG DATABASE
                                             </h4>
-                                            <p class="mb-0 mt-2" style="color: #7f1d1d; font-size: 0.95rem; line-height: 1.6;">
-                                                Dữ liệu hiện tại không còn khớp với snapshot/hash đã ký. Đơn hàng bị chặn xử lý cho đến khi được kiểm tra lại.
+                                            <p class="mb-0 mt-2" style="color: #991b1b; font-size: 0.95rem; line-height: 1.6;">
+                                                Giá trị tổng tiền hoặc các sản phẩm trong đơn hàng hiện tại không trùng khớp với bản ghi Snapshot đã ký số tại thời điểm checkout.
+                                                <br/><strong>Hệ thống bảo mật:</strong> Đã chặn hoàn toàn khả năng cập nhật trạng thái đơn hàng này. Vui lòng kiểm tra bảng Nhật ký thay đổi bên dưới để xác định chính xác các trường dữ liệu bị sửa đổi.
                                             </p>
                                         </div>
                                     </c:when>
@@ -147,6 +149,133 @@
                                     </div>
                                 </div>
 
+                                <!-- Khối thông tin chữ ký số -->
+                                <div class="card shadow-sm border-0 mb-4" style="border-radius: 10px; overflow: hidden;">
+                                    <div class="card-header bg-white py-3 border-bottom">
+                                        <h5 class="mb-0" style="font-weight: 600; color: #333;">
+                                            <i class="fas fa-signature me-2 text-primary"></i>Thông tin chữ ký số
+                                        </h5>
+                                    </div>
+                                    <div class="card-body p-4">
+                                        <c:choose>
+                                            <c:when test="${not empty signatureInfo}">
+                                                <div class="row mb-3">
+                                                    <div class="col-md-4">
+                                                        <div class="text-muted small">Mã khóa đã dùng (Key ID)</div>
+                                                        <div style="font-weight: 600; color: #2d3748;">#${signatureInfo.key_id}</div>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <div class="text-muted small">Thời điểm ký</div>
+                                                        <div style="font-weight: 600; color: #2d3748;">
+                                                            <fmt:formatDate value="${signatureInfo.signed_at}" pattern="dd/MM/yyyy HH:mm:ss"/>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <div class="text-muted small">Trạng thái chữ ký trong DB</div>
+                                                        <div style="font-weight: 600; color: #2d3748;">
+                                                            <c:choose>
+                                                                <c:when test="${signatureInfo.verify_status == 'VALID'}">
+                                                                    <span class="text-success"><i class="fas fa-check-circle"></i> VALID</span>
+                                                                </c:when>
+                                                                <c:otherwise>
+                                                                    <span class="text-danger"><i class="fas fa-times-circle"></i> ${signatureInfo.verify_status}</span>
+                                                                </c:otherwise>
+                                                            </c:choose>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="form-group mb-0">
+                                                    <label class="text-muted small mb-1">Giá trị chữ ký (Base64)</label>
+                                                    <textarea class="form-control font-monospace" rows="3" readonly style="font-size: 0.8rem; background-color: #f8fafc; color: #475569; resize: none; word-break: break-all;">${signatureInfo.signature_value}</textarea>
+                                                </div>
+                                            </c:when>
+                                            <c:otherwise>
+                                                <div class="text-center py-3 text-muted">
+                                                    <i class="fas fa-info-circle me-1"></i>Đơn hàng này chưa có thông tin chữ ký số được lưu trữ.
+                                                </div>
+                                            </c:otherwise>
+                                        </c:choose>
+                                    </div>
+                                </div>
+
+                                <!-- Nhật ký thay đổi (Audit Logs) -->
+                                <div class="card shadow-sm border-0 mb-4" style="border-radius: 10px; overflow: hidden;">
+                                    <div class="card-header bg-white py-3 border-bottom">
+                                        <h5 class="mb-0" style="font-weight: 600; color: #333;">
+                                            <i class="fas fa-history me-2 text-primary"></i>Nhật ký thay đổi dữ liệu (Audit Logs)
+                                        </h5>
+                                    </div>
+                                    <div class="table-responsive">
+                                        <table class="table align-middle mb-0" style="min-width: 600px;">
+                                            <thead class="table-light text-secondary" style="font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px;">
+                                            <tr>
+                                                <th style="padding-left: 20px;">Thời điểm</th>
+                                                <th>Tác nhân</th>
+                                                <th>Thao tác</th>
+                                                <th>Trường thay đổi</th>
+                                                <th>Giá trị cũ</th>
+                                                <th>Giá trị mới</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody>
+                                            <c:choose>
+                                                <c:when test="${empty auditLogs}">
+                                                    <tr>
+                                                        <td colspan="6" class="text-center py-4 text-muted">
+                                                            <i class="fas fa-info-circle me-1"></i>Chưa có lịch sử thay đổi dữ liệu cho đơn hàng này.
+                                                        </td>
+                                                    </tr>
+                                                </c:when>
+                                                <c:otherwise>
+                                                    <c:forEach var="log" items="${auditLogs}">
+                                                        <tr class="${log.signedField ? 'table-danger' : ''}">
+                                                            <td style="padding-left: 20px;">
+                                                                    ${log.createdAt}
+                                                            </td>
+                                                            <td>
+                                                                <div style="font-weight: 600; color: #2d3748;">
+                                                                    <c:choose>
+                                                                        <c:when test="${not empty log.actorId}">
+                                                                            ID: #${log.actorId}
+                                                                        </c:when>
+                                                                        <c:otherwise>
+                                                                            Hệ thống / Khách hàng
+                                                                        </c:otherwise>
+                                                                    </c:choose>
+                                                                </div>
+                                                                <small class="text-muted">${log.actorRole}</small>
+                                                            </td>
+                                                            <td>
+                                                                <span class="badge bg-light text-dark border">${log.actionType}</span>
+                                                            </td>
+                                                            <td>
+                                                                <c:choose>
+                                                                    <c:when test="${log.signedField}">
+                                                                            <span class="text-danger fw-bold" title="Trường dữ liệu đã ký bị thay đổi trái phép!">
+                                                                                <i class="fas fa-exclamation-triangle"></i> ${log.fieldName} *
+                                                                            </span>
+                                                                    </c:when>
+                                                                    <c:otherwise>
+                                                                        ${log.fieldName}
+                                                                    </c:otherwise>
+                                                                </c:choose>
+                                                            </td>
+                                                            <td class="font-monospace text-muted" style="font-size: 0.85rem; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${log.oldValue}">
+                                                                    ${log.oldValue}
+                                                            </td>
+                                                            <td class="font-monospace text-dark" style="font-size: 0.85rem; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${log.newValue}">
+                                                                    ${log.newValue}
+                                                            </td>
+                                                        </tr>
+                                                    </c:forEach>
+                                                </c:otherwise>
+                                            </c:choose>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+
+                                
                                 <a href="${pageContext.request.contextPath}/admin/orders" class="btn btn-secondary">
                                     <i class="fas fa-arrow-left me-2"></i>Quay lại danh sách
                                 </a>
@@ -248,7 +377,7 @@
                                                 </c:when>
                                                 <c:when test="${order.signatureStatus == 'DATA_TAMPERED'}">
                                                     <span class="badge bg-danger text-white py-2 px-3 fs-6 d-inline-flex align-items-center gap-2" style="border-radius: 20px; font-weight: normal; font-size: 0.85rem !important;">
-                                                        <i class="fas fa-triangle-exclamation"></i> Dữ liệu bị thay đổi
+                                                        <i class="fas fa-radiation"></i> Dữ liệu bị giả mạo
                                                     </span>
                                                 </c:when>
                                                 <c:when test="${order.signatureStatus == 'WAITING_SIGNATURE'}">
@@ -303,7 +432,15 @@
                                                         Chữ ký lỗi. Không được phép thay đổi trạng thái đơn hàng.
                                                     </small>
                                                 </c:when>
-                                                <c:when test="${order.signatureStatus == 'SIGNED'}">
+                                                <c:when test="${order.signatureStatus == 'DATA_TAMPERED'}">
+                                                    <button class="btn btn-secondary w-100 py-2.5" disabled style="cursor: not-allowed; opacity: 0.65; border-radius: 8px;">
+                                                        <i class="fas fa-ban me-2"></i>Không thể cập nhật
+                                                    </button>
+                                                    <small class="text-danger d-block mt-2 text-center" style="font-size: 0.8rem;">
+                                                        Dữ liệu bị giả mạo! Đã khóa chức năng duyệt đơn.
+                                                    </small>
+                                                </c:when>
+                                                <c:when test="${order.signatureStatus == 'SIGNED' || order.signatureStatus == 'KEY_COMPROMISED_REVIEW'}">
                                                     <c:choose>
                                                         <c:when test="${canUpdateOrder}">
                                                             <button type="button" class="btn btn-primary w-100 py-2.5" style="border-radius: 8px;"

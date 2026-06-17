@@ -5,15 +5,15 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import nlu.fit.web.souvenirecommerce.features.notification.service.AdminNotificationService;
-import nlu.fit.web.souvenirecommerce.features.signature.service.OrderProcessingGateService;
 import nlu.fit.web.souvenirecommerce.features.signature.service.OrderAuditService;
+import nlu.fit.web.souvenirecommerce.features.signature.service.OrderProcessingGateService;
 import nlu.fit.web.souvenirecommerce.legacy.dao.OrderDAO;
 import nlu.fit.web.souvenirecommerce.legacy.model.Order;
 import nlu.fit.web.souvenirecommerce.legacy.model.OrderItem;
 import nlu.fit.web.souvenirecommerce.model.entity.User;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.List;
@@ -23,6 +23,7 @@ import java.util.Locale;
 public class AdminOrderController extends HttpServlet {
 
     private static final Logger log = LoggerFactory.getLogger(AdminOrderController.class);
+
     private final OrderDAO orderDAO = new OrderDAO();
     private final OrderProcessingGateService processingGateService = new OrderProcessingGateService();
     private final OrderAuditService orderAuditService = new OrderAuditService();
@@ -41,10 +42,8 @@ public class AdminOrderController extends HttpServlet {
             return;
         }
 
-        // Get filter parameter
         String statusFilter = request.getParameter("status");
 
-        // Get pagination parameters
         int page = 1;
         int pageSize = 20;
 
@@ -52,13 +51,14 @@ public class AdminOrderController extends HttpServlet {
         if (pageParam != null) {
             try {
                 page = Integer.parseInt(pageParam);
-                if (page < 1) page = 1;
+                if (page < 1) {
+                    page = 1;
+                }
             } catch (NumberFormatException e) {
                 page = 1;
             }
         }
 
-        // Get orders with pagination and filter
         List<Order> orders;
         int totalOrders;
 
@@ -72,25 +72,33 @@ public class AdminOrderController extends HttpServlet {
 
         int totalPages = (int) Math.ceil((double) totalOrders / pageSize);
 
+        User actor = (User) request.getSession().getAttribute("user");
+        Long actorId = actor == null ? null : actor.getId();
+        String actorRole = resolveActorRole(actor);
+
         if (orders != null) {
             for (Order o : orders) {
-                if (o != null ) {
-                    String dynamicStatus = orderAuditService.auditOrderSignature((long) o.getId());
+                if (o != null) {
+                    String dynamicStatus = orderAuditService.auditOrderSignature(
+                            (long) o.getId(),
+                            actorId,
+                            actorRole
+                    );
                     o.setSignatureStatus(dynamicStatus);
                 }
             }
         }
 
         log.info("Loaded admin orders page {} with {} records (statusFilter={})",
-                page, orders.size(), statusFilter == null || statusFilter.isBlank() ? "all" : statusFilter);
+                page,
+                orders == null ? 0 : orders.size(),
+                statusFilter == null || statusFilter.isBlank() ? "all" : statusFilter);
 
-        // Get status counts for stats cards
         int pendingCount = orderDAO.getOrderCountByStatus("Chờ xác nhận");
         int processingCount = orderDAO.getOrderCountByStatus("Đang xử lý");
         int shippingCount = orderDAO.getOrderCountByStatus("Đang giao");
         int completedCount = orderDAO.getOrderCountByStatus("Hoàn thành");
 
-        // Set attributes
         request.setAttribute("orders", orders);
         request.setAttribute("currentPage", page);
         request.setAttribute("totalPages", totalPages);
@@ -101,7 +109,6 @@ public class AdminOrderController extends HttpServlet {
         request.setAttribute("shippingCount", shippingCount);
         request.setAttribute("completedCount", completedCount);
 
-        // Forward to JSP
         request.getRequestDispatcher("/admin/orders.jsp").forward(request, response);
     }
 
@@ -134,10 +141,16 @@ public class AdminOrderController extends HttpServlet {
         }
 
         Order order = orderDAO.getOrderById(orderId);
-        if (order != null ) {
-            String dynamicStatus = orderAuditService.auditOrderSignature((long) order.getId());
+        if (order != null) {
+            User actor = (User) request.getSession().getAttribute("user");
+            String dynamicStatus = orderAuditService.auditOrderSignature(
+                    (long) order.getId(),
+                    actor == null ? null : actor.getId(),
+                    resolveActorRole(actor)
+            );
             order.setSignatureStatus(dynamicStatus);
         }
+
         List<OrderItem> orderItems = orderDAO.getOrderItems(orderId);
 
         log.info("Opened admin order detail for orderId={}", orderId);
@@ -160,6 +173,7 @@ public class AdminOrderController extends HttpServlet {
         }
 
         String newStatus = request.getParameter("status");
+
         if (isSignatureStatusValue(newStatus)) {
             log.warn("Blocked attempt to set signature status through order status form. orderId={}, submittedStatus={}",
                     orderId, newStatus);
@@ -175,8 +189,14 @@ public class AdminOrderController extends HttpServlet {
             return;
         }
 
-        String auditedSignatureStatus = orderAuditService.auditOrderSignature((long) orderId);
+        User actor = (User) request.getSession().getAttribute("user");
+        String auditedSignatureStatus = orderAuditService.auditOrderSignature(
+                (long) orderId,
+                actor == null ? null : actor.getId(),
+                resolveActorRole(actor)
+        );
         order.setSignatureStatus(auditedSignatureStatus);
+
         if (requiresValidSignature(newStatus) && !processingGateService.canProcess(order)) {
             log.warn("Blocked admin status update for unsigned order. orderId={}, signatureStatus={}",
                     orderId, order.getSignatureStatus());
@@ -189,6 +209,7 @@ public class AdminOrderController extends HttpServlet {
             response.sendRedirect(request.getContextPath() + "/admin/orders?error=signature_required");
             return;
         }
+
         log.info("Updating order status. orderId={}, newStatus={}", orderId, newStatus);
         boolean success = orderDAO.updateOrderStatus(orderId, newStatus);
 
@@ -245,5 +266,9 @@ public class AdminOrderController extends HttpServlet {
 
         user = request.getSession(false) == null ? null : request.getSession(false).getAttribute("currentUser");
         return user instanceof User currentUser ? currentUser.getId() : null;
+    }
+
+    private String resolveActorRole(User actor) {
+        return "ADMIN_OR_STAFF";
     }
 }
