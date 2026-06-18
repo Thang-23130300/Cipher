@@ -4,6 +4,7 @@ import nlu.fit.web.souvenirecommerce.common.utils.HibernateUtil;
 import nlu.fit.web.souvenirecommerce.features.notification.dto.NotificationDTO;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
+import org.hibernate.type.StandardBasicTypes;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -64,20 +65,10 @@ public class NotificationDAO {
     }
 
     public void save(Long recipientUserId, Long orderId, String type, String title, String message) {
-        String sql = """
-                INSERT INTO notifications (recipient_user_id, order_id, type, title, message, is_read, created_at)
-                VALUES (:recipientUserId, :orderId, :type, :title, :message, 0, NOW())
-                """;
         Transaction transaction = null;
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
             transaction = session.beginTransaction();
-            session.createNativeMutationQuery(sql)
-                    .setParameter("recipientUserId", recipientUserId)
-                    .setParameter("orderId", orderId)
-                    .setParameter("type", type)
-                    .setParameter("title", title)
-                    .setParameter("message", message)
-                    .executeUpdate();
+            save(session, recipientUserId, orderId, type, title, message);
             transaction.commit();
         } catch (Exception e) {
             if (transaction != null && transaction.isActive()) {
@@ -85,6 +76,28 @@ public class NotificationDAO {
             }
             throw e;
         }
+    }
+
+    public void save(Session session,
+                     Long recipientUserId,
+                     Long orderId,
+                     String type,
+                     String title,
+                     String message) {
+        if (session == null) {
+            throw new IllegalArgumentException("Hibernate session không được null");
+        }
+        String sql = """
+                INSERT INTO notifications (recipient_user_id, order_id, type, title, message, is_read, created_at)
+                VALUES (:recipientUserId, :orderId, :type, :title, :message, 0, NOW())
+                """;
+        session.createNativeMutationQuery(sql)
+                .setParameter("recipientUserId", recipientUserId, StandardBasicTypes.LONG)
+                .setParameter("orderId", orderId, StandardBasicTypes.LONG)
+                .setParameter("type", type, StandardBasicTypes.STRING)
+                .setParameter("title", title, StandardBasicTypes.STRING)
+                .setParameter("message", message, StandardBasicTypes.STRING)
+                .executeUpdate();
     }
 
     private LocalDateTime toLocalDateTime(Object value) {

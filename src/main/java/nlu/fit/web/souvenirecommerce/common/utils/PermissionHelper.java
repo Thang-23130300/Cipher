@@ -106,7 +106,22 @@ public class PermissionHelper {
      * Check if user has any order-related permissions
      */
     public static boolean hasOrderAccess(HttpServletRequest request) {
-        return hasPermission(request, "order", "read");
+        return hasAnyPermission(request, "order") || hasOrderManagementRole(request);
+    }
+
+    public static boolean canProcessOrders(HttpServletRequest request) {
+        return hasPermission(request, "order", "update") || hasOrderManagementRole(request);
+    }
+
+    public static boolean hasOrderManagementRole(HttpServletRequest request) {
+        return getUserRoles(request).stream()
+                .map(PermissionGroup::getName)
+                .map(PermissionHelper::normalizeRole)
+                .anyMatch(role -> role.equals("ADMIN")
+                        || role.equals("SUPERADMIN")
+                        || role.equals("SALE")
+                        || role.equals("SALES")
+                        || role.equals("STAFF"));
     }
 
     /**
@@ -144,5 +159,9 @@ public class PermissionHelper {
         }
 
         return -1;
+    }
+
+    private static String normalizeRole(String role) {
+        return role == null ? "" : role.replaceAll("[^A-Za-z]", "").toUpperCase();
     }
 }

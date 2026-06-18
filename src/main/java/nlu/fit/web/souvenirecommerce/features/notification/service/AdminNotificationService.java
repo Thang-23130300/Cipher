@@ -1,6 +1,7 @@
 package nlu.fit.web.souvenirecommerce.features.notification.service;
 
 import nlu.fit.web.souvenirecommerce.features.notification.dao.NotificationDAO;
+import org.hibernate.Session;
 
 public class AdminNotificationService {
     private final NotificationDAO notificationDAO = new NotificationDAO();
@@ -63,6 +64,40 @@ public class AdminNotificationService {
                 "Đơn hàng cần xem xét rủi ro khóa",
                 "Đơn hàng #" + safeId(orderId) + " liên quan đến key #" + safeId(keyId)
                         + " đang ở trạng thái cần xem xét."
+        );
+    }
+
+    public void notifyOrderAction(Session session,
+                                  Long orderId,
+                                  Long actorUserId,
+                                  String actorName,
+                                  String actorRole,
+                                  String actionText,
+                                  String newStatus,
+                                  String reason) {
+        String safeActorName = safeText(actorName);
+        String safeActorRole = safeText(actorRole);
+        String actor = "Nhân viên " + safeActorRole + " " + safeActorName
+                + " (user #" + safeId(actorUserId) + ")";
+        StringBuilder message = new StringBuilder(actor)
+                .append(' ')
+                .append(safeText(actionText))
+                .append(" đơn hàng #")
+                .append(safeId(orderId))
+                .append(". Trạng thái mới: ")
+                .append(safeText(newStatus))
+                .append('.');
+        if (reason != null && !reason.isBlank()) {
+            message.append(" Lý do: ").append(reason.trim());
+        }
+
+        notificationDAO.save(
+                session,
+                null,
+                orderId,
+                "SYSTEM",
+                "Thay đổi trạng thái đơn hàng",
+                message.toString()
         );
     }
 

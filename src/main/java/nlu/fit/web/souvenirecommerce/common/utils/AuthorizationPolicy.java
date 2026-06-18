@@ -73,7 +73,7 @@ public final class AuthorizationPolicy {
         String action = safeLower(request.getParameter("action"));
         String mappedAction = switch (action) {
             case "add", "create", "insert" -> "create";
-            case "edit", "update", "save" -> "update";
+            case "edit", "update", "save", "accept", "cancel", "acceptorder", "cancelorder" -> "update";
             case "delete", "remove" -> "delete";
             case "togglestatus", "approve", "reject" -> "update";
             default -> defaultAction;

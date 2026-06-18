@@ -34,6 +34,17 @@
                     <h1 class="h3 mb-0 text-gray-800">Chi tiết đơn hàng #${order.id}</h1>
                 </div>
 
+                <c:set var="adminFlashSuccess" value="${sessionScope.success}"/>
+                <c:if test="${not empty adminFlashSuccess}">
+                    <div class="alert alert-success"><c:out value="${adminFlashSuccess}"/></div>
+                    <c:remove var="success" scope="session"/>
+                </c:if>
+                <c:set var="adminFlashError" value="${sessionScope.error}"/>
+                <c:if test="${not empty adminFlashError}">
+                    <div class="alert alert-danger"><c:out value="${adminFlashError}"/></div>
+                    <c:remove var="error" scope="session"/>
+                </c:if>
+
                 <c:choose>
                     <c:when test="${empty order}">
                         <div class="alert alert-danger">
@@ -400,16 +411,16 @@
                                         <div class="mb-4">
                                             <label class="form-label text-muted small mb-2 d-block">Trạng thái đơn hàng hiện tại</label>
                                             <c:choose>
-                                                <c:when test="${order.status == 'Chờ xác nhận'}">
+                                                <c:when test="${order.status == 'Chờ ký số' || order.status == 'Chờ ký xác nhận' || order.status == 'Chờ xử lý'}">
                                                     <span class="badge badge-warning py-1.5 px-3" style="font-size: 0.9rem;">${order.status}</span>
                                                 </c:when>
-                                                <c:when test="${order.status == 'Đang xử lý'}">
+                                                <c:when test="${order.status == 'Đã xác nhận' || order.status == 'Đang xử lý'}">
                                                     <span class="badge badge-info py-1.5 px-3" style="font-size: 0.9rem;">${order.status}</span>
                                                 </c:when>
-                                                <c:when test="${order.status == 'Đang giao'}">
+                                                <c:when test="${order.status == 'Đang giao hàng'}">
                                                     <span class="badge badge-info py-1.5 px-3" style="font-size: 0.9rem;">${order.status}</span>
                                                 </c:when>
-                                                <c:when test="${order.status == 'Hoàn thành'}">
+                                                <c:when test="${order.status == 'Đã giao hàng' || order.status == 'Hoàn thành'}">
                                                     <span class="badge badge-success py-1.5 px-3" style="font-size: 0.9rem;">${order.status}</span>
                                                 </c:when>
                                                 <c:when test="${order.status == 'Đã hủy'}">
@@ -421,49 +432,39 @@
                                             </c:choose>
                                         </div>
 
-                                        <!-- Nút Cập nhật trạng thái -->
-                                        <div>
-                                            <c:choose>
-                                                <c:when test="${order.signatureStatus == 'SIGNATURE_INVALID'}">
-                                                    <button class="btn btn-secondary w-100 py-2.5" disabled style="cursor: not-allowed; opacity: 0.65; border-radius: 8px;">
-                                                        <i class="fas fa-ban me-2"></i>Không thể cập nhật
+                                        <div class="d-grid gap-2">
+                                            <c:if test="${canUpdateOrder and canAcceptOrder}">
+                                                <form method="post" action="${pageContext.request.contextPath}/admin/orders">
+                                                    <input type="hidden" name="action" value="accept">
+                                                    <input type="hidden" name="orderId" value="${order.id}">
+                                                    <input type="hidden" name="returnTo" value="detail">
+                                                    <button type="submit" class="btn btn-success w-100 py-2.5">
+                                                        <i class="fas fa-check me-2"></i>Chấp nhận đơn
                                                     </button>
-                                                    <small class="text-danger d-block mt-2 text-center" style="font-size: 0.8rem;">
-                                                        Chữ ký lỗi. Không được phép thay đổi trạng thái đơn hàng.
-                                                    </small>
-                                                </c:when>
-                                                <c:when test="${order.signatureStatus == 'DATA_TAMPERED'}">
-                                                    <button class="btn btn-secondary w-100 py-2.5" disabled style="cursor: not-allowed; opacity: 0.65; border-radius: 8px;">
-                                                        <i class="fas fa-ban me-2"></i>Không thể cập nhật
-                                                    </button>
-                                                    <small class="text-danger d-block mt-2 text-center" style="font-size: 0.8rem;">
-                                                        Dữ liệu bị giả mạo! Đã khóa chức năng duyệt đơn.
-                                                    </small>
-                                                </c:when>
-                                                <c:when test="${order.signatureStatus == 'SIGNED' || order.signatureStatus == 'KEY_COMPROMISED_REVIEW'}">
-                                                    <c:choose>
-                                                        <c:when test="${canUpdateOrder}">
-                                                            <button type="button" class="btn btn-primary w-100 py-2.5" style="border-radius: 8px;"
-                                                                    onclick="showUpdateStatusModal(${order.id}, '${order.status}')">
-                                                                <i class="fas fa-edit me-2"></i>Cập nhật trạng thái
-                                                            </button>
-                                                        </c:when>
-                                                        <c:otherwise>
-                                                            <button class="btn btn-secondary w-100 py-2.5" disabled style="border-radius: 8px;">
-                                                                <i class="fas fa-lock me-2"></i>Chưa phân quyền duyệt
-                                                            </button>
-                                                        </c:otherwise>
-                                                    </c:choose>
-                                                </c:when>
-                                                <c:otherwise>
-                                                    <button class="btn btn-secondary w-100 py-2.5" disabled style="cursor: not-allowed; opacity: 0.65; border-radius: 8px;">
-                                                        <i class="fas fa-ban me-2"></i>Không thể cập nhật
-                                                    </button>
-                                                    <small class="text-danger d-block mt-2 text-center" style="font-size: 0.8rem;">
-                                                        Đơn hàng chưa có chữ ký hợp lệ, không thể xử lý.
-                                                    </small>
-                                                </c:otherwise>
-                                            </c:choose>
+                                                </form>
+                                            </c:if>
+                                            <c:if test="${canUpdateOrder and canCancelOrder}">
+                                                <button type="button" class="btn btn-danger w-100 py-2.5"
+                                                        onclick="showCancelOrderModal(${order.id})">
+                                                    <i class="fas fa-times me-2"></i>Hủy đơn
+                                                </button>
+                                            </c:if>
+                                            <c:if test="${canManageOrderStatuses and order.signatureStatus == 'SIGNED'}">
+                                                <button type="button" class="btn btn-primary w-100 py-2.5"
+                                                        onclick="showUpdateStatusModal(${order.id}, '${order.status}')">
+                                                    <i class="fas fa-edit me-2"></i>Cập nhật trạng thái
+                                                </button>
+                                            </c:if>
+                                            <c:if test="${!canCancelOrder and !canAcceptOrder and !canManageOrderStatuses}">
+                                                <button class="btn btn-secondary w-100 py-2.5" disabled>
+                                                    <i class="fas fa-lock me-2"></i>Không có thao tác phù hợp
+                                                </button>
+                                            </c:if>
+                                            <c:if test="${canAcceptOrder == false and order.signatureStatus != 'SIGNED' and order.status != 'Đã hủy'}">
+                                                <small class="text-danger d-block mt-2 text-center">
+                                                    Đơn hàng chưa có chữ ký hợp lệ, không thể chấp nhận xử lý.
+                                                </small>
+                                            </c:if>
                                         </div>
                                     </div>
                                 </div>
@@ -497,10 +498,12 @@
                     <label>Chọn trạng thái mới</label>
                     <select name="status" class="form-control" required>
                         <option value="">-- Chọn trạng thái --</option>
-                        <option value="Chờ xác nhận">Chờ xác nhận</option>
+                        <option value="Chờ ký xác nhận">Chờ ký xác nhận</option>
+                        <option value="Chờ xử lý">Chờ xử lý</option>
+                        <option value="Đã xác nhận">Đã xác nhận</option>
                         <option value="Đang xử lý">Đang xử lý</option>
-                        <option value="Đang giao">Đang giao</option>
-                        <option value="Hoàn thành">Hoàn thành</option>
+                        <option value="Đang giao hàng">Đang giao hàng</option>
+                        <option value="Đã giao hàng">Đã giao hàng</option>
                         <option value="Đã hủy">Đã hủy</option>
                     </select>
                 </div>
@@ -509,6 +512,30 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" onclick="closeUpdateStatusModal()">Hủy</button>
                 <button type="submit" class="btn btn-primary">Cập nhật</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="cancelOrderModal" class="modal orders-modal">
+    <div class="modal-content orders-modal-content">
+        <div class="modal-header">
+            <h3>Hủy đơn hàng</h3>
+            <button type="button" class="close-btn" onclick="closeCancelOrderModal()">&times;</button>
+        </div>
+        <form id="cancelOrderForm" method="post" action="${pageContext.request.contextPath}/admin/orders">
+            <input type="hidden" name="action" value="cancel">
+            <input type="hidden" name="orderId" id="cancelOrderId">
+            <input type="hidden" name="returnTo" value="detail">
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="cancelReason">Lý do hủy</label>
+                    <textarea id="cancelReason" name="reason" class="form-control" maxlength="500" required></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeCancelOrderModal()">Đóng</button>
+                <button type="submit" class="btn btn-danger">Xác nhận hủy</button>
             </div>
         </form>
     </div>
@@ -530,11 +557,25 @@
         document.getElementById('updateStatusForm').reset();
     }
 
+    function showCancelOrderModal(orderId) {
+        document.getElementById('cancelOrderId').value = orderId;
+        document.getElementById('cancelOrderModal').classList.add('show');
+    }
+
+    function closeCancelOrderModal() {
+        document.getElementById('cancelOrderModal').classList.remove('show');
+        document.getElementById('cancelOrderForm').reset();
+    }
+
     // Close modal when clicking outside
     window.onclick = function(event) {
         const modal = document.getElementById('updateStatusModal');
         if (event.target === modal) {
             closeUpdateStatusModal();
+        }
+        const cancelModal = document.getElementById('cancelOrderModal');
+        if (event.target === cancelModal) {
+            closeCancelOrderModal();
         }
     }
 </script>

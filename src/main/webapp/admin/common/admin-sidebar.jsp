@@ -4,8 +4,8 @@
 <%
     request.setAttribute("canViewDashboard", true);
     request.setAttribute("canViewProducts", PermissionHelper.hasAnyPermission(request, "product"));
-    request.setAttribute("canViewOrders", PermissionHelper.hasAnyPermission(request, "order"));
-    request.setAttribute("canUpdateOrder", PermissionHelper.hasPermission(request, "order", "update"));
+    request.setAttribute("canViewOrders", PermissionHelper.hasOrderAccess(request));
+    request.setAttribute("canUpdateOrder", PermissionHelper.canProcessOrders(request));
     request.setAttribute("canViewCustomers", PermissionHelper.hasAnyPermission(request, "customer"));
     request.setAttribute("canViewCategories", PermissionHelper.hasAnyPermission(request, "category"));
     request.setAttribute("canViewBanners", PermissionHelper.hasAnyPermission(request, "banner"));
