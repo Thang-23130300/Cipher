@@ -1,6 +1,8 @@
 package com.cipher.signingtool;
 
 import com.cipher.signingtool.localapi.LocalApiServer;
+import com.cipher.signingtool.localapi.PublicKeySavedNotification;
+import com.cipher.signingtool.localapi.PublicKeySavedResult;
 import com.cipher.signingtool.localapi.SignRequest;
 import com.cipher.signingtool.localapi.SigningApiBridge;
 
@@ -11,16 +13,21 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JPasswordField;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTextArea;
+import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
+import javax.swing.SwingWorker;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
+import java.awt.GridLayout;
 import java.awt.Toolkit;
 import java.awt.datatransfer.StringSelection;
 import java.io.IOException;
@@ -36,19 +43,22 @@ public class SigningToolFrame extends JFrame implements SigningApiBridge {
     private final KeyPairService keyPairService = new KeyPairService();
     private final SignatureService signatureService = new SignatureService();
     private final KeyLoader keyLoader = new KeyLoader();
+    private final KeyMatchService keyMatchService = new KeyMatchService();
+    private final ActivePublicKeyClient activePublicKeyClient = new ActivePublicKeyClient();
     private final LocalConfigService localConfigService = new LocalConfigService();
+    private final ToolKeyState keyState = new ToolKeyState();
 
     private final JTextArea publicKeyArea = createTextArea(8);
     private final JTextArea hashValueArea = createTextArea(5);
     private final JTextArea signatureArea = createTextArea(7);
     private final JLabel statusLabel = new JLabel("Sẵn sàng.", SwingConstants.LEFT);
     private final JLabel lastPrivateKeyPathLabel = new JLabel("Private Key gần nhất: chưa có", SwingConstants.LEFT);
+    private final JLabel webPublicKeyLabel = new JLabel("Public Key web: chưa tải", SwingConstants.LEFT);
     private final LocalApiServer localApiServer = new LocalApiServer(this);
     private final JButton startApiButton = new JButton("Bật kết nối với website");
     private final JButton stopApiButton = new JButton("Tắt kết nối");
 
-    private PrivateKey currentPrivateKey;
-    private PublicKey currentPublicKey;
+    private volatile WebPublicKeyData currentWebKeyData;
 
     public SigningToolFrame() {
         super("INOLA Signing Tool - Ký đơn hàng bằng chữ ký số");
@@ -101,6 +111,7 @@ public class SigningToolFrame extends JFrame implements SigningApiBridge {
         JButton exportPrivateButton = new JButton("Lưu Private Key");
         JButton loadPrivateButton = new JButton("Tải Private Key");
         JButton loadRecentPrivateButton = new JButton("Tải key gần nhất");
+        JButton loadWebPublicButton = new JButton("Load Public Key From Web");
 
         generateButton.addActionListener(event -> generateKeyPair());
         copyPublicButton.addActionListener(event -> copyPublicKey());
@@ -108,6 +119,7 @@ public class SigningToolFrame extends JFrame implements SigningApiBridge {
         exportPrivateButton.addActionListener(event -> exportPrivateKey());
         loadPrivateButton.addActionListener(event -> loadPrivateKey());
         loadRecentPrivateButton.addActionListener(event -> loadRecentPrivateKey());
+        loadWebPublicButton.addActionListener(event -> loadPublicKeyFromWeb(loadWebPublicButton));
 
         startApiButton.addActionListener(event -> startApiServer());
         stopApiButton.addActionListener(event -> stopApiServer());
@@ -119,12 +131,17 @@ public class SigningToolFrame extends JFrame implements SigningApiBridge {
         actions.add(exportPrivateButton);
         actions.add(loadPrivateButton);
         actions.add(loadRecentPrivateButton);
+        actions.add(loadWebPublicButton);
         actions.add(startApiButton);
         actions.add(stopApiButton);
 
+        JPanel keyInfoPanel = new JPanel(new GridLayout(0, 1, 2, 2));
+        keyInfoPanel.add(lastPrivateKeyPathLabel);
+        keyInfoPanel.add(webPublicKeyLabel);
+
         JPanel topPanel = new JPanel(new BorderLayout(4, 4));
         topPanel.add(actions, BorderLayout.NORTH);
-        topPanel.add(lastPrivateKeyPathLabel, BorderLayout.SOUTH);
+        topPanel.add(keyInfoPanel, BorderLayout.SOUTH);
 
         panel.add(topPanel, BorderLayout.NORTH);
         panel.add(new JScrollPane(publicKeyArea), BorderLayout.CENTER);
@@ -181,9 +198,9 @@ public class SigningToolFrame extends JFrame implements SigningApiBridge {
     private void generateKeyPair() {
         try {
             KeyPair keyPair = keyPairService.generateKeyPair();
-            currentPrivateKey = keyPair.getPrivate();
-            currentPublicKey = keyPair.getPublic();
-            publicKeyArea.setText(PemUtils.publicKeyToPem(currentPublicKey));
+            keyState.useGeneratedKeyPair(keyPair);
+            resetWebKeyDisplay();
+            publicKeyArea.setText(PemUtils.publicKeyToPem(keyPair.getPublic()));
             setStatus("Đã tạo cặp khóa RSA 2048. Hãy lưu Private Key và copy Public Key lên website.");
         } catch (Exception e) {
             showError(e.getMessage());
@@ -191,6 +208,7 @@ public class SigningToolFrame extends JFrame implements SigningApiBridge {
     }
 
     private void exportPublicKey() {
+        PublicKey currentPublicKey = keyState.snapshot().currentPublicKey();
         if (currentPublicKey == null) {
             showError("Chưa có Public Key. Vui lòng tạo cặp khóa trước.");
             return;
@@ -200,6 +218,7 @@ public class SigningToolFrame extends JFrame implements SigningApiBridge {
     }
 
     private void copyPublicKey() {
+        PublicKey currentPublicKey = keyState.snapshot().currentPublicKey();
         if (currentPublicKey == null) {
             showError("Chưa có Public Key. Vui lòng tạo cặp khóa trước.");
             return;
@@ -209,6 +228,7 @@ public class SigningToolFrame extends JFrame implements SigningApiBridge {
     }
 
     private void exportPrivateKey() {
+        PrivateKey currentPrivateKey = keyState.snapshot().currentPrivateKey();
         if (currentPrivateKey == null) {
             showError("Chưa có Private Key. Vui lòng tạo cặp khóa mới hoặc tải Private Key trước.");
             return;
@@ -258,19 +278,175 @@ public class SigningToolFrame extends JFrame implements SigningApiBridge {
     }
 
     private void loadPrivateKeyFromPath(Path privateKeyPath, boolean rememberPath) {
-        currentPrivateKey = keyLoader.loadPrivateKey(privateKeyPath);
-        try {
-            currentPublicKey = keyLoader.derivePublicKey(currentPrivateKey);
-            publicKeyArea.setText(PemUtils.publicKeyToPem(currentPublicKey));
-        } catch (Exception e) {
-            currentPublicKey = null;
-            publicKeyArea.setText("Đã tải Private Key, nhưng không thể suy ra Public Key từ khóa này.");
-        }
+        keyState.useLoadedPrivateKey(keyLoader.loadPrivateKey(privateKeyPath));
+        resetWebKeyDisplay();
+        publicKeyArea.setText("Đã tải Private Key local. Hãy dùng Load Public Key From Web để kiểm tra đúng cặp.");
 
         if (rememberPath) {
             saveLastPrivateKeyPath(privateKeyPath);
         }
-        setStatus("Đã tải Private Key thành công.");
+        setStatus("Đã tải Private Key. Hãy load Public Key ACTIVE từ web để kiểm tra khớp.");
+    }
+
+    private void loadPublicKeyFromWeb(JButton sourceButton) {
+        WebAccessInput input = promptWebAccess("Load Public Key From Web");
+        if (input == null) {
+            return;
+        }
+
+        sourceButton.setEnabled(false);
+        setStatus("Đang tải Public Key ACTIVE từ web...");
+
+        new SwingWorker<WebPublicKeyData, Void>() {
+            @Override
+            protected WebPublicKeyData doInBackground() {
+                return activePublicKeyClient.load(input.webUrl(), input.sessionCookie());
+            }
+
+            @Override
+            protected void done() {
+                sourceButton.setEnabled(true);
+                try {
+                    WebPublicKeyData webKeyData = get();
+                    PublicKey webPublicKey = keyLoader.loadPublicKeyPem(webKeyData.publicKeyPem());
+                    currentWebKeyData = webKeyData;
+                    keyState.useWebPublicKey(webPublicKey);
+                    publicKeyArea.setText(webKeyData.publicKeyPem());
+                    webPublicKeyLabel.setText("Public Key web: keyId=" + webKeyData.keyId()
+                            + " | fingerprint=" + webKeyData.fingerprint());
+                    webPublicKeyLabel.setForeground(new Color(30, 64, 175));
+                    checkPrivateKeyAgainstWebKey();
+                    if (keyState.snapshot().currentPrivateKey() == null) {
+                        setStatus("Đã tải Public Key ACTIVE từ web. Hãy tải Private Key để kiểm tra khớp.");
+                    }
+                } catch (Exception e) {
+                    Throwable cause = e.getCause() == null ? e : e.getCause();
+                    showError(cause.getMessage());
+                }
+            }
+        }.execute();
+    }
+
+    private void savePublicKeyToWeb(JButton sourceButton) {
+        ToolKeyState.Snapshot generatedState = keyState.snapshot();
+        if (!generatedState.generatedInCurrentSession()
+                || generatedState.currentPublicKey() == null
+                || generatedState.currentPrivateKey() == null) {
+            showError("Hãy tạo cặp khóa mới trước khi lưu Public Key lên web.");
+            return;
+        }
+
+        WebAccessInput input = promptWebAccess("Save Public Key To Web");
+        if (input == null) {
+            return;
+        }
+
+        String publicKeyPem = PemUtils.publicKeyToPem(generatedState.currentPublicKey());
+        sourceButton.setEnabled(false);
+        setStatus("Đang lưu Public Key mới lên web...");
+
+        new SwingWorker<WebPublicKeyData, Void>() {
+            @Override
+            protected WebPublicKeyData doInBackground() {
+                return activePublicKeyClient.save(input.webUrl(), input.sessionCookie(), publicKeyPem);
+            }
+
+            @Override
+            protected void done() {
+                sourceButton.setEnabled(true);
+                try {
+                    WebPublicKeyData savedKeyData = get();
+                    PublicKey savedWebPublicKey = keyLoader.loadPublicKeyPem(savedKeyData.publicKeyPem());
+                    if (!keyMatchService.matches(generatedState.currentPrivateKey(), savedWebPublicKey)) {
+                        throw new IllegalStateException(
+                                "Web đã phản hồi nhưng Public Key ACTIVE không khớp Private Key hiện tại."
+                        );
+                    }
+
+                    ToolKeyState.Snapshot latestState = keyState.snapshot();
+                    if (!sameKey(latestState.currentPrivateKey(), generatedState.currentPrivateKey())
+                            || !sameKey(latestState.currentPublicKey(), generatedState.currentPublicKey())) {
+                        throw new IllegalStateException(
+                                "Key trong tool đã thay đổi trong lúc lưu. Trạng thái cũ không được áp dụng."
+                        );
+                    }
+
+                    currentWebKeyData = savedKeyData;
+                    keyState.markGeneratedPublicKeyUploaded(savedWebPublicKey);
+                    webPublicKeyLabel.setText("Public Key web: keyId=" + savedKeyData.keyId()
+                            + " | fingerprint=" + savedKeyData.fingerprint());
+                    webPublicKeyLabel.setForeground(new Color(21, 128, 61));
+
+                    String message = "Public key mới đã được lưu lên web. Private key hiện tại khớp với public key vừa lưu.";
+                    setStatus(message);
+                    JOptionPane.showMessageDialog(
+                            SigningToolFrame.this,
+                            message,
+                            "Lưu Public Key thành công",
+                            JOptionPane.INFORMATION_MESSAGE
+                    );
+                } catch (Exception e) {
+                    Throwable cause = e.getCause() == null ? e : e.getCause();
+                    showError(cause.getMessage());
+                }
+            }
+        }.execute();
+    }
+
+    private WebAccessInput promptWebAccess(String title) {
+        JTextField webUrlField = new JTextField("http://localhost:8080", 32);
+        JPasswordField sessionField = new JPasswordField(32);
+
+        JPanel form = new JPanel(new GridLayout(0, 1, 4, 4));
+        form.add(new JLabel("Web URL (bao gồm context path nếu có):"));
+        form.add(webUrlField);
+        form.add(new JLabel("JSESSIONID của phiên đang đăng nhập (không được lưu):"));
+        form.add(sessionField);
+
+        int option = JOptionPane.showConfirmDialog(
+                this,
+                form,
+                title,
+                JOptionPane.OK_CANCEL_OPTION,
+                JOptionPane.PLAIN_MESSAGE
+        );
+        if (option != JOptionPane.OK_OPTION) {
+            return null;
+        }
+
+        String webUrl = webUrlField.getText().trim();
+        String sessionCookie = new String(sessionField.getPassword()).trim();
+        if (webUrl.isBlank() || sessionCookie.isBlank()) {
+            showError("Web URL và JSESSIONID không được để trống.");
+            return null;
+        }
+        return new WebAccessInput(webUrl, sessionCookie);
+    }
+
+    private record WebAccessInput(String webUrl, String sessionCookie) {
+    }
+
+    private void checkPrivateKeyAgainstWebKey() {
+        ToolKeyState.Snapshot state = keyState.snapshot();
+        if (state.currentPrivateKey() == null || state.currentWebPublicKey() == null) {
+            return;
+        }
+
+        boolean matches = keyMatchService.matches(state.currentPrivateKey(), state.currentWebPublicKey());
+        keyState.setKeyMatchResult(matches);
+        if (matches) {
+            webPublicKeyLabel.setForeground(new Color(21, 128, 61));
+            setStatus("Private Key local KHỚP Public Key ACTIVE trên web.");
+        } else {
+            webPublicKeyLabel.setForeground(new Color(185, 28, 28));
+            setStatus("CẢNH BÁO: Private Key local KHÔNG KHỚP Public Key ACTIVE trên web.");
+        }
+    }
+
+    private void resetWebKeyDisplay() {
+        currentWebKeyData = null;
+        webPublicKeyLabel.setText("Public Key web: chưa tải");
+        webPublicKeyLabel.setForeground(Color.DARK_GRAY);
     }
 
     private void signHashValue() {
@@ -296,7 +472,13 @@ public class SigningToolFrame extends JFrame implements SigningApiBridge {
         }
 
         try {
-            String signature = signatureService.signHashValue(hashValue, currentPrivateKey);
+            if (!confirmManualSigningKeyState()) {
+                return;
+            }
+            String signature = signatureService.signHashValue(
+                    hashValue,
+                    keyState.snapshot().currentPrivateKey()
+            );
             signatureArea.setText(signature);
             setStatus("Đã ký mã băm bằng thuật toán SHA256withRSA.");
         } catch (Exception e) {
@@ -324,6 +506,7 @@ public class SigningToolFrame extends JFrame implements SigningApiBridge {
 
     @Override
     public String getPublicKeyPem() {
+        PublicKey currentPublicKey = keyState.snapshot().currentPublicKey();
         if (currentPublicKey == null) {
             throw new IllegalStateException("Chưa có Public Key. Vui lòng tạo cặp khóa trước.");
         }
@@ -332,7 +515,50 @@ public class SigningToolFrame extends JFrame implements SigningApiBridge {
 
     @Override
     public boolean hasPrivateKey() {
-        return currentPrivateKey != null;
+        return keyState.snapshot().currentPrivateKey() != null;
+    }
+
+    @Override
+    public ToolKeyState.Snapshot getKeyStateSnapshot() {
+        return keyState.snapshot();
+    }
+
+    @Override
+    public PublicKeySavedResult onPublicKeySaved(PublicKeySavedNotification notification) {
+        PublicKey savedWebPublicKey = keyLoader.loadPublicKeyPem(notification.publicKey());
+        ToolKeyState.SavedPublicKeyResult stateResult = keyState.applySavedWebPublicKey(savedWebPublicKey);
+        currentWebKeyData = new WebPublicKeyData(
+                notification.keyId(),
+                notification.publicKey(),
+                notification.fingerprint(),
+                notification.createdAt()
+        );
+
+        String message = switch (stateResult) {
+            case MATCHED -> "Public key đã được lưu trên web và khớp với private key hiện tại.";
+            case MISMATCHED -> "Public key web vừa lưu không khớp với public key hiện tại trong tool.";
+            case NO_CURRENT_PUBLIC_KEY ->
+                    "Đã nhận public key từ web. Vui lòng Load Private Key và kiểm tra lại bằng Load Public Key From Web.";
+        };
+
+        SwingUtilities.invokeLater(() -> {
+            webPublicKeyLabel.setText("Public Key web: keyId=" + notification.keyId()
+                    + " | fingerprint=" + notification.fingerprint());
+            webPublicKeyLabel.setForeground(switch (stateResult) {
+                case MATCHED -> new Color(21, 128, 61);
+                case MISMATCHED -> new Color(185, 28, 28);
+                case NO_CURRENT_PUBLIC_KEY -> new Color(30, 64, 175);
+            });
+            if (stateResult == ToolKeyState.SavedPublicKeyResult.NO_CURRENT_PUBLIC_KEY) {
+                publicKeyArea.setText(notification.publicKey());
+            }
+            setStatus(message);
+        });
+
+        return new PublicKeySavedResult(
+                stateResult == ToolKeyState.SavedPublicKeyResult.MATCHED,
+                message
+        );
     }
 
     @Override
@@ -389,7 +615,71 @@ public class SigningToolFrame extends JFrame implements SigningApiBridge {
 
     @Override
     public String signHashValue(String hashValue) {
-        return signatureService.signHashValue(hashValue, currentPrivateKey);
+        ToolKeyState.Snapshot state = keyState.snapshot();
+        ensureAutomatedSigningKeyState(state);
+        return signatureService.signHashValue(hashValue, state.currentPrivateKey());
+    }
+
+    private boolean confirmManualSigningKeyState() {
+        SigningStatePolicy.Readiness readiness = signingReadiness();
+        if (readiness == SigningStatePolicy.Readiness.READY) {
+            return true;
+        }
+        if (readiness == SigningStatePolicy.Readiness.KEY_MISMATCH) {
+            showError("Không thể ký: Private Key local không khớp Public Key ACTIVE trên web.");
+            return false;
+        }
+
+        String message = readiness == SigningStatePolicy.Readiness.GENERATED_PUBLIC_KEY_NOT_UPLOADED
+                ? "Public key vừa tạo chưa được lưu lên web. Bạn vẫn muốn ký thủ công?"
+                : "Private key được tải từ file nhưng chưa được kiểm tra với Public Key ACTIVE. "
+                        + "Hãy dùng Load Public Key From Web trước khi ký. Bạn vẫn muốn tiếp tục?";
+        int option = JOptionPane.showConfirmDialog(
+                this,
+                message,
+                "Cảnh báo trạng thái khóa",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.WARNING_MESSAGE
+        );
+        return option == JOptionPane.YES_OPTION;
+    }
+
+    private void ensureAutomatedSigningKeyState(ToolKeyState.Snapshot state) {
+        SigningStatePolicy.Readiness readiness = signingReadiness(state);
+        switch (readiness) {
+            case READY -> {
+                return;
+            }
+            case GENERATED_PUBLIC_KEY_NOT_UPLOADED -> throw new IllegalStateException(
+                    "Public key vừa tạo chưa được lưu lên web. Hãy copy key và lưu tại trang /key-management trước khi ký."
+            );
+            case FILE_PRIVATE_KEY_NOT_CHECKED -> throw new IllegalStateException(
+                    "Private key được tải từ file chưa được kiểm tra. Hãy bấm Load Public Key From Web trước khi ký."
+            );
+            case KEY_MISMATCH -> throw new IllegalStateException(
+                    "Private key local không khớp public key ACTIVE trên web. Đã chặn ký để tránh chữ ký không hợp lệ."
+            );
+        }
+    }
+
+    private SigningStatePolicy.Readiness signingReadiness() {
+        return signingReadiness(keyState.snapshot());
+    }
+
+    private SigningStatePolicy.Readiness signingReadiness(ToolKeyState.Snapshot state) {
+        return SigningStatePolicy.evaluate(
+                state.generatedInCurrentSession(),
+                state.publicKeyUploadedToWeb(),
+                state.webPublicKeyLoaded(),
+                state.keyMatchChecked(),
+                state.keyPairMatched()
+        );
+    }
+
+    private boolean sameKey(java.security.Key first, java.security.Key second) {
+        return first != null
+                && second != null
+                && java.util.Arrays.equals(first.getEncoded(), second.getEncoded());
     }
 
     private String safeText(String value) {
