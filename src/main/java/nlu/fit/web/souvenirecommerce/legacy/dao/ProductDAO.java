@@ -20,6 +20,7 @@ public class ProductDAO {
         p.category_id,
         p.name,
         p.description,
+        p.short_description,
         p.original_price,
         p.image_url,
         p.stock_quantity,
@@ -43,6 +44,7 @@ public class ProductDAO {
             p.category_id,
             p.name,
             p.description,
+            p.short_description,
             p.original_price,
             p.image_url,
             p.stock_quantity,
@@ -60,6 +62,7 @@ public class ProductDAO {
             p.category_id,
             p.name,
             p.description,
+            p.short_description,
             p.original_price,
             p.image_url,
             p.stock_quantity,
@@ -214,6 +217,220 @@ public class ProductDAO {
         return 0;
     }
 
+    public List<Product> getProductsByCategoryIdsWithFilter(
+            List<Long> categoryIds,
+            Integer minPrice,
+            Integer maxPrice,
+            Integer rating,
+            ProductSort sort,
+            int offset,
+            int limit
+    ) {
+        List<Product> list = new ArrayList<>();
+        if (categoryIds == null || categoryIds.isEmpty()) {
+            return list;
+        }
+
+        StringBuilder sql = new StringBuilder("""
+            SELECT * FROM (
+                """ + BASE_SELECT + """
+            ) t
+            WHERE t.category_id IN (
+        """);
+        appendPlaceholders(sql, categoryIds.size());
+        sql.append(")");
+
+        if (minPrice != null) sql.append(" AND t.original_price >= ?");
+        if (maxPrice != null) sql.append(" AND t.original_price <= ?");
+        if (rating != null) sql.append(" AND t.avg_rating >= ?");
+
+        if (sort != null) {
+            switch (sort) {
+                case PRICE_ASC -> sql.append(" ORDER BY t.original_price ASC");
+                case PRICE_DESC -> sql.append(" ORDER BY t.original_price DESC");
+                case NEWEST -> sql.append(" ORDER BY t.id DESC");
+                default -> sql.append(" ORDER BY t.total_sold DESC, t.avg_rating DESC");
+            }
+        } else {
+            sql.append(" ORDER BY t.total_sold DESC, t.avg_rating DESC");
+        }
+
+        sql.append(" LIMIT ? OFFSET ?");
+
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+
+            int idx = bindCategoryIds(ps, categoryIds, 1);
+            if (minPrice != null) ps.setInt(idx++, minPrice);
+            if (maxPrice != null) ps.setInt(idx++, maxPrice);
+            if (rating != null) ps.setInt(idx++, rating);
+            ps.setInt(idx++, limit);
+            ps.setInt(idx, offset);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(mapProduct(rs));
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return list;
+    }
+
+    public int countProductsByCategoryIdsWithFilter(
+            List<Long> categoryIds,
+            Integer minPrice,
+            Integer maxPrice,
+            Integer rating
+    ) {
+        if (categoryIds == null || categoryIds.isEmpty()) {
+            return 0;
+        }
+
+        StringBuilder sql = new StringBuilder("""
+            SELECT COUNT(*) FROM (
+                SELECT p.id
+                FROM products p
+                WHERE p.category_id IN (
+        """);
+        appendPlaceholders(sql, categoryIds.size());
+        sql.append(")");
+
+        if (minPrice != null) sql.append(" AND p.original_price >= ?");
+        if (maxPrice != null) sql.append(" AND p.original_price <= ?");
+        sql.append(" GROUP BY p.id, p.avg_rating ");
+        if (rating != null) sql.append(" HAVING COALESCE(MAX(p.avg_rating), 0) >= ? ");
+        sql.append(") t");
+
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+
+            int idx = bindCategoryIds(ps, categoryIds, 1);
+            if (minPrice != null) ps.setInt(idx++, minPrice);
+            if (maxPrice != null) ps.setInt(idx++, maxPrice);
+            if (rating != null) ps.setInt(idx, rating);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) return rs.getInt(1);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return 0;
+    }
+
+    public List<Product> searchProductsWithFilter(
+            String keyword,
+            Integer minPrice,
+            Integer maxPrice,
+            Integer rating,
+            ProductSort sort,
+            int offset,
+            int limit
+    ) {
+        List<Product> list = new ArrayList<>();
+        StringBuilder sql = new StringBuilder("""
+            SELECT * FROM (
+                """ + BASE_SELECT + """
+            ) t
+            WHERE (
+                LOWER(t.name) LIKE LOWER(?)
+                OR LOWER(t.description) LIKE LOWER(?)
+                OR LOWER(t.short_description) LIKE LOWER(?)
+            )
+        """);
+
+        if (minPrice != null) sql.append(" AND t.original_price >= ?");
+        if (maxPrice != null) sql.append(" AND t.original_price <= ?");
+        if (rating != null) sql.append(" AND t.avg_rating >= ?");
+
+        if (sort != null) {
+            switch (sort) {
+                case PRICE_ASC -> sql.append(" ORDER BY t.original_price ASC");
+                case PRICE_DESC -> sql.append(" ORDER BY t.original_price DESC");
+                case NEWEST -> sql.append(" ORDER BY t.id DESC");
+                default -> sql.append(" ORDER BY t.total_sold DESC, t.avg_rating DESC");
+            }
+        } else {
+            sql.append(" ORDER BY t.total_sold DESC, t.avg_rating DESC");
+        }
+
+        sql.append(" LIMIT ? OFFSET ?");
+
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+
+            int idx = 1;
+            String searchPattern = "%" + (keyword == null ? "" : keyword.trim()) + "%";
+            ps.setString(idx++, searchPattern);
+            ps.setString(idx++, searchPattern);
+            ps.setString(idx++, searchPattern);
+            if (minPrice != null) ps.setInt(idx++, minPrice);
+            if (maxPrice != null) ps.setInt(idx++, maxPrice);
+            if (rating != null) ps.setInt(idx++, rating);
+            ps.setInt(idx++, limit);
+            ps.setInt(idx, offset);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(mapProduct(rs));
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return list;
+    }
+
+    public int countSearchProductsWithFilter(
+            String keyword,
+            Integer minPrice,
+            Integer maxPrice,
+            Integer rating
+    ) {
+        StringBuilder sql = new StringBuilder("""
+            SELECT COUNT(*) FROM (
+                SELECT p.id
+                FROM products p
+                WHERE (
+                    LOWER(p.name) LIKE LOWER(?)
+                    OR LOWER(p.description) LIKE LOWER(?)
+                    OR LOWER(p.short_description) LIKE LOWER(?)
+                )
+        """);
+
+        if (minPrice != null) sql.append(" AND p.original_price >= ?");
+        if (maxPrice != null) sql.append(" AND p.original_price <= ?");
+        sql.append(" GROUP BY p.id, p.avg_rating ");
+        if (rating != null) sql.append(" HAVING COALESCE(MAX(p.avg_rating), 0) >= ? ");
+        sql.append(") t");
+
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+
+            int idx = 1;
+            String searchPattern = "%" + (keyword == null ? "" : keyword.trim()) + "%";
+            ps.setString(idx++, searchPattern);
+            ps.setString(idx++, searchPattern);
+            ps.setString(idx++, searchPattern);
+            if (minPrice != null) ps.setInt(idx++, minPrice);
+            if (maxPrice != null) ps.setInt(idx++, maxPrice);
+            if (rating != null) ps.setInt(idx, rating);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) return rs.getInt(1);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return 0;
+    }
+
     public Product getProductById(Long id) {
         String sql = """
             SELECT * FROM (
@@ -290,36 +507,32 @@ public class ProductDAO {
 
     public List<Product> searchProductsByName(String keyword, int limit) {
         List<Product> list = new ArrayList<>();
-        String sql = BASE_SELECT + """
-            WHERE LOWER(name) LIKE LOWER(?)
-            ORDER BY total_sold DESC, avg_rating DESC
+        String sql = """
+            SELECT * FROM (
+                """ + BASE_SELECT + """
+            ) t
+            WHERE (
+                LOWER(t.name) LIKE LOWER(?)
+                OR LOWER(t.description) LIKE LOWER(?)
+                OR LOWER(t.short_description) LIKE LOWER(?)
+            )
+            ORDER BY t.total_sold DESC, t.avg_rating DESC
             LIMIT ?
         """;
         try (Connection conn = DBContext.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
-            String searchPattern = "%" + keyword + "%";
-            ps.setString(1, searchPattern);
-            ps.setInt(2, limit);
+            int idx = 1;
+            String searchPattern = "%" + (keyword == null ? "" : keyword.trim()) + "%";
+            ps.setString(idx++, searchPattern);
+            ps.setString(idx++, searchPattern);
+            ps.setString(idx++, searchPattern);
+            ps.setInt(idx, limit);
 
-            ResultSet rs = ps.executeQuery();
-            while (rs.next()) {
-                Product p = new Product();
-                p.setId(rs.getLong("id"));
-                Category category = new Category();
-                category.setId(rs.getLong("category_id"));
-                p.setCategory(category);
-                p.setName(rs.getString("name"));
-                p.setDescription(rs.getString("description"));
-                p.setOriginalPrice(rs.getDouble("original_price"));
-                p.setDiscountPercent(rs.getInt("discount_percent"));
-                p.setSalePrice(rs.getDouble("sale_price"));
-                p.setImage(rs.getString("image_url"));
-                p.setStockQuantity(rs.getInt("stock_quantity"));
-                p.setTotalSold(rs.getInt("total_sold"));
-                p.setAvgRating(rs.getDouble("avg_rating"));
-                p.setReviewCount(rs.getInt("review_count"));
-                list.add(p);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(mapProduct(rs));
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -338,6 +551,7 @@ public class ProductDAO {
         }
         p.setName(rs.getString("name"));
         p.setDescription(rs.getString("description"));
+        p.setShortDescription(rs.getString("short_description"));
         p.setOriginalPrice(rs.getDouble("original_price"));
         p.setImage(rs.getString("image_url"));
         p.setStockQuantity(rs.getInt("stock_quantity"));
@@ -570,12 +784,14 @@ public class ProductDAO {
         String sql = SEARCH_SELECT + """
         WHERE LOWER(p.name) LIKE LOWER(?)
            OR LOWER(p.description) LIKE LOWER(?)
+           OR LOWER(p.short_description) LIKE LOWER(?)
            OR LOWER(c.category_name) LIKE LOWER(?)
         GROUP BY
             p.id,
             p.category_id,
             p.name,
             p.description,
+            p.short_description,
             p.original_price,
             p.image_url,
             p.stock_quantity,
@@ -587,10 +803,12 @@ public class ProductDAO {
         try (Connection conn = DBContext.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
-            String searchPattern = "%" + keyword + "%";
-            ps.setString(1, searchPattern);
-            ps.setString(2, searchPattern);
-            ps.setString(3, searchPattern);
+            int idx = 1;
+            String searchPattern = "%" + (keyword == null ? "" : keyword.trim()) + "%";
+            ps.setString(idx++, searchPattern);
+            ps.setString(idx++, searchPattern);
+            ps.setString(idx++, searchPattern);
+            ps.setString(idx, searchPattern);
 
             ResultSet rs = ps.executeQuery();
 
@@ -603,6 +821,21 @@ public class ProductDAO {
         }
 
         return list;
+    }
+
+    private void appendPlaceholders(StringBuilder sql, int count) {
+        for (int i = 0; i < count; i++) {
+            if (i > 0) sql.append(", ");
+            sql.append("?");
+        }
+    }
+
+    private int bindCategoryIds(PreparedStatement ps, List<Long> categoryIds, int startIndex) throws Exception {
+        int idx = startIndex;
+        for (Long categoryId : categoryIds) {
+            ps.setLong(idx++, categoryId);
+        }
+        return idx;
     }
 
 }
