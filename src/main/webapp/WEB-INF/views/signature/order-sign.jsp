@@ -12,7 +12,7 @@
     <!-- ================= GLOBAL CSS ================= -->
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/theme.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/Base.css">
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/layout/header.css?v=8">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/layout/header.css?v=11">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/layout/footer.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/account/account-common.css">
@@ -474,7 +474,7 @@
 <!-- ================= SCRIPTS ================= -->
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="${pageContext.request.contextPath}/assets/js/common.js"></script>
-<script src="${pageContext.request.contextPath}/assets/js/header.js?v=8"></script>
+<script src="${pageContext.request.contextPath}/assets/js/header.js?v=10"></script>
 
 <script>
     const SIGNING_TOOL_API_BASE = 'http://127.0.0.1:9090';

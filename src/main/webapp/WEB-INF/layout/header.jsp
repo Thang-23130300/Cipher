@@ -249,19 +249,47 @@
 
         <form
                 class="header-search"
+                id="headerSearchForm"
                 action="${pageContext.request.contextPath}/search"
                 method="get">
 
             <input
+                    id="headerSearchInput"
                     type="search"
                     name="keyword"
+                    value="${param.keyword}"
+                    autocomplete="off"
                     placeholder="Tìm đặc sản, quà tặng, thủ công...">
 
-            <button type="submit">
+            <button class="header-search-clear"
+                    id="headerSearchClear"
+                    type="button"
+                    aria-label="Xóa từ khóa"
+                    hidden>
+
+                <i class="fa-solid fa-circle-xmark"></i>
+
+            </button>
+
+            <button class="header-search-submit" type="submit">
 
                 <i class="fa-solid fa-magnifying-glass"></i>
 
             </button>
+
+            <div class="header-search-dropdown"
+                 id="headerSearchDropdown"
+                 hidden
+                 aria-hidden="true">
+
+                <div class="header-search-dropdown-head">
+                    <strong>Tìm kiếm gần đây</strong>
+                    <button type="button" id="headerSearchClearAll">Xóa tất cả</button>
+                </div>
+
+                <div class="header-search-list" id="headerSearchList"></div>
+
+            </div>
 
         </form>
 
@@ -425,6 +453,14 @@
                         Trang chủ
 
                     </a>
+
+                    <c:if test="${not empty breadcrumbLabel}">
+
+                        <span>/</span>
+
+                        <span class="current"><c:out value="${breadcrumbLabel}"/></span>
+
+                    </c:if>
 
 
                     <c:if test="${not empty breadcrumbCategory}">
