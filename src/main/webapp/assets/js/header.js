@@ -9,14 +9,20 @@ document.addEventListener("DOMContentLoaded", () => {
     const cartLink = document.querySelector(".header-cart[data-cart-toggle='true']");
     const cartLoginPopover = document.getElementById("cartLoginPopover");
     const cartPreviewContent = document.getElementById("cartPreviewContent");
+
     const searchForm = document.getElementById("headerSearchForm");
     const searchInput = document.getElementById("headerSearchInput");
     const searchClear = document.getElementById("headerSearchClear");
     const searchDropdown = document.getElementById("headerSearchDropdown");
     const searchList = document.getElementById("headerSearchList");
     const searchClearAll = document.getElementById("headerSearchClearAll");
+
+    const stickyBar = document.querySelector(".header-menu-bar, .header-breadcrumb");
+    const stickySpacer = document.createElement("div");
+
     const recentSearchKey = "inolaRecentSearches";
     let searchTimer = null;
+    let stickyThreshold = 0;
 
     function formatCurrency(value) {
         return new Intl.NumberFormat("vi-VN").format(Number(value) || 0) + " đ";
@@ -29,6 +35,50 @@ document.addEventListener("DOMContentLoaded", () => {
             .replace(/>/g, "&gt;")
             .replace(/"/g, "&quot;")
             .replace(/'/g, "&#039;");
+    }
+
+    function setupStickyBar() {
+        if (!stickyBar) {
+            return;
+        }
+
+        stickySpacer.className = "header-sticky-spacer";
+        stickyBar.insertAdjacentElement("afterend", stickySpacer);
+
+        refreshStickyThreshold();
+        syncStickyBar();
+    }
+
+    function refreshStickyThreshold() {
+        if (!stickyBar) {
+            return;
+        }
+
+        const wasStuck = stickyBar.classList.contains("is-stuck");
+
+        if (wasStuck) {
+            stickyBar.classList.remove("is-stuck");
+            stickySpacer.classList.remove("is-active");
+            stickySpacer.style.height = "0px";
+        }
+
+        stickyThreshold = stickyBar.getBoundingClientRect().top + window.scrollY;
+
+        if (wasStuck) {
+            syncStickyBar();
+        }
+    }
+
+    function syncStickyBar() {
+        if (!stickyBar) {
+            return;
+        }
+
+        const shouldStick = window.scrollY >= stickyThreshold;
+
+        stickyBar.classList.toggle("is-stuck", shouldStick);
+        stickySpacer.classList.toggle("is-active", shouldStick);
+        stickySpacer.style.height = shouldStick ? `${stickyBar.offsetHeight}px` : "0px";
     }
 
     function getRecentSearches() {
@@ -49,24 +99,28 @@ document.addEventListener("DOMContentLoaded", () => {
             normalized,
             ...getRecentSearches().filter((item) => item.toLowerCase() !== lower)
         ].slice(0, 6);
+
         localStorage.setItem(recentSearchKey, JSON.stringify(next));
     }
 
     function removeRecentSearch(keyword) {
         const lower = String(keyword || "").toLowerCase();
         const next = getRecentSearches().filter((item) => item.toLowerCase() !== lower);
+
         localStorage.setItem(recentSearchKey, JSON.stringify(next));
         renderSearchDropdown(searchInput?.value || "");
     }
 
     function openSearchDropdown() {
         if (!searchDropdown) return;
+
         searchDropdown.hidden = false;
         searchDropdown.setAttribute("aria-hidden", "false");
     }
 
     function closeSearchDropdown() {
         if (!searchDropdown) return;
+
         searchDropdown.hidden = true;
         searchDropdown.setAttribute("aria-hidden", "true");
     }
@@ -84,6 +138,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!searchList) return;
 
         const recent = getRecentSearches();
+
         if (recent.length === 0) {
             searchList.innerHTML = `
                 <div class="header-search-empty">
@@ -111,6 +166,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!searchList) return;
 
         const suggestions = Array.isArray(items) ? items : [];
+
         if (suggestions.length === 0) {
             searchList.innerHTML = '<div class="header-search-empty">Không có gợi ý phù hợp</div>';
             return;
@@ -118,6 +174,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         searchList.innerHTML = suggestions.map((item) => {
             const name = escapeHtml(item.name || keyword);
+
             return `
                 <div class="header-search-row" data-suggestion-search="${name}">
                     <i class="fa-solid fa-magnifying-glass"></i>
@@ -130,7 +187,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function fetchSearchSuggestions(keyword) {
         fetch(`${contextPath}/search-suggestions?q=${encodeURIComponent(keyword)}`, {
-            headers: {"X-Requested-With": "XMLHttpRequest"}
+            headers: {
+                "X-Requested-With": "XMLHttpRequest"
+            }
         })
             .then((response) => response.ok ? response.json() : [])
             .then((items) => {
@@ -143,10 +202,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function renderSearchDropdown(value) {
         const keyword = String(value || "").trim();
-        if (searchClear) searchClear.hidden = keyword.length === 0;
+
+        if (searchClear) {
+            searchClear.hidden = keyword.length === 0;
+        }
 
         openSearchDropdown();
         clearTimeout(searchTimer);
+
         if (!keyword) {
             renderRecentSearches();
             return;
@@ -238,9 +301,11 @@ document.addEventListener("DOMContentLoaded", () => {
         userDropdown?.classList.remove("open");
         cartLoginPopover?.classList.remove("open");
         closeSearchDropdown();
+
         if (cartLoginPopover) {
             cartLoginPopover.hidden = true;
         }
+
         overlay?.classList.remove("active");
 
         menuButton?.setAttribute("aria-expanded", "false");
@@ -263,6 +328,7 @@ document.addEventListener("DOMContentLoaded", () => {
         userDropdown?.classList.remove("open");
         cartLoginPopover?.classList.remove("open");
         closeSearchDropdown();
+
         if (cartLoginPopover) {
             cartLoginPopover.hidden = true;
         }
@@ -287,6 +353,7 @@ document.addEventListener("DOMContentLoaded", () => {
         categoryDropdown?.classList.remove("open");
         cartLoginPopover?.classList.remove("open");
         closeSearchDropdown();
+
         if (cartLoginPopover) {
             cartLoginPopover.hidden = true;
         }
@@ -315,6 +382,7 @@ document.addEventListener("DOMContentLoaded", () => {
         menuButton?.setAttribute("aria-expanded", "false");
         cartLink.setAttribute("aria-expanded", String(isOpen));
         categoryDropdown?.setAttribute("aria-hidden", "true");
+
         cartLoginPopover.hidden = !isOpen;
         cartLoginPopover.classList.toggle("open", isOpen);
         cartLoginPopover.setAttribute("aria-hidden", String(!isOpen));
@@ -341,6 +409,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     searchDropdown?.addEventListener("click", (event) => {
         const removeButton = event.target.closest("[data-remove-search]");
+
         if (removeButton) {
             event.stopPropagation();
             removeRecentSearch(removeButton.dataset.removeSearch);
@@ -348,6 +417,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         const row = event.target.closest("[data-recent-search], [data-suggestion-search]");
+
         if (row) {
             submitSearch(row.dataset.recentSearch || row.dataset.suggestionSearch || searchInput?.value);
         }
@@ -355,11 +425,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
     searchForm?.addEventListener("submit", (event) => {
         const keyword = searchInput?.value.trim() || "";
+
         if (!keyword) {
             event.preventDefault();
             renderSearchDropdown("");
             return;
         }
+
         saveRecentSearch(keyword);
     });
 
@@ -367,8 +439,26 @@ document.addEventListener("DOMContentLoaded", () => {
         closeAll();
     });
 
+    window.addEventListener("resize", () => {
+        refreshStickyThreshold();
+    });
+
+    window.addEventListener("scroll", syncStickyBar, {
+        passive: true
+    });
+
+    setupStickyBar();
+
     document.addEventListener("click", (event) => {
-        if (!menuButton?.contains(event.target) && !categoryDropdown?.contains(event.target) && !userToggle?.contains(event.target) && !userDropdown?.contains(event.target) && !cartLink?.contains(event.target) && !cartLoginPopover?.contains(event.target) && !searchForm?.contains(event.target)) {
+        if (
+            !menuButton?.contains(event.target) &&
+            !categoryDropdown?.contains(event.target) &&
+            !userToggle?.contains(event.target) &&
+            !userDropdown?.contains(event.target) &&
+            !cartLink?.contains(event.target) &&
+            !cartLoginPopover?.contains(event.target) &&
+            !searchForm?.contains(event.target)
+        ) {
             closeAll();
         }
     });
@@ -410,7 +500,8 @@ document.addEventListener("DOMContentLoaded", () => {
             closeAll();
 
             target.scrollIntoView({
-                behavior: "smooth", block: "start"
+                behavior: "smooth",
+                block: "start"
             });
         });
     });
@@ -423,5 +514,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     window.addEventListener("pageshow", () => {
         syncCartPreview();
+        refreshStickyThreshold();
+        syncStickyBar();
     });
 });
