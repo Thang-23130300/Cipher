@@ -35,6 +35,9 @@ import java.awt.Toolkit;
 import java.awt.datatransfer.StringSelection;
 import java.io.IOException;
 import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -42,6 +45,7 @@ import java.security.KeyPair;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.lang.reflect.InvocationTargetException;
+import java.time.Duration;
 import java.util.UUID;
 
 public class SigningToolFrame extends JFrame implements SigningApiBridge {
@@ -52,6 +56,10 @@ public class SigningToolFrame extends JFrame implements SigningApiBridge {
     private final ActivePublicKeyClient activePublicKeyClient = new ActivePublicKeyClient();
     private final LocalConfigService localConfigService = new LocalConfigService();
     private final ToolKeyState keyState = new ToolKeyState();
+    private final HttpClient routeCheckClient = HttpClient.newBuilder()
+            .connectTimeout(Duration.ofSeconds(5))
+            .followRedirects(HttpClient.Redirect.NEVER)
+            .build();
 
     private final JTextArea publicKeyArea = createTextArea(8);
     private final JTextArea hashValueArea = createTextArea(5);
@@ -140,19 +148,6 @@ public class SigningToolFrame extends JFrame implements SigningApiBridge {
         actions.add(startApiButton);
         actions.add(stopApiButton);
 
-        // Khung tải khóa công khai từ Website
-        JPanel webLoadPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
-        webLoadPanel.add(new JLabel("Email tài khoản:"));
-        javax.swing.JTextField emailField = new javax.swing.JTextField(20);
-        JButton loadFromWebButton = new JButton("Tải Public Key từ Website");
-        webLoadPanel.add(emailField);
-        webLoadPanel.add(loadFromWebButton);
-
-        loadFromWebButton.addActionListener(event -> {
-            String email = emailField.getText();
-            fetchPublicKeyFromWebsite(email);
-        });
-
         // Nhãn cảnh báo Private Key màu đỏ nổi bật
         JLabel warningLabel = new JLabel("<html><b>CẢNH BÁO BẢO MẬT:</b> Private Key là khóa bí mật cá nhân của bạn. <b>TUYỆT ĐỐI KHÔNG</b> gửi file này cho bất kỳ ai hoặc tải lên bất kỳ trang web nào.</html>");
         warningLabel.setForeground(java.awt.Color.RED);
@@ -163,13 +158,11 @@ public class SigningToolFrame extends JFrame implements SigningApiBridge {
         topPanel.setLayout(new javax.swing.BoxLayout(topPanel, javax.swing.BoxLayout.Y_AXIS));
 
         actions.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
-        webLoadPanel.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
         warningLabel.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
         lastPrivateKeyPathLabel.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
         webPublicKeyLabel.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
 
         topPanel.add(actions);
-        topPanel.add(webLoadPanel);
         topPanel.add(warningLabel);
         topPanel.add(lastPrivateKeyPathLabel);
         topPanel.add(webPublicKeyLabel);
@@ -385,8 +378,9 @@ public class SigningToolFrame extends JFrame implements SigningApiBridge {
     private void connectThroughBrowser() {
         String webUrl = JOptionPane.showInputDialog(
                 this,
-                "Web URL (bao gồm context path nếu có):",
-                "http://localhost:8080"
+                "Web URL (bao gồm context path nếu có).\n"
+                        + "Ví dụ: http://localhost:8080/BACKEND_war_exploded",
+                "http://localhost:8080/BACKEND_war_exploded"
         );
         if (webUrl == null) {
             return;
@@ -414,6 +408,7 @@ public class SigningToolFrame extends JFrame implements SigningApiBridge {
 
         keyState.setPendingConnectNonce(nonce);
         try {
+            ensureToolConnectRouteReachable(connectUri, normalizedWebUrl);
             if (!Desktop.isDesktopSupported()
                     || !Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
                 throw new IOException("Máy hiện tại không hỗ trợ mở trình duyệt tự động.");
@@ -423,6 +418,27 @@ public class SigningToolFrame extends JFrame implements SigningApiBridge {
         } catch (IOException | SecurityException e) {
             keyState.clearPendingConnectNonce();
             showError(e.getMessage());
+        }
+    }
+
+    private void ensureToolConnectRouteReachable(URI connectUri, String webBaseUrl) throws IOException {
+        HttpRequest request = HttpRequest.newBuilder(connectUri)
+                .timeout(Duration.ofSeconds(5))
+                .GET()
+                .build();
+        try {
+            HttpResponse<Void> response = routeCheckClient.send(request, HttpResponse.BodyHandlers.discarding());
+            if (response.statusCode() == 404) {
+                throw new IOException("Không tìm thấy route " + webBaseUrl + "/tool/connect.\n"
+                        + "Hãy kiểm tra Tomcat đang chạy đúng project mới nhất và nhập đúng context path.\n"
+                        + "Nếu app deploy dưới context /Cipher hoặc /BACKEND_war_exploded, hãy nhập đầy đủ ví dụ: "
+                        + "http://localhost:8080/Cipher");
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new IOException("Kiểm tra route /tool/connect bị gián đoạn.", e);
+        } catch (IllegalArgumentException e) {
+            throw new IOException("Web URL không hợp lệ.", e);
         }
     }
 
@@ -493,7 +509,7 @@ public class SigningToolFrame extends JFrame implements SigningApiBridge {
     }
 
     private WebAccessInput promptWebAccess(String title) {
-        JTextField webUrlField = new JTextField("http://localhost:8080", 32);
+        JTextField webUrlField = new JTextField("http://localhost:8080/BACKEND_war_exploded", 32);
         JPasswordField sessionField = new JPasswordField(32);
 
         JPanel form = new JPanel(new GridLayout(0, 1, 4, 4));
@@ -915,81 +931,4 @@ public class SigningToolFrame extends JFrame implements SigningApiBridge {
         JOptionPane.showMessageDialog(this, message, "Lỗi", JOptionPane.ERROR_MESSAGE);
         setStatus("Lỗi: " + message);
     }
-    private void fetchPublicKeyFromWebsite(String email) {
-        if (email == null || email.trim().isEmpty()) {
-            showError("Vui lòng nhập Email tài khoản.");
-            return;
-        }
-
-        setStatus("Đang tải Public Key cho " + email + "...");
-
-        new Thread(() -> {
-            try {
-                String encodedEmail = java.net.URLEncoder.encode(email.trim(), StandardCharsets.UTF_8);
-                java.net.URL url = new java.net.URL("http://localhost:8080/api/public-key?email=" + encodedEmail);
-                java.net.HttpURLConnection conn = (java.net.HttpURLConnection) url.openConnection();
-                conn.setRequestMethod("GET");
-                conn.setConnectTimeout(5000);
-                conn.setReadTimeout(5000);
-
-                int responseCode = conn.getResponseCode();
-                if (responseCode == 200) {
-                    java.io.InputStream in = conn.getInputStream();
-                    String responseStr = new String(in.readAllBytes(), StandardCharsets.UTF_8);
-
-                    boolean success = extractJsonBooleanField(responseStr, "success");
-                    if (success) {
-                        String publicKey = extractJsonStringField(responseStr, "publicKey");
-                        if (publicKey != null) {
-                            SwingUtilities.invokeLater(() -> {
-                                publicKeyArea.setText(publicKey);
-                                try {
-                                    PublicKey webPublicKey = keyLoader.loadPublicKeyPem(publicKey);
-                                    keyState.useWebPublicKey(webPublicKey);
-                                    checkPrivateKeyAgainstWebKey();
-                                    setStatus("Đã tải và nạp Public Key từ website thành công.");
-                                } catch (Exception ex) {
-                                    setStatus("Đã tải Public Key từ website.");
-                                }
-                            });
-                        } else {
-                            showError("Không tìm thấy trường publicKey trong phản hồi từ Website.");
-                        }
-                    } else {
-                        String message = extractJsonStringField(responseStr, "message");
-                        showError(message != null ? message : "Lấy Public Key không thành công.");
-                    }
-                } else {
-                    showError("Lỗi kết nối máy chủ: HTTP " + responseCode);
-                }
-            } catch (Exception e) {
-                showError("Không thể kết nối đến website: " + e.getMessage());
-            }
-        }).start();
-    }
-
-    private String extractJsonStringField(String json, String field) {
-        String key = "\"" + field + "\":\"";
-        int index = json.indexOf(key);
-        if (index == -1) return null;
-        int start = index + key.length();
-        int end = json.indexOf("\"", start);
-        if (end == -1) return null;
-        return json.substring(start, end).replace("\\n", "\n").replace("\\r", "\r");
-    }
-
-    private boolean extractJsonBooleanField(String json, String field) {
-        String key = "\"" + field + "\":";
-        int index = json.indexOf(key);
-        if (index == -1) return false;
-        int start = index + key.length();
-        while (start < json.length() && Character.isWhitespace(json.charAt(start))) {
-            start++;
-        }
-        if (start + 4 <= json.length() && json.substring(start, start + 4).equals("true")) {
-            return true;
-        }
-        return false;
-    }
-
 }

@@ -43,6 +43,8 @@ public class LocalApiServer {
             server.createContext("/api/health", new HealthHandler());
             server.createContext("/api/public-key", new PublicKeyHandler());
             server.createContext("/api/sign", new SignHandler());
+            server.createContext("/health", new HealthHandler());
+            server.createContext("/sign", new SignHandler());
             server.createContext("/public-key/saved", new PublicKeySavedHandler());
             server.createContext("/tool/connect/callback", new ConnectCallbackHandler());
             executor = Executors.newCachedThreadPool();
