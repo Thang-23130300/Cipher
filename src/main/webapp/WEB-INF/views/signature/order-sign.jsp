@@ -419,6 +419,7 @@
 
         <!-- Connection status from JS API fetch -->
         <div id="toolStatus" class="status-alert"></div>
+        <textarea id="activePublicKey" hidden aria-hidden="true"><c:out value="${activePublicKey.publicKey}"/></textarea>
 
         <!-- Hash Value Section -->
         <div class="form-group">
@@ -479,6 +480,29 @@
 <script>
     const SIGNING_TOOL_API_BASE = 'http://127.0.0.1:9090';
 
+    function compactPublicKey(publicKey) {
+        return (publicKey || '').replace(/\s/g, '');
+    }
+
+    async function ensureToolUsesActivePublicKey() {
+        const response = await fetch(SIGNING_TOOL_API_BASE + '/api/public-key', {
+            method: 'GET',
+            cache: 'no-store'
+        });
+        const data = await response.json();
+
+        if (!response.ok || data.success === false || !data.publicKey) {
+            throw new Error(data.message || 'Không đọc được Public Key từ Tool.');
+        }
+
+        const activePublicKey = document.getElementById('activePublicKey').value;
+        if (compactPublicKey(data.publicKey) !== compactPublicKey(activePublicKey)) {
+            const error = new Error('Public Key trong Tool không trùng với Public Key đang hoạt động trên website.');
+            error.code = 'PUBLIC_KEY_MISMATCH';
+            throw error;
+        }
+    }
+
     // Copy hash value to clipboard
     function copyHash() {
         const hashTextarea = document.getElementById('hashValue');
@@ -537,6 +561,8 @@
         );
 
         try {
+            await ensureToolUsesActivePublicKey();
+
             const response = await fetch(SIGNING_TOOL_API_BASE + '/api/sign', {
                 method: 'POST',
                 headers: {
@@ -654,6 +680,17 @@
             );
         } catch (error) {
             console.error('Lỗi khi gọi API ký: ', error);
+
+            if (error.code === 'PUBLIC_KEY_MISMATCH') {
+                showToolStatus(
+                    'danger',
+                    '<i class="fa-solid fa-triangle-exclamation"></i> ' +
+                    '<strong>Public Key trên website không khớp với cặp khóa hiện tại trong Tool.</strong><br>' +
+                    'Hãy vào <a href="${pageContext.request.contextPath}/signature/keys">Quản lý Public Key</a>, ' +
+                    'bấm <strong>Tải Public Key từ Tool</strong> rồi lưu key mới trước khi ký.'
+                );
+                return;
+            }
 
             showToolStatus(
                 'danger',

@@ -7,9 +7,8 @@ import java.nio.file.Path;
 import java.security.KeyFactory;
 import java.security.PrivateKey;
 import java.security.PublicKey;
-import java.security.interfaces.RSAPrivateCrtKey;
 import java.security.spec.PKCS8EncodedKeySpec;
-import java.security.spec.RSAPublicKeySpec;
+import java.security.spec.X509EncodedKeySpec;
 
 public class KeyLoader {
     private static final String KEY_ALGORITHM = "RSA";
@@ -31,19 +30,18 @@ public class KeyLoader {
         }
     }
 
-    public PublicKey derivePublicKey(PrivateKey privateKey) {
-        if (!(privateKey instanceof RSAPrivateCrtKey rsaPrivateKey)) {
-            throw new IllegalArgumentException("Could not derive public key from this private key.");
+    public PublicKey loadPublicKeyPem(String pem) {
+        if (pem == null || pem.isBlank()) {
+            throw new IllegalArgumentException("Public key PEM is required.");
         }
 
         try {
-            RSAPublicKeySpec publicKeySpec = new RSAPublicKeySpec(
-                    rsaPrivateKey.getModulus(),
-                    rsaPrivateKey.getPublicExponent()
-            );
-            return KeyFactory.getInstance(KEY_ALGORITHM).generatePublic(publicKeySpec);
+            byte[] keyBytes = PemUtils.decodePem(pem, "PUBLIC KEY");
+            X509EncodedKeySpec keySpec = new X509EncodedKeySpec(keyBytes);
+            return KeyFactory.getInstance(KEY_ALGORITHM).generatePublic(keySpec);
         } catch (Exception e) {
-            throw new IllegalStateException("Could not derive public key: " + e.getMessage(), e);
+            throw new IllegalArgumentException("Could not load X.509 public key: " + e.getMessage(), e);
         }
     }
+
 }
