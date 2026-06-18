@@ -538,23 +538,90 @@
         </div>
     </div>
 
+    <!-- Bảng cảnh báo an toàn Private Key -->
+    <div style="background: #fffbeb; color: #b45309; border: 1px solid #fef3c7; border-radius: 12px; padding: 18px; margin-top: 18px; line-height: 1.6;">
+        <h3 style="margin: 0 0 8px; color: #b45309; display: flex; align-items: center; gap: 8px; font-size: 17px; font-weight: bold;">
+            <i class="fa-solid fa-triangle-exclamation"></i> CẢNH BÁO BẢO MẬT QUAN TRỌNG
+        </h3>
+        <ul style="margin: 0; padding-left: 20px; font-size: 14px;">
+            <li><strong>TUYỆT ĐỐI KHÔNG</strong> dán hoặc chia sẻ <strong>Khóa riêng tư (Private Key)</strong> của bạn lên website.</li>
+            <li>Chỉ sao chép và dán <strong>Khóa công khai (Public Key)</strong> (bắt đầu bằng <code>-----BEGIN PUBLIC KEY-----</code> và kết thúc bằng <code>-----END PUBLIC KEY-----</code>).</li>
+            <li>Khóa riêng tư (Private Key) của bạn phải được lưu trữ tuyệt mật và an toàn trong thiết bị cá nhân của bạn.</li>
+        </ul>
+    </div>
+
     <div class="section">
-        <div class="section-title">
-            <h2>Thêm / cập nhật public key</h2>
-        </div>
+        <c:choose>
+            <c:when test="${sessionScope.keyChangePending == true}">
+                <!-- BƯỚC 2: Form nhập mã OTP xác thực email -->
+                <div class="section-title">
+                    <h2>Xác thực thay đổi khóa công khai</h2>
+                </div>
+                <p class="description">
+                    Một mã OTP 6 chữ số đã được gửi đến email đăng ký của bạn. Vui lòng nhập mã OTP để hoàn thành việc cập nhật Public Key.
+                </p>
+                <form method="post" action="${pageContext.request.contextPath}/signature/keys/verify-otp">
+                    <c:if test="${not empty returnUrl}">
+                        <input type="hidden" name="returnUrl" value="${returnUrl}">
+                    </c:if>
 
-        <p class="description">
-            Dán public key dạng PEM từ công cụ ký. Khi lưu key mới, key ACTIVE cũ sẽ không còn được dùng cho đơn hàng
-            mới.
-        </p>
+                    <label for="otpCode">Mã OTP (6 chữ số)</label>
+                    <input type="text" id="otpCode" name="otpCode" maxlength="6" required
+                           placeholder="Nhập 6 chữ số OTP"
+                           style="width: 100%; max-width: 250px; font-size: 18px; font-weight: bold; text-align: center; letter-spacing: 5px; padding: 10px; margin-bottom: 15px; border-radius: 8px; border: 1px solid #d1d5db;">
 
-        <form method="post" action="${pageContext.request.contextPath}/signature/keys/save">
-            <c:if test="${not empty returnUrl}">
-                <input type="hidden" name="returnUrl" value="${returnUrl}">
-            </c:if>
+                    <!-- Đếm ngược 5 phút -->
+                    <div id="otp-timer" style="color: #ef4444; font-weight: bold; margin-bottom: 15px; font-size: 14px;">
+                        Mã OTP hết hạn sau: <span id="countdown">05:00</span>
+                    </div>
 
-            <label for="publicKey">Public key PEM</label>
-            <textarea id="publicKey" class="public-key-textarea" name="publicKey" placeholder="-----BEGIN PUBLIC KEY-----
+                    <div style="display: flex; gap: 10px;">
+                        <button type="submit" class="btn btn-primary">Xác nhận và lưu khóa</button>
+                        <button type="submit" name="action" value="cancel" class="btn btn-secondary" onclick="return confirm('Bạn muốn hủy bỏ yêu cầu đổi khóa?')">Hủy bỏ</button>
+                    </div>
+                </form>
+
+                <script>
+                    (function() {
+                        let duration = 300; // 5 phút bằng giây
+                        const display = document.getElementById('countdown');
+                        const timerInterval = setInterval(function () {
+                            let minutes = Math.floor(duration / 60);
+                            let seconds = duration % 60;
+
+                            minutes = minutes < 10 ? "0" + minutes : minutes;
+                            seconds = seconds < 10 ? "0" + seconds : seconds;
+
+                            display.textContent = minutes + ":" + seconds;
+
+                            if (--duration < 0) {
+                                clearInterval(timerInterval);
+                                display.textContent = "Hết hạn";
+                                document.getElementById('otpCode').disabled = true;
+                                document.getElementById('otp-timer').innerHTML = "Mã OTP đã hết hạn. Vui lòng nhấn Hủy bỏ để gửi lại yêu cầu mới.";
+                            }
+                        }, 1000);
+                    })();
+                </script>
+            </c:when>
+
+            <c:otherwise>
+                <!-- BƯỚC 1: Form nhập Public Key ban đầu -->
+                <div class="section-title">
+                    <h2>Thêm / cập nhật public key</h2>
+                </div>
+
+                <p class="description">
+                    Dán public key dạng PEM từ công cụ ký của bạn vào ô bên dưới. Hệ thống sẽ gửi email mã OTP để xác nhận trước khi cập nhật.
+                </p>
+
+                <form method="post" action="${pageContext.request.contextPath}/signature/keys/save">
+                    <c:if test="${not empty returnUrl}">
+                        <input type="hidden" name="returnUrl" value="${returnUrl}">
+                    </c:if>
+
+                    <label for="publicKey">Public key PEM</label>
+                    <textarea id="publicKey" class="public-key-textarea" name="publicKey" required placeholder="-----BEGIN PUBLIC KEY-----
 MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8A...
 -----END PUBLIC KEY-----"></textarea>
 
@@ -564,12 +631,15 @@ MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8A...
                     Tải Public Key từ Tool
                 </button>
                 <button type="submit" class="btn btn-primary">
-                    Lưu public key
+                    Gửi mã OTP xác nhận
                 </button>
             </div>
             <p id="publicKeyToolStatus" class="description" style="display: none; margin-top: 10px;"></p>
         </form>
+            </c:otherwise>
+        </c:choose>
     </div>
+
 
     <div class="section">
         <div class="section-title">
