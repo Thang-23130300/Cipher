@@ -643,7 +643,7 @@ public class ProductDAO {
                    COALESCE(SUM(oi.quantity * oi.price_at_purchase), 0) AS revenue
             FROM products p
             JOIN categories c ON p.category_id = c.id
-            JOIN order_items oi ON p.id = oi.product_id
+            JOIN order_details oi ON p.id = oi.product_id
             JOIN orders o ON oi.order_id = o.id
             JOIN order_status os ON o.status_id = os.id
             WHERE os.description = 'Hoàn thành'

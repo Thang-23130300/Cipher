@@ -120,10 +120,30 @@
                         <div class="row g-3">
                             <div class="col-12 col-xl-8">
                                 <div class="panel h-100">
-                                    <div class="panel-header">
+                                    <div class="panel-header flex-wrap">
                                         <div>
-                                            <h2 class="section-title"><i class="bi bi-graph-up-arrow" aria-hidden="true"></i><span>Revenue trend</span></h2>
-                                            <p class="text-muted mb-0">Monthly revenue for the latest six months.</p>
+                                            <h2 class="section-title" id="chartTitleContainer">
+                                                <i class="bi bi-graph-up-arrow" id="chartTitleIcon" aria-hidden="true"></i>
+                                                <span id="chartTitleText">Thống kê doanh thu bán hàng</span>
+                                            </h2>
+                                            <p class="text-muted mb-0" id="chartSubtitleText">Doanh thu hoàn thành của cửa hàng.</p>
+                                        </div>
+                                        <div class="filter-group mt-2 mt-sm-0">
+                                            <select id="statsEntity" class="form-select form-select-sm" style="min-width: 140px; cursor: pointer;">
+                                                <option value="orders" selected>Đơn hàng</option>
+                                                <option value="products">Sản phẩm</option>
+                                                <option value="customers">Khách hàng</option>
+                                                <option value="signatures">Chữ ký số</option>
+                                            </select>
+                                            <select id="statsMetric" class="form-select form-select-sm" style="min-width: 160px; cursor: pointer;">
+                                                <!-- Dynamic metrics will load here -->
+                                            </select>
+                                            <select id="statsPeriod" class="form-select form-select-sm" style="min-width: 130px; cursor: pointer;">
+                                                <option value="7days">7 ngày qua</option>
+                                                <option value="30days">30 ngày qua</option>
+                                                <option value="6months" selected>6 tháng qua</option>
+                                                <option value="1year">1 năm qua</option>
+                                            </select>
                                         </div>
                                     </div>
                                     <div class="panel-body">
@@ -330,70 +350,298 @@
 
     var chartElement = document.getElementById('revenueChart');
     if (chartElement && window.Chart) {
-        var revenueData = [
-            <c:choose>
-                <c:when test="${not empty monthlyRevenues}">
-                    <c:forEach items="${monthlyRevenues}" var="revenue" varStatus="status">
-                        ${revenue}<c:if test="${!status.last}">,</c:if>
-                    </c:forEach>
-                </c:when>
-                <c:otherwise>0,0,0,0,0,0</c:otherwise>
-            </c:choose>
-        ];
+        var currentChartInstance = null;
+        var ctxPath = "${ctx}";
 
-        var monthNames = ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6', 'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12'];
-        var currentMonth = new Date().getMonth();
-        var labels = [];
+        var metricsMap = {
+            orders: [
+                { value: 'value', text: 'Doanh thu' },
+                { value: 'quantity', text: 'Số lượng đơn hàng' },
+                { value: 'status', text: 'Trạng thái đơn hàng' }
+            ],
+            products: [
+                { value: 'quantity', text: 'Số lượng đã bán' },
+                { value: 'value', text: 'Doanh thu mang lại' },
+                { value: 'status', text: 'Mức độ tồn kho' }
+            ],
+            customers: [
+                { value: 'quantity', text: 'Khách hàng đăng ký mới' },
+                { value: 'value', text: 'Chi tiêu nhiều nhất' },
+                { value: 'status', text: 'Trạng thái tài khoản' }
+            ],
+            signatures: [
+                { value: 'quantity', text: 'Số lượng đơn đã ký' },
+                { value: 'value', text: 'Giá trị đơn đã ký' },
+                { value: 'status', text: 'Trạng thái xác minh' }
+            ]
+        };
 
-        for (var i = 5; i >= 0; i--) {
-            labels.push(monthNames[(currentMonth - i + 12) % 12]);
+        function updateMetricOptions() {
+            var entitySelect = document.getElementById('statsEntity');
+            var metricSelect = document.getElementById('statsMetric');
+            if (!entitySelect || !metricSelect) return;
+
+            var selectedEntity = entitySelect.value;
+            var metrics = metricsMap[selectedEntity] || [];
+            var prevValue = metricSelect.value;
+
+            metricSelect.innerHTML = '';
+            metrics.forEach(function(m) {
+                var opt = document.createElement('option');
+                opt.value = m.value;
+                opt.textContent = m.text;
+                metricSelect.appendChild(opt);
+            });
+
+            if (metrics.some(function(m) { return m.value === prevValue; })) {
+                metricSelect.value = prevValue;
+            } else {
+                metricSelect.selectedIndex = 0;
+            }
+
+            updatePeriodState();
         }
 
-        new Chart(chartElement, {
-            type: 'line',
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: 'Doanh thu (₫)',
-                    data: revenueData,
-                    borderColor: 'rgb(37, 99, 235)',
-                    backgroundColor: 'rgba(37, 99, 235, 0.12)',
-                    tension: 0.4,
-                    fill: true,
-                    pointRadius: 4,
-                    pointHoverRadius: 6,
-                    pointBackgroundColor: 'rgb(37, 99, 235)',
-                    pointBorderColor: '#fff',
-                    pointBorderWidth: 2
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { display: true, position: 'top' },
-                    tooltip: {
-                        callbacks: {
-                            label: function (context) {
-                                return new Intl.NumberFormat('vi-VN').format(context.parsed.y) + '₫';
-                            }
-                        }
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: {
-                            callback: function (value) {
-                                return new Intl.NumberFormat('vi-VN', {
-                                    notation: 'compact',
-                                    compactDisplay: 'short'
-                                }).format(value) + '₫';
-                            }
-                        }
-                    }
-                }
+        function updatePeriodState() {
+            var entity = document.getElementById('statsEntity').value;
+            var metric = document.getElementById('statsMetric').value;
+            var periodSelect = document.getElementById('statsPeriod');
+            if (!periodSelect) return;
+
+            var isSnapshot = (entity === 'products' && metric === 'status') || 
+                             (entity === 'customers' && metric === 'status');
+
+            if (isSnapshot) {
+                periodSelect.disabled = true;
+                periodSelect.style.opacity = '0.5';
+                periodSelect.title = 'Tiêu chí này hiển thị trạng thái hiện tại, không theo thời gian.';
+            } else {
+                periodSelect.disabled = false;
+                periodSelect.style.opacity = '1';
+                periodSelect.title = '';
             }
+        }
+
+        function loadStatisticsChart() {
+            var entity = document.getElementById('statsEntity').value;
+            var metric = document.getElementById('statsMetric').value;
+            var period = document.getElementById('statsPeriod').value;
+
+            var url = ctxPath + '/admin/api/statistics?entity=' + entity + '&metric=' + metric + '&period=' + period;
+
+            fetch(url)
+                .then(function(response) {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(function(data) {
+                    var titleTextEl = document.getElementById('chartTitleText');
+                    if (titleTextEl && data.title) {
+                        titleTextEl.textContent = data.title;
+                    }
+                    var subtitleTextEl = document.getElementById('chartSubtitleText');
+                    if (subtitleTextEl) {
+                        if (entity === 'orders') {
+                            subtitleTextEl.textContent = 'Biểu đồ thống kê chi tiết các hoạt động đơn hàng.';
+                        } else if (entity === 'products') {
+                            subtitleTextEl.textContent = 'Biểu đồ thống kê sản phẩm, doanh thu và tồn kho.';
+                        } else if (entity === 'customers') {
+                            subtitleTextEl.textContent = 'Biểu đồ thống kê lượng người dùng mới và chi tiêu.';
+                        } else if (entity === 'signatures') {
+                            subtitleTextEl.textContent = 'Biểu đồ thống kê chữ ký số và xác minh bảo mật.';
+                        }
+                    }
+
+                    if (currentChartInstance) {
+                        currentChartInstance.destroy();
+                    }
+
+                    var ctx2d = chartElement.getContext('2d');
+                    var chartType = data.chartType || 'line';
+                    var isCurrency = data.valueType === 'currency';
+
+                    var titleIconEl = document.getElementById('chartTitleIcon');
+                    if (titleIconEl) {
+                        titleIconEl.className = 'bi';
+                        if (chartType === 'line') {
+                            titleIconEl.classList.add('bi-graph-up-arrow');
+                        } else if (chartType === 'bar') {
+                            titleIconEl.classList.add('bi-bar-chart-line');
+                        } else {
+                            titleIconEl.classList.add('bi-pie-chart');
+                        }
+                    }
+
+                    var datasets = [];
+                    if (chartType === 'line') {
+                        datasets = [{
+                            label: data.labelName || 'Dữ liệu',
+                            data: data.data,
+                            borderColor: 'rgb(37, 99, 235)',
+                            backgroundColor: 'rgba(37, 99, 235, 0.12)',
+                            tension: 0.4,
+                            fill: true,
+                            pointRadius: 4,
+                            pointHoverRadius: 6,
+                            pointBackgroundColor: 'rgb(37, 99, 235)',
+                            pointBorderColor: '#fff',
+                            pointBorderWidth: 2
+                        }];
+                    } else if (chartType === 'bar') {
+                        datasets = [{
+                            label: data.labelName || 'Dữ liệu',
+                            data: data.data,
+                            backgroundColor: 'rgba(37, 99, 235, 0.85)',
+                            borderColor: 'rgb(37, 99, 235)',
+                            borderWidth: 1,
+                            borderRadius: 8,
+                            hoverBackgroundColor: 'rgb(29, 78, 216)'
+                        }];
+                    } else {
+                        var colors = [
+                            'rgba(37, 99, 235, 0.85)',
+                            'rgba(15, 118, 110, 0.85)',
+                            'rgba(217, 119, 6, 0.85)',
+                            'rgba(220, 38, 38, 0.85)',
+                            'rgba(139, 92, 246, 0.85)',
+                            'rgba(75, 85, 99, 0.85)'
+                        ];
+                        var borderColors = [
+                            'rgb(37, 99, 235)',
+                            'rgb(15, 118, 110)',
+                            'rgb(217, 119, 6)',
+                            'rgb(220, 38, 38)',
+                            'rgb(139, 92, 246)',
+                            'rgb(75, 85, 99)'
+                        ];
+                        datasets = [{
+                            label: data.labelName || 'Dữ liệu',
+                            data: data.data,
+                            backgroundColor: colors.slice(0, data.data.length),
+                            borderColor: borderColors.slice(0, data.data.length),
+                            borderWidth: 2
+                        }];
+                    }
+
+                    var configOptions = {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: true,
+                                position: (chartType === 'doughnut' || chartType === 'pie') ? 'right' : 'top',
+                                labels: {
+                                    boxWidth: 15,
+                                    padding: 15,
+                                    font: {
+                                        family: 'Inter, sans-serif',
+                                        size: 12
+                                    }
+                                }
+                            },
+                            tooltip: {
+                                padding: 10,
+                                backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                                titleFont: {
+                                    family: 'Inter, sans-serif',
+                                    size: 13,
+                                    weight: 'bold'
+                                },
+                                bodyFont: {
+                                    family: 'Inter, sans-serif',
+                                    size: 12
+                                },
+                                callbacks: {
+                                    label: function (context) {
+                                        var label = context.dataset.label || '';
+                                        if (label) {
+                                            label += ': ';
+                                        }
+                                        var val = context.parsed.y !== undefined ? context.parsed.y : context.parsed;
+                                        if (isCurrency) {
+                                            label += new Intl.NumberFormat('vi-VN').format(val) + '₫';
+                                        } else {
+                                            label += new Intl.NumberFormat('vi-VN').format(val);
+                                        }
+                                        return label;
+                                    }
+                                }
+                            }
+                        }
+                    };
+
+                    if (chartType === 'line' || chartType === 'bar') {
+                        configOptions.scales = {
+                            x: {
+                                grid: {
+                                    display: false
+                                },
+                                ticks: {
+                                    font: {
+                                        family: 'Inter, sans-serif',
+                                        size: 11
+                                    }
+                                }
+                            },
+                            y: {
+                                beginAtZero: true,
+                                grid: {
+                                    borderDash: [5, 5],
+                                    color: 'rgba(148, 163, 184, 0.15)'
+                                },
+                                ticks: {
+                                    font: {
+                                        family: 'Inter, sans-serif',
+                                        size: 11
+                                    },
+                                    callback: function (value) {
+                                        if (isCurrency) {
+                                            return new Intl.NumberFormat('vi-VN', {
+                                                notation: 'compact',
+                                                compactDisplay: 'short'
+                                            }).format(value) + '₫';
+                                        } else {
+                                            return new Intl.NumberFormat('vi-VN', {
+                                                notation: 'compact',
+                                                compactDisplay: 'short'
+                                            }).format(value);
+                                        }
+                                    }
+                                }
+                            }
+                        };
+                    }
+
+                    currentChartInstance = new Chart(ctx2d, {
+                        type: chartType,
+                        data: {
+                            labels: data.labels,
+                            datasets: datasets
+                        },
+                        options: configOptions
+                    });
+                })
+                .catch(function(error) {
+                    console.error('Error fetching statistics:', error);
+                });
+        }
+
+        updateMetricOptions();
+
+        document.getElementById('statsEntity').addEventListener('change', function() {
+            updateMetricOptions();
+            loadStatisticsChart();
+        });
+
+        document.getElementById('statsMetric').addEventListener('change', function() {
+            updatePeriodState();
+            loadStatisticsChart();
+        });
+
+        document.getElementById('statsPeriod').addEventListener('change', function() {
+            loadStatisticsChart();
         });
     }
 </script>
