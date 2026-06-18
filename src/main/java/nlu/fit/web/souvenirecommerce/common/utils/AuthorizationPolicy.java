@@ -13,8 +13,16 @@ public final class AuthorizationPolicy {
 
     public static RequiredPermission resolve(HttpServletRequest request) {
         String servletPath = request.getServletPath();
-        if (servletPath == null || !servletPath.startsWith("/admin")) {
+        if (!isManagementPath(servletPath)) {
             return new RequiredPermission(null, null, false);
+        }
+
+        if (servletPath.startsWith("/sale") || servletPath.startsWith("/staff")) {
+            return resolveCrudPermission(request, "order", "read");
+        }
+
+        if (servletPath.startsWith("/dashboard") || servletPath.startsWith("/management")) {
+            return new RequiredPermission("admin", "read", true);
         }
 
         if ("/admin".equals(servletPath) || "/admin/".equals(servletPath) || "/admin/dashboard".equals(servletPath)) {
@@ -63,6 +71,15 @@ public final class AuthorizationPolicy {
         }
 
         return new RequiredPermission("admin", "read", true);
+    }
+
+    private static boolean isManagementPath(String servletPath) {
+        return servletPath != null
+                && (servletPath.startsWith("/admin")
+                || servletPath.startsWith("/dashboard")
+                || servletPath.startsWith("/management")
+                || servletPath.startsWith("/sale")
+                || servletPath.startsWith("/staff"));
     }
 
     private static RequiredPermission resolveCrudPermission(HttpServletRequest request, String resource, String defaultAction) {

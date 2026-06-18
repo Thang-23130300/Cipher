@@ -59,7 +59,7 @@ public class NotificationDAO {
     }
 
     public void markAsRead(Long id) {
-        String sql = "UPDATE notifications SET is_read = 1, read_at = NOW() WHERE id = :id";
+        String sql = "UPDATE notifications SET is_read = 1, read_at = NOW() WHERE id = :id AND is_read = 0";
         Session session = HibernateUtil.getSessionFactory().getCurrentSession();
         session.createNativeMutationQuery(sql).setParameter("id", id).executeUpdate();
     }

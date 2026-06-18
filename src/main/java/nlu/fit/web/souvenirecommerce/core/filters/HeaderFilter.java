@@ -12,6 +12,7 @@ import nlu.fit.web.souvenirecommerce.features.cart.model.Cart;
 import nlu.fit.web.souvenirecommerce.features.cart.service.CartPersistenceService;
 import nlu.fit.web.souvenirecommerce.features.product.service.ICategoryService;
 import nlu.fit.web.souvenirecommerce.features.product.service.impl.CategoryServiceImpl;
+import nlu.fit.web.souvenirecommerce.common.utils.PermissionHelper;
 import nlu.fit.web.souvenirecommerce.legacy.dao.SettingsDAO;
 import nlu.fit.web.souvenirecommerce.model.entity.User;
 
@@ -43,6 +44,7 @@ public class HeaderFilter implements Filter {
         }
 
         setAuthUser(request, session);
+        setAdminAccess(request);
         setHeaderCategories(request);
         setCartItemCount(request, session);
         setSiteSettings(request);
@@ -69,6 +71,15 @@ public class HeaderFilter implements Filter {
 
         if (authUser != null) {
             request.setAttribute("authUser", authUser);
+        }
+    }
+
+    private void setAdminAccess(ServletRequest request) {
+        HttpServletRequest httpRequest = (HttpServletRequest) request;
+        boolean canAccessAdmin = PermissionHelper.hasAdminPortalAccess(httpRequest);
+        request.setAttribute("canAccessAdmin", canAccessAdmin);
+        if (canAccessAdmin) {
+            request.setAttribute("adminEntryPath", PermissionHelper.getAdminEntryPath(httpRequest));
         }
     }
 

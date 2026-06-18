@@ -133,7 +133,7 @@
                                             <td>
                                                 <c:choose>
                                                     <c:when test="${noti.read}">
-                                                        <span class="badge bg-light text-secondary border">Đã xem</span>
+                                                        <span class="badge bg-light text-secondary border">Đã đọc</span>
                                                     </c:when>
                                                     <c:otherwise>
                                                         <span class="badge bg-primary text-white">Mới</span>
@@ -141,15 +141,20 @@
                                                 </c:choose>
                                             </td>
                                             <td style="text-align: center;">
-                                                <c:if test="${!noti.read}">
-                                                    <form method="post" action="${pageContext.request.contextPath}/admin/notifications" style="display: inline;">
-                                                        <input type="hidden" name="action" value="markAsRead">
-                                                        <input type="hidden" name="id" value="${noti.id}">
-                                                        <button type="submit" class="btn btn-sm btn-outline-primary py-1 px-2" style="font-size: 0.8rem; border-radius: 4px;" title="Đánh dấu đã xem">
-                                                            <i class="fas fa-check"></i> Đã đọc
-                                                        </button>
-                                                    </form>
-                                                </c:if>
+                                                <c:choose>
+                                                    <c:when test="${!noti.read}">
+                                                        <form method="post" action="${pageContext.request.contextPath}/admin/notifications" style="display: inline;">
+                                                            <input type="hidden" name="action" value="markAsRead">
+                                                            <input type="hidden" name="id" value="${noti.id}">
+                                                            <button type="submit" class="btn btn-sm btn-outline-primary py-1 px-2" style="font-size: 0.8rem; border-radius: 4px;" title="Đánh dấu cảnh báo đã đọc">
+                                                                <i class="fas fa-check me-1"></i>Đánh dấu đã đọc
+                                                            </button>
+                                                        </form>
+                                                    </c:when>
+                                                    <c:otherwise>
+                                                        <span class="text-muted small">Đã xử lý</span>
+                                                    </c:otherwise>
+                                                </c:choose>
                                             </td>
                                         </tr>
                                     </c:forEach>

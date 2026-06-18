@@ -2,16 +2,18 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 <%
-    request.setAttribute("canViewDashboard", true);
-    request.setAttribute("canViewProducts", PermissionHelper.hasAnyPermission(request, "product"));
+    boolean fullAdminAccess = PermissionHelper.hasFullAdminAccess(request);
+    request.setAttribute("canViewDashboard", fullAdminAccess);
+    request.setAttribute("canViewProducts", fullAdminAccess && PermissionHelper.hasAnyPermission(request, "product"));
     request.setAttribute("canViewOrders", PermissionHelper.hasOrderAccess(request));
     request.setAttribute("canUpdateOrder", PermissionHelper.canProcessOrders(request));
-    request.setAttribute("canViewCustomers", PermissionHelper.hasAnyPermission(request, "customer"));
-    request.setAttribute("canViewCategories", PermissionHelper.hasAnyPermission(request, "category"));
-    request.setAttribute("canViewBanners", PermissionHelper.hasAnyPermission(request, "banner"));
-    request.setAttribute("canViewSettings", PermissionHelper.hasAnyPermission(request, "settings"));
-    request.setAttribute("canViewRoles", PermissionHelper.hasAnyPermission(request, "role"));
-    request.setAttribute("canViewLogs", true);
+    request.setAttribute("canViewCustomers", fullAdminAccess && PermissionHelper.hasAnyPermission(request, "customer"));
+    request.setAttribute("canViewCategories", fullAdminAccess && PermissionHelper.hasAnyPermission(request, "category"));
+    request.setAttribute("canViewBanners", fullAdminAccess && PermissionHelper.hasAnyPermission(request, "banner"));
+    request.setAttribute("canViewSettings", fullAdminAccess && PermissionHelper.hasAnyPermission(request, "settings"));
+    request.setAttribute("canViewRoles", fullAdminAccess && PermissionHelper.hasAnyPermission(request, "role"));
+    request.setAttribute("canViewNotifications", fullAdminAccess);
+    request.setAttribute("canViewLogs", fullAdminAccess);
 
     request.setAttribute("canCreateProduct", PermissionHelper.hasPermission(request, "product", "create"));
     request.setAttribute("canUpdateProduct", PermissionHelper.hasPermission(request, "product", "update"));
@@ -46,10 +48,12 @@
     </div>
 
     <nav class="sidebar-nav">
-        <a class="nav-link ${navActivePage == 'dashboard' ? 'active' : ''}" href="${ctx}/admin/dashboard" ${navActivePage == 'dashboard' ? 'aria-current="page"' : ''}>
-            <span class="nav-icon"><i class="bi bi-speedometer2" aria-hidden="true"></i></span>
-            <span class="nav-text">Dashboard</span>
-        </a>
+        <c:if test="${canViewDashboard}">
+            <a class="nav-link ${navActivePage == 'dashboard' ? 'active' : ''}" href="${ctx}/admin/dashboard" ${navActivePage == 'dashboard' ? 'aria-current="page"' : ''}>
+                <span class="nav-icon"><i class="bi bi-speedometer2" aria-hidden="true"></i></span>
+                <span class="nav-text">Dashboard</span>
+            </a>
+        </c:if>
         <c:if test="${canViewProducts}">
             <a class="nav-link ${navActivePage == 'products' ? 'active' : ''}" href="${ctx}/admin/products" ${navActivePage == 'products' ? 'aria-current="page"' : ''}>
                 <span class="nav-icon"><i class="bi bi-box-seam" aria-hidden="true"></i></span>
@@ -92,10 +96,12 @@
                 <span class="nav-text">Settings</span>
             </a>
         </c:if>
-        <a class="nav-link ${navActivePage == 'notifications' ? 'active' : ''}" href="${ctx}/admin/notifications" ${navActivePage == 'notifications' ? 'aria-current="page"' : ''}>
-            <span class="nav-icon"><i class="bi bi-shield-exclamation" aria-hidden="true"></i></span>
-            <span class="nav-text">Security Alerts</span>
-        </a>
+        <c:if test="${canViewNotifications}">
+            <a class="nav-link ${navActivePage == 'notifications' ? 'active' : ''}" href="${ctx}/admin/notifications" ${navActivePage == 'notifications' ? 'aria-current="page"' : ''}>
+                <span class="nav-icon"><i class="bi bi-shield-exclamation" aria-hidden="true"></i></span>
+                <span class="nav-text">Security Alerts</span>
+            </a>
+        </c:if>
         <c:if test="${canViewLogs}">
             <a class="nav-link ${navActivePage == 'logs' ? 'active' : ''}" href="${ctx}/admin/logs" ${navActivePage == 'logs' ? 'aria-current="page"' : ''}>
                 <span class="nav-icon"><i class="bi bi-journal-text" aria-hidden="true"></i></span>
