@@ -30,7 +30,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function syncFilterForm(url) {
         const params = url.searchParams;
-        ["keyword", "id", "page", "minPrice", "maxPrice", "rating", "sort"].forEach((name) => {
+        ["keyword", "panel", "id", "page", "minPrice", "maxPrice", "rating", "sort"].forEach((name) => {
             const control = filterForm.querySelector(`[name='${name}']`);
             if (control) control.value = params.get(name) || (name === "sort" ? "popular" : "");
         });

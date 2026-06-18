@@ -5,6 +5,7 @@
 <c:url var="resetUrl" value="${data.listingAction}">
     <c:choose>
         <c:when test="${data.searchMode}"><c:param name="keyword" value="${data.searchKeyword}"/></c:when>
+        <c:when test="${data.panelMode}"><c:param name="panel" value="${data.panelSlug}"/></c:when>
         <c:otherwise><c:param name="id" value="${data.category.id}"/></c:otherwise>
     </c:choose>
 </c:url>
@@ -55,6 +56,7 @@
                 <c:url var="pageUrl" value="${data.listingAction}">
                     <c:choose>
                         <c:when test="${data.searchMode}"><c:param name="keyword" value="${data.searchKeyword}"/></c:when>
+                        <c:when test="${data.panelMode}"><c:param name="panel" value="${data.panelSlug}"/></c:when>
                         <c:otherwise><c:param name="id" value="${data.category.id}"/></c:otherwise>
                     </c:choose>
                     <c:param name="page" value="${i}"/>
