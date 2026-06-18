@@ -126,6 +126,12 @@
 
 .product-type-content {
     min-width: 0;
+    transition: opacity .2s;
+}
+
+.product-type-content.is-loading {
+    opacity: .55;
+    pointer-events: none;
 }
 
 
@@ -186,6 +192,35 @@
 
     font-size: 14px;
     font-weight: 600;
+}
+
+.active-filter-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin: -10px 0 24px;
+    padding: 12px 14px;
+    border: 1px solid #e5ebe3;
+    border-radius: 8px;
+    background: #fff;
+    color: #738170;
+    font-size: 14px;
+}
+
+.active-filter-bar strong {
+    padding: 6px 10px;
+    border-radius: 999px;
+    background: var(--brand-primary-soft);
+    color: var(--brand-primary);
+    font-size: 13px;
+}
+
+.active-filter-clear {
+    margin-left: auto;
+    color: var(--brand-primary);
+    font-weight: 800;
+    text-decoration: none;
 }
 
 

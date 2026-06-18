@@ -1,43 +1,120 @@
 package nlu.fit.web.souvenirecommerce.features.product.controller;
 
-import com.google.gson.Gson;
+import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import nlu.fit.web.souvenirecommerce.legacy.dao.ProductDAO;
-import nlu.fit.web.souvenirecommerce.model.entity.Product;
+import nlu.fit.web.souvenirecommerce.features.product.dto.ProductTypeDTO;
+import nlu.fit.web.souvenirecommerce.features.product.service.ProductTypeService;
+import nlu.fit.web.souvenirecommerce.model.enums.ProductSort;
 
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.util.List;
 
 @WebServlet("/search")
 public class SearchController extends HttpServlet {
 
-    private final ProductDAO productDAO = new ProductDAO();
+    private ProductTypeService productTypeService;
+
+    @Override
+    public void init() {
+        productTypeService = new ProductTypeService();
+    }
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
-            throws IOException {
+            throws ServletException, IOException {
 
         String keyword = request.getParameter("keyword");
-
         if (keyword == null || keyword.trim().isEmpty()) {
-            response.setContentType("application/json");
-            response.getWriter().print("[]");
-            return; 
+            response.sendRedirect(request.getContextPath() + "/home");
+            return;
         }
 
-        List<Product> products = productDAO.searchProducts(keyword.trim());
+        PriceBounds priceBounds = resolvePriceBounds(request);
+        ProductTypeDTO dto = productTypeService.getSearchProductType(
+                keyword,
+                priceBounds.minPrice(),
+                priceBounds.maxPrice(),
+                parseInteger(request.getParameter("rating")),
+                parseSort(request.getParameter("sort")),
+                parseInteger(request.getParameter("page"), 1)
+        );
 
-        response.setContentType("application/json");
-        response.setCharacterEncoding("UTF-8");
+        if (dto == null) {
+            response.sendRedirect(request.getContextPath() + "/home");
+            return;
+        }
 
-        PrintWriter out = response.getWriter();
-        out.print(new Gson().toJson(products));
-        out.flush();
+        request.setAttribute("headerMode", "BREADCRUMB");
+        request.setAttribute("breadcrumbLabel", "Tìm kiếm");
+        request.setAttribute("data", dto);
+
+        if (isAjaxRequest(request)) {
+            response.setContentType("text/html;charset=UTF-8");
+            request.getRequestDispatcher("/WEB-INF/views/product/product-type-results.jsp")
+                    .forward(request, response);
+            return;
+        }
+
+        request.setAttribute("pageTitle", dto.getCategory().getCategoryName());
+        request.setAttribute("contentPage", "/productType.jsp");
+        request.setAttribute("pageCss", "PTypeMain.css");
+        request.setAttribute("pageJs", "ProductType.js");
+        request.getRequestDispatcher("/WEB-INF/layout/base.jsp").forward(request, response);
+    }
+
+    private Integer parseInteger(String value) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+
+        try {
+            return Integer.parseInt(value);
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
+    private int parseInteger(String value, int defaultValue) {
+        Integer parsed = parseInteger(value);
+        return parsed == null ? defaultValue : parsed;
+    }
+
+    private ProductSort parseSort(String value) {
+        if (value == null || value.isBlank()) {
+            return ProductSort.POPULAR;
+        }
+
+        try {
+            return ProductSort.valueOf(value.trim().toUpperCase());
+        } catch (IllegalArgumentException e) {
+            return ProductSort.POPULAR;
+        }
+    }
+
+    private PriceBounds resolvePriceBounds(HttpServletRequest request) {
+        Integer minPrice = parseInteger(request.getParameter("minPrice"));
+        Integer maxPrice = parseInteger(request.getParameter("maxPrice"));
+
+        if (minPrice != null || maxPrice != null) {
+            return new PriceBounds(minPrice, maxPrice);
+        }
+
+        return switch (String.valueOf(request.getParameter("priceRange"))) {
+            case "under-100" -> new PriceBounds(null, 100000);
+            case "100-300" -> new PriceBounds(100000, 300000);
+            case "300-500" -> new PriceBounds(300000, 500000);
+            case "over-500" -> new PriceBounds(500000, null);
+            default -> new PriceBounds(null, null);
+        };
+    }
+
+    private boolean isAjaxRequest(HttpServletRequest request) {
+        return "true".equalsIgnoreCase(request.getParameter("ajax"))
+                || "XMLHttpRequest".equalsIgnoreCase(request.getHeader("X-Requested-With"));
+    }
+
+    private record PriceBounds(Integer minPrice, Integer maxPrice) {
     }
 }
-
-
