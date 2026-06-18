@@ -1,6 +1,8 @@
 package com.cipher.signingtool;
 
 import com.cipher.signingtool.localapi.LocalApiServer;
+import com.cipher.signingtool.localapi.ConnectCallbackNotification;
+import com.cipher.signingtool.localapi.ConnectCallbackResult;
 import com.cipher.signingtool.localapi.PublicKeySavedNotification;
 import com.cipher.signingtool.localapi.PublicKeySavedResult;
 import com.cipher.signingtool.localapi.SignRequest;
@@ -24,6 +26,7 @@ import javax.swing.SwingWorker;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
@@ -31,6 +34,7 @@ import java.awt.GridLayout;
 import java.awt.Toolkit;
 import java.awt.datatransfer.StringSelection;
 import java.io.IOException;
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -38,6 +42,7 @@ import java.security.KeyPair;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.lang.reflect.InvocationTargetException;
+import java.util.UUID;
 
 public class SigningToolFrame extends JFrame implements SigningApiBridge {
     private final KeyPairService keyPairService = new KeyPairService();
@@ -289,6 +294,30 @@ public class SigningToolFrame extends JFrame implements SigningApiBridge {
     }
 
     private void loadPublicKeyFromWeb(JButton sourceButton) {
+        String browserOption = "Tự kết nối bằng trình duyệt";
+        String manualOption = "Nhập JSESSIONID thủ công - Debug";
+        String cancelOption = "Hủy";
+        Object[] options = {browserOption, manualOption, cancelOption};
+
+        int selectedOption = JOptionPane.showOptionDialog(
+                this,
+                "Chọn cách kết nối để tải Public Key từ web:",
+                "Load Public Key From Web",
+                JOptionPane.DEFAULT_OPTION,
+                JOptionPane.QUESTION_MESSAGE,
+                null,
+                options,
+                browserOption
+        );
+
+        if (selectedOption == 0) {
+            connectThroughBrowser();
+            return;
+        }
+        if (selectedOption != 1) {
+            return;
+        }
+
         WebAccessInput input = promptWebAccess("Load Public Key From Web");
         if (input == null) {
             return;
@@ -325,6 +354,50 @@ public class SigningToolFrame extends JFrame implements SigningApiBridge {
                 }
             }
         }.execute();
+    }
+
+    private void connectThroughBrowser() {
+        String webUrl = JOptionPane.showInputDialog(
+                this,
+                "Web URL (bao gồm context path nếu có):",
+                "http://localhost:8080"
+        );
+        if (webUrl == null) {
+            return;
+        }
+
+        webUrl = webUrl.trim();
+        if (webUrl.isBlank()) {
+            showError("Web URL không được để trống.");
+            return;
+        }
+
+        String normalizedWebUrl = webUrl.endsWith("/")
+                ? webUrl.substring(0, webUrl.length() - 1)
+                : webUrl;
+        String nonce = UUID.randomUUID().toString();
+        URI connectUri;
+        try {
+            connectUri = URI.create(normalizedWebUrl
+                    + "/tool/connect?callback=http://127.0.0.1:9090/tool/connect/callback&nonce="
+                    + nonce);
+        } catch (IllegalArgumentException e) {
+            showError("Web URL không hợp lệ.");
+            return;
+        }
+
+        keyState.setPendingConnectNonce(nonce);
+        try {
+            if (!Desktop.isDesktopSupported()
+                    || !Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
+                throw new IOException("Máy hiện tại không hỗ trợ mở trình duyệt tự động.");
+            }
+            Desktop.getDesktop().browse(connectUri);
+            setStatus("Đã mở trình duyệt để kết nối với website.");
+        } catch (IOException | SecurityException e) {
+            keyState.clearPendingConnectNonce();
+            showError(e.getMessage());
+        }
     }
 
     private void savePublicKeyToWeb(JButton sourceButton) {
@@ -559,6 +632,61 @@ public class SigningToolFrame extends JFrame implements SigningApiBridge {
                 stateResult == ToolKeyState.SavedPublicKeyResult.MATCHED,
                 message
         );
+    }
+
+    @Override
+    public ConnectCallbackResult onConnectCallback(ConnectCallbackNotification notification) {
+        synchronized (keyState) {
+            String pendingNonce = keyState.getPendingConnectNonce();
+            if (pendingNonce == null || !pendingNonce.equals(notification.nonce())) {
+                throw new IllegalArgumentException("Nonce callback không hợp lệ hoặc đã hết hạn.");
+            }
+            keyState.clearPendingConnectNonce();
+        }
+
+        if (!notification.success()) {
+            String message = notification.message() == null || notification.message().isBlank()
+                    ? "Website không thể kết nối với Java Signing Tool."
+                    : notification.message();
+            SwingUtilities.invokeLater(() -> showError(message));
+            return new ConnectCallbackResult(false, message);
+        }
+        if (notification.publicKey() == null || notification.publicKey().isBlank()) {
+            throw new IllegalArgumentException("publicKey is required.");
+        }
+
+        PublicKey webPublicKey = keyLoader.loadPublicKeyPem(notification.publicKey());
+        PrivateKey currentPrivateKey = keyState.snapshot().currentPrivateKey();
+        boolean matches = currentPrivateKey != null
+                && keyMatchService.matches(currentPrivateKey, webPublicKey);
+        keyState.applyConnectedWebPublicKey(webPublicKey, matches);
+        currentWebKeyData = new WebPublicKeyData(
+                notification.keyId(),
+                notification.publicKey(),
+                notification.fingerprint(),
+                notification.createdAt()
+        );
+
+        String message = matches
+                ? "Public key ACTIVE khớp với private key hiện tại."
+                : "Private key hiện tại không khớp public key ACTIVE trên web.";
+        SwingUtilities.invokeLater(() -> {
+            publicKeyArea.setText(notification.publicKey());
+            webPublicKeyLabel.setText("Public Key web: keyId=" + notification.keyId()
+                    + " | fingerprint=" + notification.fingerprint());
+            webPublicKeyLabel.setForeground(matches
+                    ? new Color(21, 128, 61)
+                    : new Color(185, 28, 28));
+            setStatus(message);
+            JOptionPane.showMessageDialog(
+                    SigningToolFrame.this,
+                    message,
+                    "Kết nối website",
+                    matches ? JOptionPane.INFORMATION_MESSAGE : JOptionPane.WARNING_MESSAGE
+            );
+        });
+
+        return new ConnectCallbackResult(matches, message);
     }
 
     @Override

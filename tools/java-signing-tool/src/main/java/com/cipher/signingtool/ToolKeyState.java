@@ -14,6 +14,19 @@ public final class ToolKeyState {
     private boolean webPublicKeyLoaded;
     private boolean keyMatchChecked;
     private boolean keyPairMatched;
+    private String pendingConnectNonce;
+
+    public synchronized String getPendingConnectNonce() {
+        return pendingConnectNonce;
+    }
+
+    public synchronized void setPendingConnectNonce(String pendingConnectNonce) {
+        this.pendingConnectNonce = pendingConnectNonce;
+    }
+
+    public synchronized void clearPendingConnectNonce() {
+        pendingConnectNonce = null;
+    }
 
     public synchronized void useGeneratedKeyPair(KeyPair keyPair) {
         if (keyPair == null) {
@@ -68,6 +81,18 @@ public final class ToolKeyState {
     }
 
     public synchronized void setKeyMatchResult(boolean matches) {
+        keyMatchChecked = true;
+        keyPairMatched = matches;
+    }
+
+    public synchronized void applyConnectedWebPublicKey(PublicKey webPublicKey, boolean matches) {
+        if (webPublicKey == null) {
+            throw new IllegalArgumentException("Web public key is required.");
+        }
+        currentWebPublicKey = webPublicKey;
+        currentPublicKey = webPublicKey;
+        publicKeyUploadedToWeb = true;
+        webPublicKeyLoaded = true;
         keyMatchChecked = true;
         keyPairMatched = matches;
     }
