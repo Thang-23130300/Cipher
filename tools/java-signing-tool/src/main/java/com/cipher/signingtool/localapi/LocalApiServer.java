@@ -1,5 +1,7 @@
 package com.cipher.signingtool.localapi;
 
+import com.cipher.signingtool.SigningStatePolicy;
+import com.cipher.signingtool.ToolKeyState;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
@@ -9,6 +11,7 @@ import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ExecutorService;
 
 public class LocalApiServer {
     public static final int DEFAULT_PORT = 9090;
@@ -16,6 +19,7 @@ public class LocalApiServer {
     private final SigningApiBridge bridge;
     private final int port;
     private HttpServer server;
+    private ExecutorService executor;
 
     public LocalApiServer(SigningApiBridge bridge) {
         this(bridge, DEFAULT_PORT);
@@ -39,10 +43,16 @@ public class LocalApiServer {
             server.createContext("/api/health", new HealthHandler());
             server.createContext("/api/public-key", new PublicKeyHandler());
             server.createContext("/api/sign", new SignHandler());
-            server.setExecutor(Executors.newCachedThreadPool());
+            server.createContext("/public-key/saved", new PublicKeySavedHandler());
+            executor = Executors.newCachedThreadPool();
+            server.setExecutor(executor);
             server.start();
         } catch (IOException e) {
             server = null;
+            if (executor != null) {
+                executor.shutdownNow();
+                executor = null;
+            }
             throw new IllegalStateException("Could not start Local API Server on port " + port + ": " + e.getMessage(), e);
         }
     }
@@ -51,6 +61,10 @@ public class LocalApiServer {
         if (server != null) {
             server.stop(0);
             server = null;
+        }
+        if (executor != null) {
+            executor.shutdownNow();
+            executor = null;
         }
     }
 
@@ -164,8 +178,9 @@ public class LocalApiServer {
 
             try {
                 SignRequest request = SignRequest.fromJson(readBody(exchange));
+                ToolKeyState.Snapshot keyState = bridge.getKeyStateSnapshot();
 
-                if (!bridge.hasPrivateKey()) {
+                if (keyState.currentPrivateKey() == null) {
                     sendJson(exchange, 400, SimpleJson.object(
                             "success", false,
                             "orderId", request.getOrderId(),
@@ -203,6 +218,24 @@ public class LocalApiServer {
                     return;
                 }
 
+                SigningStatePolicy.Readiness readiness = SigningStatePolicy.evaluate(
+                        keyState.generatedInCurrentSession(),
+                        keyState.publicKeyUploadedToWeb(),
+                        keyState.webPublicKeyLoaded(),
+                        keyState.keyMatchChecked(),
+                        keyState.keyPairMatched()
+                );
+                if (readiness != SigningStatePolicy.Readiness.READY) {
+                    logKeyStateBeforeSignRejection(keyState, readiness);
+                    sendJson(exchange, 409, SimpleJson.object(
+                            "success", false,
+                            "errorCode", "KEY_STATE_NOT_READY",
+                            "orderId", request.getOrderId(),
+                            "message", signingStateMessage(readiness)
+                    ));
+                    return;
+                }
+
                 if (!bridge.confirmSigning(request)) {
                     sendJson(exchange, 200, SimpleJson.object(
                             "success", false,
@@ -225,5 +258,74 @@ public class LocalApiServer {
                 ));
             }
         }
+    }
+
+    private class PublicKeySavedHandler extends BaseHandler {
+        @Override
+        protected void doHandle(HttpExchange exchange) throws IOException {
+            if (!isMethod(exchange, "POST")) {
+                requireMethod(exchange, "POST");
+                return;
+            }
+
+            try {
+                PublicKeySavedNotification notification = PublicKeySavedNotification.fromJson(readBody(exchange));
+                if (!notification.success()) {
+                    sendJson(exchange, 400, SimpleJson.object(
+                            "success", false,
+                            "message", "Web chưa xác nhận lưu public key thành công."
+                    ));
+                    return;
+                }
+                if (notification.publicKey() == null || notification.publicKey().isBlank()) {
+                    sendJson(exchange, 400, SimpleJson.object(
+                            "success", false,
+                            "message", "publicKey is required."
+                    ));
+                    return;
+                }
+
+                PublicKeySavedResult result = bridge.onPublicKeySaved(notification);
+                sendJson(exchange, 200, SimpleJson.object(
+                        "success", true,
+                        "keyPairMatched", result.keyPairMatched(),
+                        "message", result.message()
+                ));
+            } catch (IllegalArgumentException e) {
+                sendJson(exchange, 400, SimpleJson.object(
+                        "success", false,
+                        "message", e.getMessage()
+                ));
+            } catch (Exception e) {
+                sendJson(exchange, 500, SimpleJson.object(
+                        "success", false,
+                        "message", "Could not process saved public key: " + e.getMessage()
+                ));
+            }
+        }
+    }
+
+    private void logKeyStateBeforeSignRejection(
+            ToolKeyState.Snapshot state,
+            SigningStatePolicy.Readiness readiness
+    ) {
+        System.err.println("[LocalApiServer] /api/sign rejected: readiness=" + readiness
+                + ", generatedInCurrentSession=" + state.generatedInCurrentSession()
+                + ", publicKeyUploadedToWeb=" + state.publicKeyUploadedToWeb()
+                + ", webPublicKeyLoaded=" + state.webPublicKeyLoaded()
+                + ", keyMatchChecked=" + state.keyMatchChecked()
+                + ", keyPairMatched=" + state.keyPairMatched());
+    }
+
+    private String signingStateMessage(SigningStatePolicy.Readiness readiness) {
+        return switch (readiness) {
+            case READY -> "Key is ready for signing.";
+            case GENERATED_PUBLIC_KEY_NOT_UPLOADED ->
+                    "Public key vừa tạo chưa được lưu lên web. Hãy bấm Save Public Key To Web trước khi ký.";
+            case FILE_PRIVATE_KEY_NOT_CHECKED ->
+                    "Private key được tải từ file chưa được kiểm tra. Hãy bấm Load Public Key From Web trước khi ký.";
+            case KEY_MISMATCH ->
+                    "Private key local không khớp public key ACTIVE trên web. Đã chặn ký.";
+        };
     }
 }
