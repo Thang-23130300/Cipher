@@ -944,10 +944,9 @@ public class SigningToolFrame extends JFrame implements SigningApiBridge {
                             SwingUtilities.invokeLater(() -> {
                                 publicKeyArea.setText(publicKey);
                                 try {
-                                    byte[] keyBytes = PemUtils.decodePem(publicKey, "PUBLIC KEY");
-                                    java.security.spec.X509EncodedKeySpec spec = new java.security.spec.X509EncodedKeySpec(keyBytes);
-                                    java.security.KeyFactory kf = java.security.KeyFactory.getInstance("RSA");
-                                    currentPublicKey = kf.generatePublic(spec);
+                                    PublicKey webPublicKey = keyLoader.loadPublicKeyPem(publicKey);
+                                    keyState.useWebPublicKey(webPublicKey);
+                                    checkPrivateKeyAgainstWebKey();
                                     setStatus("Đã tải và nạp Public Key từ website thành công.");
                                 } catch (Exception ex) {
                                     setStatus("Đã tải Public Key từ website.");
