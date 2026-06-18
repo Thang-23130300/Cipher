@@ -11,6 +11,7 @@ import org.hibernate.cfg.Configuration;
 import java.util.Collection;
 import java.util.Properties;
 
+
 public class HibernateUtil {
     private static final SessionFactory SESSION_FACTORY = buildSessionFactory();
 
@@ -58,6 +59,10 @@ public class HibernateUtil {
         // 2 thực thể giỏ hàng từ nhánh main
         configuration.addAnnotatedClass(NewCart.class);
         configuration.addAnnotatedClass(NewCartItem.class);
+
+        // Đăng ký KeyChangeOtp
+        configuration.addAnnotatedClass(KeyChangeOtp.class);
+
     }
 
     public static SessionFactory getSessionFactory() {
