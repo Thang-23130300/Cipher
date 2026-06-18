@@ -5,10 +5,8 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import nlu.fit.web.souvenirecommerce.features.notification.service.AdminNotificationService;
 import nlu.fit.web.souvenirecommerce.features.order.service.OrderManagementService;
 import nlu.fit.web.souvenirecommerce.features.signature.service.OrderAuditService;
-import nlu.fit.web.souvenirecommerce.features.signature.service.OrderProcessingGateService;
 import nlu.fit.web.souvenirecommerce.legacy.dao.AuthorizationDAO;
 import nlu.fit.web.souvenirecommerce.legacy.dao.OrderDAO;
 import nlu.fit.web.souvenirecommerce.legacy.model.Order;
@@ -31,9 +29,7 @@ public class AdminOrderController extends HttpServlet {
     private static final Logger log = LoggerFactory.getLogger(AdminOrderController.class);
 
     private final OrderDAO orderDAO = new OrderDAO();
-    private final OrderProcessingGateService processingGateService = new OrderProcessingGateService();
     private final OrderAuditService orderAuditService = new OrderAuditService();
-    private final AdminNotificationService adminNotificationService = new AdminNotificationService();
     private final OrderManagementService orderManagementService = new OrderManagementService();
     private final AuthorizationDAO authorizationDAO = new AuthorizationDAO();
 
@@ -160,7 +156,7 @@ public class AdminOrderController extends HttpServlet {
         } else if ("cancel".equals(action) || "cancelOrder".equals(action)) {
             handleCancelOrder(request, response, actorContext);
         } else if ("updateStatus".equals(action) && actorContext.admin()) {
-            updateOrderStatus(request, response);
+            updateOrderStatus(request, response, actorContext);
         } else if ("updateStatus".equals(action)) {
             response.sendError(HttpServletResponse.SC_FORBIDDEN,
                     "Sale/Staff chỉ được chấp nhận hoặc hủy đơn hàng.");
@@ -262,20 +258,12 @@ public class AdminOrderController extends HttpServlet {
         }
     }
 
-    private void updateOrderStatus(HttpServletRequest request, HttpServletResponse response)
+    private void updateOrderStatus(HttpServletRequest request,
+                                   HttpServletResponse response,
+                                   ActorContext actorContext)
             throws IOException {
-
-        int orderId;
-        try {
-            orderId = Integer.parseInt(request.getParameter("orderId"));
-        } catch (NumberFormatException ex) {
-            log.warn("Invalid order id supplied for admin order status update: {}", request.getParameter("orderId"));
-            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid order id");
-            return;
-        }
-
+        Long orderId = parsePositiveLong(request.getParameter("orderId"));
         String newStatus = request.getParameter("status");
-
         if (isSignatureStatusValue(newStatus)) {
             log.warn("Blocked attempt to set signature status through order status form. orderId={}, submittedStatus={}",
                     orderId, newStatus);
@@ -283,65 +271,27 @@ public class AdminOrderController extends HttpServlet {
             response.sendRedirect(request.getContextPath() + "/admin/orders?error=signature_required");
             return;
         }
-
-        Order order = orderDAO.getOrderById(orderId);
-        if (order == null) {
-            log.warn("Order not found for admin status update. orderId={}", orderId);
-            response.sendRedirect(request.getContextPath() + "/admin/orders?error=true");
-            return;
-        }
-
-        User actor = (User) request.getSession().getAttribute("user");
-        String auditedSignatureStatus = orderAuditService.auditOrderSignature(
-                (long) orderId,
-                actor == null ? null : actor.getId(),
-                resolveActorRole(actor)
-        );
-        order.setSignatureStatus(auditedSignatureStatus);
-
-        if (requiresValidSignature(newStatus) && !processingGateService.canProcess(order)) {
-            log.warn("Blocked admin status update for unsigned order. orderId={}, signatureStatus={}",
-                    orderId, order.getSignatureStatus());
-            adminNotificationService.notifyBlockedOrderProcessing(
-                    (long) orderId,
-                    getActorId(request),
-                    order.getSignatureStatus()
+        try {
+            OrderManagementService.ActionResult result = orderManagementService.updateStatus(
+                    orderId,
+                    actorContext.user(),
+                    actorContext.roleLabel(),
+                    newStatus,
+                    request.getParameter("reason")
             );
-            request.getSession().setAttribute("error", OrderProcessingGateService.DEFAULT_BLOCK_MESSAGE);
-            response.sendRedirect(request.getContextPath() + "/admin/orders?error=signature_required");
-            return;
+            request.getSession().setAttribute("success", result.message());
+            redirectAfterAction(request, response, result.orderId());
+        } catch (OrderManagementService.OrderActionException exception) {
+            log.warn("Admin status update rejected. orderId={}, actorId={}, newStatus={}, reason={}",
+                    orderId, actorContext.user().getId(), newStatus, exception.getMessage());
+            request.getSession().setAttribute("error", exception.getMessage());
+            redirectAfterAction(request, response, orderId);
+        } catch (Exception exception) {
+            log.error("Unexpected admin status update failure. orderId={}, actorId={}, newStatus={}",
+                    orderId, actorContext.user().getId(), newStatus, exception);
+            request.getSession().setAttribute("error", "Không thể cập nhật trạng thái đơn hàng. Vui lòng thử lại.");
+            redirectAfterAction(request, response, orderId);
         }
-
-        log.info("Updating order status. orderId={}, newStatus={}", orderId, newStatus);
-        boolean success = orderDAO.updateOrderStatus(orderId, newStatus);
-
-        if (success) {
-            log.info("Order status updated successfully. orderId={}, newStatus={}", orderId, newStatus);
-            response.sendRedirect(request.getContextPath() + "/admin/orders?success=true");
-        } else {
-            log.warn("Order status update failed. orderId={}, newStatus={}", orderId, newStatus);
-            response.sendRedirect(request.getContextPath() + "/admin/orders?error=true");
-        }
-    }
-
-    private boolean requiresValidSignature(String newStatus) {
-        if (newStatus == null) {
-            return false;
-        }
-
-        String normalizedStatus = newStatus.trim().toUpperCase(Locale.ROOT);
-        return "PROCESSING".equals(normalizedStatus)
-                || "SHIPPING".equals(normalizedStatus)
-                || "SHIPPED".equals(normalizedStatus)
-                || "COMPLETED".equals(normalizedStatus)
-                || "PAID".equals(normalizedStatus)
-                || "ĐANG XỬ LÝ".equals(normalizedStatus)
-                || "ĐÃ XÁC NHẬN".equals(normalizedStatus)
-                || "ĐANG GIAO".equals(normalizedStatus)
-                || "ĐANG GIAO HÀNG".equals(normalizedStatus)
-                || "ĐÃ GIAO HÀNG".equals(normalizedStatus)
-                || "HOÀN THÀNH".equals(normalizedStatus)
-                || "ĐÃ THANH TOÁN".equals(normalizedStatus);
     }
 
     private boolean isSignatureStatusValue(String newStatus) {
@@ -356,21 +306,6 @@ public class AdminOrderController extends HttpServlet {
                 || "KEY_COMPROMISED_REVIEW".equals(normalizedStatus)
                 || "DATA_TAMPERED".equals(normalizedStatus)
                 || "UNSIGNED".equals(normalizedStatus);
-    }
-
-    private Long getActorId(HttpServletRequest request) {
-        Object user = request.getSession(false) == null ? null : request.getSession(false).getAttribute("user");
-        if (user instanceof User currentUser) {
-            return currentUser.getId();
-        }
-
-        user = request.getSession(false) == null ? null : request.getSession(false).getAttribute("userInSession");
-        if (user instanceof User currentUser) {
-            return currentUser.getId();
-        }
-
-        user = request.getSession(false) == null ? null : request.getSession(false).getAttribute("currentUser");
-        return user instanceof User currentUser ? currentUser.getId() : null;
     }
 
     private String resolveActorRole(User actor) {

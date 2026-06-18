@@ -104,6 +104,11 @@
                 </a>
             </div>
         </c:if>
+        <c:if test="${requestScope.order.signatureStatus eq 'SIGNED' and (requestScope.order.status eq 'Chờ ký số' or requestScope.order.status eq 'Đã hủy' or requestScope.order.status eq 'CANCELLED')}">
+            <div class="alert alert-error" style="margin-top: 16px; padding: 12px 16px; border-radius: 8px; background: #fff4e5; color: #8a4b00; border: 1px solid #ffd7a8;">
+                Trạng thái đơn hàng và chữ ký đang không đồng bộ. Vui lòng liên hệ hỗ trợ để kiểm tra.
+            </div>
+        </c:if>
 
         <h3 style="margin-top: 24px; margin-bottom: 16px;">Sản phẩm</h3>
         <div class="order-items">
@@ -128,13 +133,13 @@
             <i class="fa-solid fa-arrow-left"></i>
             <span>Quay lại danh sách đơn hàng</span>
         </a>
-        <c:if test="${requestScope.order.signatureStatus eq 'WAITING_SIGNATURE'}">
+        <c:if test="${requestScope.order.signatureStatus eq 'WAITING_SIGNATURE' and requestScope.order.status ne 'Đã hủy' and requestScope.order.status ne 'CANCELLED'}">
             <a href="${pageContext.request.contextPath}/orders/sign?id=${requestScope.order.id}" class="primary-button" style="display: inline-flex; align-items: center; gap: 8px; text-decoration: none;">
                 <i class="fa-solid fa-signature"></i>
                 <span>Ký đơn hàng</span>
             </a>
         </c:if>
-        <c:if test="${requestScope.order.signatureStatus eq 'SIGNATURE_INVALID'}">
+        <c:if test="${requestScope.order.signatureStatus eq 'SIGNATURE_INVALID' and requestScope.order.status ne 'Đã hủy' and requestScope.order.status ne 'CANCELLED'}">
             <a href="${pageContext.request.contextPath}/orders/sign?id=${requestScope.order.id}" class="primary-button" style="background-color: var(--danger); display: inline-flex; align-items: center; gap: 8px; text-decoration: none;">
                 <i class="fa-solid fa-rotate-right"></i>
                 <span>Ký lại</span>
@@ -189,6 +194,9 @@
                                             </c:otherwise>
                                         </c:choose>
                                     </strong>
+                                    <c:if test="${order.signatureStatus eq 'SIGNED' and (order.status eq 'Chờ ký số' or order.status eq 'Đã hủy' or order.status eq 'CANCELLED')}">
+                                        <small style="display:block; margin-top:6px; color:#b45309;">Trạng thái cần kiểm tra</small>
+                                    </c:if>
                                 </div>
                                 <div class="order-total">
                                     <span>Tổng tiền:</span>
@@ -199,14 +207,14 @@
                             </div>
 
                             <div class="order-card__footer">
-                                <c:if test="${order.signatureStatus eq 'WAITING_SIGNATURE'}">
+                                <c:if test="${order.signatureStatus eq 'WAITING_SIGNATURE' and order.status ne 'Đã hủy' and order.status ne 'CANCELLED'}">
                                     <a href="${pageContext.request.contextPath}/orders/sign?id=${order.id}"
                                        class="secondary-button sign-order-button">
                                         <i class="fa-solid fa-signature"></i>
                                         <span>Ký đơn hàng</span>
                                     </a>
                                 </c:if>
-                                <c:if test="${order.signatureStatus eq 'SIGNATURE_INVALID'}">
+                                <c:if test="${order.signatureStatus eq 'SIGNATURE_INVALID' and order.status ne 'Đã hủy' and order.status ne 'CANCELLED'}">
                                     <a href="${pageContext.request.contextPath}/orders/sign?id=${order.id}"
                                        class="secondary-button sign-order-button">
                                         <i class="fa-solid fa-rotate-right"></i>

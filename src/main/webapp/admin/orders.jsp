@@ -234,6 +234,11 @@
                                                     Verify: <c:out value="${order.verifyStatus}"/>
                                                 </div>
                                             </c:if>
+                                            <c:if test="${order.signatureStatus == 'SIGNED' and (order.status == 'Chờ ký số' or order.status == 'Đã hủy')}">
+                                                <div class="text-danger" style="font-size: 0.78rem; margin-top: 4px; font-weight: 600;">
+                                                    <i class="fas fa-triangle-exclamation"></i> Trạng thái không đồng bộ
+                                                </div>
+                                            </c:if>
                                             <c:if test="${not empty order.signedAt}">
                                                 <div class="text-muted" style="font-size: 0.78rem; margin-top: 2px;">
                                                     <fmt:formatDate value="${order.signedAt}" pattern="dd/MM/yyyy HH:mm"/>
@@ -320,6 +325,12 @@
                         <option value="Đã giao hàng">Đã giao hàng</option>
                         <option value="Đã hủy">Đã hủy</option>
                     </select>
+                </div>
+                <div class="form-group">
+                    <label for="statusChangeReason">Lý do can thiệp</label>
+                    <textarea id="statusChangeReason" name="reason" class="form-control" maxlength="500"
+                              placeholder="Bắt buộc khi chuyển trạng thái ngoài luồng xử lý chuẩn"></textarea>
+                    <small class="text-muted">Mọi thay đổi đều được ghi vào lịch sử đơn hàng.</small>
                 </div>
             </div>
             <div class="modal-footer">

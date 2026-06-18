@@ -30,4 +30,20 @@ class OrderManagementServiceTest {
         assertFalse(OrderManagementService.canCancelStatus("Hoàn thành"));
         assertFalse(OrderManagementService.canCancelStatus("Đã hủy"));
     }
+
+    @Test
+    void standardTransitionsFollowTheOrderLifecycle() {
+        assertTrue(OrderManagementService.isStandardTransition("Chờ xử lý", "Đã xác nhận"));
+        assertTrue(OrderManagementService.isStandardTransition("Đã xác nhận", "Đang xử lý"));
+        assertTrue(OrderManagementService.isStandardTransition("Đang xử lý", "Đang giao hàng"));
+        assertTrue(OrderManagementService.isStandardTransition("Đang giao hàng", "Đã giao hàng"));
+        assertTrue(OrderManagementService.isStandardTransition("Đã giao hàng", "Hoàn thành"));
+    }
+
+    @Test
+    void skippingOrReversingLifecycleIsAnOverride() {
+        assertFalse(OrderManagementService.isStandardTransition("Chờ xử lý", "Đang giao hàng"));
+        assertFalse(OrderManagementService.isStandardTransition("Đã giao hàng", "Đang xử lý"));
+        assertFalse(OrderManagementService.isStandardTransition("Hoàn thành", "Đã xác nhận"));
+    }
 }

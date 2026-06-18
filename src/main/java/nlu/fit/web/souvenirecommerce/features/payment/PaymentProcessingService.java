@@ -9,12 +9,15 @@ import nlu.fit.web.souvenirecommerce.model.entity.PaymentTransaction;
 import nlu.fit.web.souvenirecommerce.model.enums.OrderStatusCode;
 import nlu.fit.web.souvenirecommerce.model.enums.PaymentMethod;
 import nlu.fit.web.souvenirecommerce.model.enums.PaymentStatus;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Map;
 
 public class PaymentProcessingService {
+    private static final Logger log = LoggerFactory.getLogger(PaymentProcessingService.class);
     private final PaymentTransactionRepository paymentRepository = new PaymentTransactionRepository();
     private final OrderStatusRepository orderStatusRepository = new OrderStatusRepository();
     private final VnPayService vnPayService = new VnPayService();
@@ -47,6 +50,8 @@ public class PaymentProcessingService {
         boolean successful = "00".equals(responseCode)
                 && "00".equals(fields.get("vnp_TransactionStatus"));
 
+        String oldOrderStatus = transaction.getOrder().getStatusDescription();
+        String signatureStatus = transaction.getOrder().getSignatureStatus();
         transaction.setResponseCode(responseCode);
         transaction.setBankCode(fields.get("vnp_BankCode"));
         transaction.setProviderTransactionRef(fields.get("vnp_TransactionNo"));
@@ -54,6 +59,15 @@ public class PaymentProcessingService {
         transaction.setPaidAt(successful ? LocalDateTime.now() : null);
         transaction.getOrder().setStatus(resolveStatus(
                 successful ? OrderStatusCode.PAID : OrderStatusCode.PAYMENT_FAILED));
+        log.info("Order/signature status transition: orderId={}, oldOrderStatus={}, newOrderStatus={}, "
+                        + "oldSignatureStatus={}, newSignatureStatus={}, endpoint={}, reason={}",
+                orderId,
+                oldOrderStatus,
+                transaction.getOrder().getStatusDescription(),
+                signatureStatus,
+                transaction.getOrder().getSignatureStatus(),
+                "VNPAY_CALLBACK",
+                successful ? "Thanh toán VNPay thành công" : "Thanh toán VNPay thất bại");
         paymentRepository.update(transaction);
 
         return result(PaymentCallbackResult.Outcome.PROCESSED, successful, transaction);
@@ -81,6 +95,8 @@ public class PaymentProcessingService {
                 transaction.getAmount().longValueExact(),
                 clientIp,
                 returnUrl);
+        String oldOrderStatus = transaction.getOrder().getStatusDescription();
+        String signatureStatus = transaction.getOrder().getSignatureStatus();
         transaction.setStatus(PaymentStatus.PENDING);
         transaction.setResponseCode(null);
         transaction.setBankCode(null);
@@ -88,6 +104,15 @@ public class PaymentProcessingService {
         transaction.setPaidAt(null);
         transaction.setPaymentUrl(paymentUrl);
         transaction.getOrder().setStatus(resolveStatus(OrderStatusCode.PENDING_PAYMENT));
+        log.info("Order/signature status transition: orderId={}, oldOrderStatus={}, newOrderStatus={}, "
+                        + "oldSignatureStatus={}, newSignatureStatus={}, endpoint={}, reason={}",
+                orderId,
+                oldOrderStatus,
+                transaction.getOrder().getStatusDescription(),
+                signatureStatus,
+                transaction.getOrder().getSignatureStatus(),
+                "VNPAY_RETRY",
+                "Người dùng yêu cầu thanh toán lại");
         paymentRepository.update(transaction);
         return paymentUrl;
     }

@@ -33,6 +33,8 @@ public final class SchemaMigrationRunner {
             ensureUniqueUserPhone(connection, statement);
 
             createKeyChangeOtpsTable(connection, statement);
+            addOrderAuditReasonColumn(connection, statement);
+            reconcileLegacySignatureStatuses(connection, statement);
 
         } catch (SQLException e) {
             throw new IllegalStateException("Database schema migration failed", e);
@@ -142,6 +144,47 @@ public final class SchemaMigrationRunner {
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
                 """);
         log.info("Created table key_change_otps for public key update OTPs");
+    }
+
+    private static void addOrderAuditReasonColumn(Connection connection, Statement statement) throws SQLException {
+        if (!tableExists(connection, "order_audit_logs")
+                || columnExists(connection, "order_audit_logs", "reason")) {
+            return;
+        }
+        statement.executeUpdate("alter table order_audit_logs add column reason varchar(500) null after new_value");
+        log.info("Added order_audit_logs.reason for order status change history");
+    }
+
+    private static void reconcileLegacySignatureStatuses(Connection connection, Statement statement) throws SQLException {
+        if (!tableExists(connection, "orders") || !tableExists(connection, "order_status")
+                || !columnExists(connection, "orders", "signature_status")) {
+            return;
+        }
+
+        int repaired = statement.executeUpdate("""
+                update orders o
+                join order_status current_status on current_status.id = o.status_id
+                join order_status next_status on next_status.description = 'Chờ ký xác nhận'
+                set o.status_id = next_status.id
+                where current_status.description = 'Chờ ký số'
+                  and upper(o.signature_status) = 'SIGNED'
+                """);
+        if (repaired > 0) {
+            log.warn("Repaired {} legacy orders from SIGNED/Chờ ký số to Chờ ký xác nhận", repaired);
+        }
+
+        try (var resultSet = statement.executeQuery("""
+                select count(*)
+                from orders o
+                join order_status os on os.id = o.status_id
+                where os.description = 'Đã hủy'
+                  and upper(o.signature_status) = 'SIGNED'
+                """)) {
+            if (resultSet.next() && resultSet.getLong(1) > 0) {
+                log.warn("Found {} SIGNED orders marked Đã hủy. Kept unchanged because cancellation may be intentional; review order_audit_logs.",
+                        resultSet.getLong(1));
+            }
+        }
     }
 
 }

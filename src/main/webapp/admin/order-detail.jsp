@@ -226,13 +226,14 @@
                                                 <th>Trường thay đổi</th>
                                                 <th>Giá trị cũ</th>
                                                 <th>Giá trị mới</th>
+                                                <th>Lý do</th>
                                             </tr>
                                             </thead>
                                             <tbody>
                                             <c:choose>
                                                 <c:when test="${empty auditLogs}">
                                                     <tr>
-                                                        <td colspan="6" class="text-center py-4 text-muted">
+                                                        <td colspan="7" class="text-center py-4 text-muted">
                                                             <i class="fas fa-info-circle me-1"></i>Chưa có lịch sử thay đổi dữ liệu cho đơn hàng này.
                                                         </td>
                                                     </tr>
@@ -276,6 +277,12 @@
                                                             </td>
                                                             <td class="font-monospace text-dark" style="font-size: 0.85rem; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${log.newValue}">
                                                                     ${log.newValue}
+                                                            </td>
+                                                            <td class="text-muted" style="max-width: 220px;" title="${log.reason}">
+                                                                <c:choose>
+                                                                    <c:when test="${not empty log.reason}">${log.reason}</c:when>
+                                                                    <c:otherwise>-</c:otherwise>
+                                                                </c:choose>
                                                             </td>
                                                         </tr>
                                                     </c:forEach>
@@ -430,6 +437,12 @@
                                                     <span class="badge badge-secondary py-1.5 px-3" style="font-size: 0.9rem;">${order.status}</span>
                                                 </c:otherwise>
                                             </c:choose>
+                                            <c:if test="${order.signatureStatus == 'SIGNED' and (order.status == 'Chờ ký số' or order.status == 'Đã hủy')}">
+                                                <div class="alert alert-warning mt-3 mb-0" role="alert">
+                                                    <i class="fas fa-triangle-exclamation me-1"></i>
+                                                    Trạng thái đơn hàng và chữ ký không đồng bộ. Hãy kiểm tra lịch sử thay đổi bên dưới.
+                                                </div>
+                                            </c:if>
                                         </div>
 
                                         <div class="d-grid gap-2">
@@ -506,6 +519,12 @@
                         <option value="Đã giao hàng">Đã giao hàng</option>
                         <option value="Đã hủy">Đã hủy</option>
                     </select>
+                </div>
+                <div class="form-group">
+                    <label for="statusChangeReason">Lý do can thiệp</label>
+                    <textarea id="statusChangeReason" name="reason" class="form-control" maxlength="500"
+                              placeholder="Bắt buộc khi chuyển trạng thái ngoài luồng xử lý chuẩn"></textarea>
+                    <small class="text-muted">Mọi thay đổi đều được ghi vào lịch sử đơn hàng.</small>
                 </div>
             </div>
 

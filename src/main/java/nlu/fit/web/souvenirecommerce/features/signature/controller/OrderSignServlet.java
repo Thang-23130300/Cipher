@@ -58,6 +58,20 @@ public class OrderSignServlet extends HttpServlet {
             return;
         }
 
+        if ("Đã hủy".equalsIgnoreCase(order.getStatus())) {
+            System.out.println("[OrderSignServlet] Rejected cancelled order: orderId=" + orderId);
+            setError(session, "Đơn hàng đã hủy, không thể ký lại.");
+            response.sendRedirect(request.getContextPath() + "/orders");
+            return;
+        }
+
+        if ("SIGNED".equalsIgnoreCase(order.getSignatureStatus())) {
+            System.out.println("[OrderSignServlet] Order already signed: orderId=" + orderId);
+            setError(session, "Đơn hàng đã có chữ ký hợp lệ, không cần ký lại.");
+            response.sendRedirect(request.getContextPath() + "/orders");
+            return;
+        }
+
         Optional<OrderSignedData> signedDataOptional = orderSignedDataDAO.findByOrderId(orderId);
         if (signedDataOptional.isEmpty()
                 || signedDataOptional.get().getHashValue() == null
