@@ -3,6 +3,8 @@ package com.cipher.signingtool;
 import org.junit.jupiter.api.Test;
 
 import com.cipher.signingtool.localapi.SimpleJson;
+import com.cipher.signingtool.localapi.ConnectCallbackNotification;
+import com.cipher.signingtool.localapi.ConnectCallbackResult;
 import com.cipher.signingtool.localapi.LocalApiServer;
 import com.cipher.signingtool.localapi.PublicKeySavedNotification;
 import com.cipher.signingtool.localapi.PublicKeySavedResult;
@@ -28,6 +30,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -267,6 +270,24 @@ class SigningToolCoreTest {
             }
 
             @Override
+            public ConnectCallbackResult onConnectCallback(ConnectCallbackNotification notification) {
+                if (!notification.nonce().equals(state.getPendingConnectNonce())) {
+                    throw new IllegalArgumentException("Invalid nonce.");
+                }
+                state.clearPendingConnectNonce();
+                if (!notification.success()) {
+                    return new ConnectCallbackResult(false, notification.message());
+                }
+                PublicKey webPublicKey = new KeyLoader().loadPublicKeyPem(notification.publicKey());
+                boolean matches = new KeyMatchService().matches(
+                        state.snapshot().currentPrivateKey(),
+                        webPublicKey
+                );
+                state.applyConnectedWebPublicKey(webPublicKey, matches);
+                return new ConnectCallbackResult(matches, matches ? "MATCHED" : "MISMATCHED");
+            }
+
+            @Override
             public boolean isSha256Hex(String hashValue) {
                 return signatureService.isSha256Hex(hashValue);
             }
@@ -290,6 +311,50 @@ class SigningToolCoreTest {
         server.start();
         try {
             HttpClient httpClient = HttpClient.newHttpClient();
+            state.setPendingConnectNonce("pending-nonce");
+            String wrongNonceJson = SimpleJson.object(
+                    "success", true,
+                    "nonce", "wrong-nonce",
+                    "keyId", 122,
+                    "publicKey", PemUtils.publicKeyToPem(pair.getPublic()),
+                    "fingerprint", "AA:BB",
+                    "createdAt", "2026-06-18T17:59:00",
+                    "message", ""
+            );
+            HttpRequest wrongNonceRequest = HttpRequest.newBuilder(
+                            URI.create("http://127.0.0.1:" + port + "/tool/connect/callback"))
+                    .header("Content-Type", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(wrongNonceJson))
+                    .build();
+            HttpResponse<String> wrongNonceResponse = httpClient.send(
+                    wrongNonceRequest,
+                    HttpResponse.BodyHandlers.ofString()
+            );
+            assertEquals(400, wrongNonceResponse.statusCode());
+            assertEquals("pending-nonce", state.getPendingConnectNonce());
+
+            String callbackJson = SimpleJson.object(
+                    "success", true,
+                    "nonce", "pending-nonce",
+                    "keyId", 122,
+                    "publicKey", PemUtils.publicKeyToPem(pair.getPublic()),
+                    "fingerprint", "AA:BB",
+                    "createdAt", "2026-06-18T17:59:00",
+                    "message", ""
+            );
+            HttpRequest callbackRequest = HttpRequest.newBuilder(
+                            URI.create("http://127.0.0.1:" + port + "/tool/connect/callback"))
+                    .header("Content-Type", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(callbackJson))
+                    .build();
+            HttpResponse<String> callbackResponse = httpClient.send(
+                    callbackRequest,
+                    HttpResponse.BodyHandlers.ofString()
+            );
+            assertEquals(200, callbackResponse.statusCode());
+            assertNull(state.getPendingConnectNonce());
+            assertTrue(state.snapshot().keyPairMatched());
+
             String savedJson = SimpleJson.object(
                     "success", true,
                     "keyId", 123,
