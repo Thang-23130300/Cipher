@@ -26,8 +26,10 @@
                 <h1>Quản lý đơn hàng</h1>
             </div>
 
-            <c:if test="${not empty param.success}">
-                <div class="alert alert-success">Cập nhật trạng thái đơn hàng thành công.</div>
+            <c:set var="adminFlashSuccess" value="${sessionScope.success}"/>
+            <c:if test="${not empty adminFlashSuccess}">
+                <div class="alert alert-success"><c:out value="${adminFlashSuccess}"/></div>
+                <c:remove var="success" scope="session"/>
             </c:if>
             <c:set var="adminFlashError" value="${sessionScope.error}"/>
             <c:if test="${not empty adminFlashError}">
@@ -47,7 +49,7 @@
                         <i class="fas fa-clock"></i>
                     </div>
                     <div class="stat-info">
-                        <h3>Chờ xác nhận</h3>
+                        <h3>Chờ xử lý</h3>
                         <p class="stat-value">${pendingCount}</p>
                     </div>
                 </div>
@@ -56,7 +58,7 @@
                         <i class="fas fa-box"></i>
                     </div>
                     <div class="stat-info">
-                        <h3>Đang xử lý</h3>
+                        <h3>Đã xác nhận</h3>
                         <p class="stat-value">${processingCount}</p>
                     </div>
                 </div>
@@ -65,7 +67,7 @@
                         <i class="fas fa-shipping-fast"></i>
                     </div>
                     <div class="stat-info">
-                        <h3>Đang giao</h3>
+                        <h3>Đang giao hàng</h3>
                         <p class="stat-value">${shippingCount}</p>
                     </div>
                 </div>
@@ -74,7 +76,7 @@
                         <i class="fas fa-check-circle"></i>
                     </div>
                     <div class="stat-info">
-                        <h3>Hoàn thành</h3>
+                        <h3>Đã giao hàng</h3>
                         <p class="stat-value">${completedCount}</p>
                     </div>
                 </div>
@@ -89,10 +91,13 @@
                     <div class="filter-group" style="display: flex; gap: 10px;">
                         <select id="statusFilterSelect" onchange="applyFilters()">
                             <option value="all" ${empty statusFilter || statusFilter == 'all' ? 'selected' : ''}>Tất cả trạng thái đơn</option>
-                            <option value="Chờ xác nhận" ${statusFilter == 'Chờ xác nhận' ? 'selected' : ''}>Chờ xác nhận</option>
+                            <option value="Chờ ký số" ${statusFilter == 'Chờ ký số' ? 'selected' : ''}>Chờ ký số</option>
+                            <option value="Chờ ký xác nhận" ${statusFilter == 'Chờ ký xác nhận' ? 'selected' : ''}>Chờ ký xác nhận</option>
+                            <option value="Chờ xử lý" ${statusFilter == 'Chờ xử lý' ? 'selected' : ''}>Chờ xử lý</option>
+                            <option value="Đã xác nhận" ${statusFilter == 'Đã xác nhận' ? 'selected' : ''}>Đã xác nhận</option>
                             <option value="Đang xử lý" ${statusFilter == 'Đang xử lý' ? 'selected' : ''}>Đang xử lý</option>
-                            <option value="Đang giao" ${statusFilter == 'Đang giao' ? 'selected' : ''}>Đang giao</option>
-                            <option value="Hoàn thành" ${statusFilter == 'Hoàn thành' ? 'selected' : ''}>Hoàn thành</option>
+                            <option value="Đang giao hàng" ${statusFilter == 'Đang giao hàng' ? 'selected' : ''}>Đang giao hàng</option>
+                            <option value="Đã giao hàng" ${statusFilter == 'Đã giao hàng' ? 'selected' : ''}>Đã giao hàng</option>
                             <option value="Đã hủy" ${statusFilter == 'Đã hủy' ? 'selected' : ''}>Đã hủy</option>
                         </select>
                         <select id="signatureStatusFilterSelect" onchange="applyFilters()">
@@ -181,16 +186,16 @@
                                         <td class="orders-total"><fmt:formatNumber value="${order.totalAmount}" pattern="#,#00"/>₫</td>
                                         <td>
                                             <c:choose>
-                                                <c:when test="${order.status == 'Chờ xác nhận'}">
+                                                <c:when test="${order.status == 'Chờ ký số' || order.status == 'Chờ ký xác nhận' || order.status == 'Chờ xử lý'}">
                                                     <span class="badge badge-warning">${order.status}</span>
                                                 </c:when>
-                                                <c:when test="${order.status == 'Đang xử lý'}">
+                                                <c:when test="${order.status == 'Đã xác nhận' || order.status == 'Đang xử lý'}">
                                                     <span class="badge badge-info">${order.status}</span>
                                                 </c:when>
-                                                <c:when test="${order.status == 'Đang giao'}">
+                                                <c:when test="${order.status == 'Đang giao hàng'}">
                                                     <span class="badge badge-info">${order.status}</span>
                                                 </c:when>
-                                                <c:when test="${order.status == 'Hoàn thành'}">
+                                                <c:when test="${order.status == 'Đã giao hàng' || order.status == 'Hoàn thành'}">
                                                     <span class="badge badge-success">${order.status}</span>
                                                 </c:when>
                                                 <c:when test="${order.status == 'Đã hủy'}">
@@ -229,6 +234,11 @@
                                                     Verify: <c:out value="${order.verifyStatus}"/>
                                                 </div>
                                             </c:if>
+                                            <c:if test="${order.signatureStatus == 'SIGNED' and (order.status == 'Chờ ký số' or order.status == 'Đã hủy')}">
+                                                <div class="text-danger" style="font-size: 0.78rem; margin-top: 4px; font-weight: 600;">
+                                                    <i class="fas fa-triangle-exclamation"></i> Trạng thái không đồng bộ
+                                                </div>
+                                            </c:if>
                                             <c:if test="${not empty order.signedAt}">
                                                 <div class="text-muted" style="font-size: 0.78rem; margin-top: 2px;">
                                                     <fmt:formatDate value="${order.signedAt}" pattern="dd/MM/yyyy HH:mm"/>
@@ -241,18 +251,27 @@
                                                 <a href="${pageContext.request.contextPath}/admin/orders?action=view&id=${order.id}" class="btn-icon" title="Xem chi tiết">
                                                     <i class="fas fa-eye"></i>
                                                 </a>
-                                                <c:choose>
-                                                    <c:when test="${canUpdateOrder and order.signatureStatus == 'SIGNED'}">
-                                                        <button type="button" class="btn-icon" title="Cập nhật trạng thái" onclick="showUpdateStatusModal(${order.id}, '${order.status}')">
-                                                            <i class="fas fa-edit"></i>
+                                                <c:if test="${canUpdateOrder and acceptOrderById[order.id]}">
+                                                    <form method="post" action="${pageContext.request.contextPath}/admin/orders" style="display:inline">
+                                                        <input type="hidden" name="action" value="accept">
+                                                        <input type="hidden" name="orderId" value="${order.id}">
+                                                        <button type="submit" class="btn-icon" title="Chấp nhận đơn">
+                                                            <i class="fas fa-check"></i>
                                                         </button>
-                                                    </c:when>
-                                                    <c:when test="${canUpdateOrder}">
-                                                        <button type="button" class="btn-icon" title="Đơn hàng chưa có chữ ký hợp lệ, không thể xử lý." disabled style="opacity: 0.5; cursor: not-allowed;">
-                                                            <i class="fas fa-lock"></i>
-                                                        </button>
-                                                    </c:when>
-                                                </c:choose>
+                                                    </form>
+                                                </c:if>
+                                                <c:if test="${canUpdateOrder and cancelOrderById[order.id]}">
+                                                    <button type="button" class="btn-icon" title="Hủy đơn"
+                                                            onclick="showCancelOrderModal(${order.id})">
+                                                        <i class="fas fa-times"></i>
+                                                    </button>
+                                                </c:if>
+                                                <c:if test="${canManageOrderStatuses and order.signatureStatus == 'SIGNED'}">
+                                                    <button type="button" class="btn-icon" title="Cập nhật trạng thái"
+                                                            onclick="showUpdateStatusModal(${order.id}, '${order.status}')">
+                                                        <i class="fas fa-edit"></i>
+                                                    </button>
+                                                </c:if>
                                             </div>
                                         </td>
                                     </tr>
@@ -298,17 +317,48 @@
                     <label>Chọn trạng thái mới</label>
                     <select name="status" class="form-control" required>
                         <option value="">-- Chọn trạng thái --</option>
-                        <option value="Chờ xác nhận">Chờ xác nhận</option>
+                        <option value="Chờ ký xác nhận">Chờ ký xác nhận</option>
+                        <option value="Chờ xử lý">Chờ xử lý</option>
+                        <option value="Đã xác nhận">Đã xác nhận</option>
                         <option value="Đang xử lý">Đang xử lý</option>
-                        <option value="Đang giao">Đang giao</option>
-                        <option value="Hoàn thành">Hoàn thành</option>
+                        <option value="Đang giao hàng">Đang giao hàng</option>
+                        <option value="Đã giao hàng">Đã giao hàng</option>
                         <option value="Đã hủy">Đã hủy</option>
                     </select>
+                </div>
+                <div class="form-group">
+                    <label for="statusChangeReason">Lý do can thiệp</label>
+                    <textarea id="statusChangeReason" name="reason" class="form-control" maxlength="500"
+                              placeholder="Bắt buộc khi chuyển trạng thái ngoài luồng xử lý chuẩn"></textarea>
+                    <small class="text-muted">Mọi thay đổi đều được ghi vào lịch sử đơn hàng.</small>
                 </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" onclick="closeUpdateStatusModal()">Hủy</button>
                 <button type="submit" class="btn btn-primary">Cập nhật</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="cancelOrderModal" class="modal orders-modal">
+    <div class="modal-content orders-modal-content">
+        <div class="modal-header">
+            <h3>Hủy đơn hàng</h3>
+            <button type="button" class="close-btn" onclick="closeCancelOrderModal()">&times;</button>
+        </div>
+        <form id="cancelOrderForm" method="post" action="${pageContext.request.contextPath}/admin/orders">
+            <input type="hidden" name="action" value="cancel">
+            <input type="hidden" name="orderId" id="cancelOrderId">
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="cancelReason">Lý do hủy</label>
+                    <textarea id="cancelReason" name="reason" class="form-control" maxlength="500" required></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeCancelOrderModal()">Đóng</button>
+                <button type="submit" class="btn btn-danger">Xác nhận hủy</button>
             </div>
         </form>
     </div>
@@ -341,10 +391,24 @@
         document.getElementById('updateStatusForm').reset();
     }
 
+    function showCancelOrderModal(orderId) {
+        document.getElementById('cancelOrderId').value = orderId;
+        document.getElementById('cancelOrderModal').classList.add('show');
+    }
+
+    function closeCancelOrderModal() {
+        document.getElementById('cancelOrderModal').classList.remove('show');
+        document.getElementById('cancelOrderForm').reset();
+    }
+
     window.onclick = function(event) {
         const modal = document.getElementById('updateStatusModal');
         if (event.target === modal) {
             closeUpdateStatusModal();
+        }
+        const cancelModal = document.getElementById('cancelOrderModal');
+        if (event.target === cancelModal) {
+            closeCancelOrderModal();
         }
     }
 </script>

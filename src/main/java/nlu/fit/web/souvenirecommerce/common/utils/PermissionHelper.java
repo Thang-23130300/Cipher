@@ -8,6 +8,9 @@ import nlu.fit.web.souvenirecommerce.legacy.model.PermissionGroup;
 import nlu.fit.web.souvenirecommerce.legacy.model.PermissionItem;
 
 import java.util.List;
+import java.util.Locale;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Utility class for permission checking in servlets.
@@ -20,20 +23,7 @@ public class PermissionHelper {
      * Extract user ID from HTTP request
      */
     public static long getUserId(HttpServletRequest request) {
-        HttpSession session = request.getSession(false);
-        if (session == null) {
-            return -1;
-        }
-
-        Object user = session.getAttribute("userInSession");
-        if (user == null) {
-            user = session.getAttribute("user");
-        }
-        if (user == null) {
-            user = session.getAttribute("currentUser");
-        }
-
-        return extractUserId(user);
+        return extractUserId(getCurrentUser(request));
     }
 
     /**
@@ -106,7 +96,76 @@ public class PermissionHelper {
      * Check if user has any order-related permissions
      */
     public static boolean hasOrderAccess(HttpServletRequest request) {
-        return hasPermission(request, "order", "read");
+        return hasAnyPermission(request, "order") || hasOrderManagementRole(request);
+    }
+
+    public static boolean canProcessOrders(HttpServletRequest request) {
+        return hasPermission(request, "order", "update") || hasOrderManagementRole(request);
+    }
+
+    public static boolean hasOrderManagementRole(HttpServletRequest request) {
+        return getNormalizedRoleNames(request).stream()
+                .anyMatch(PermissionHelper::isOrderManagementRole);
+    }
+
+    public static boolean hasAdminPortalAccess(HttpServletRequest request) {
+        return getNormalizedRoleNames(request).stream()
+                .anyMatch(role -> isAdminRole(role) || isOrderManagementRole(role));
+    }
+
+    public static boolean hasFullAdminAccess(HttpServletRequest request) {
+        return getNormalizedRoleNames(request).stream().anyMatch(PermissionHelper::isAdminRole);
+    }
+
+    public static String getAdminEntryPath(HttpServletRequest request) {
+        return hasFullAdminAccess(request) ? "/admin/dashboard" : "/admin/orders";
+    }
+
+    public static Set<String> getNormalizedRoleNames(HttpServletRequest request) {
+        long userId = getUserId(request);
+        if (userId > 0) {
+            List<PermissionGroup> roleGroups = authorizationDAO.getUserRoles(userId);
+            if (!roleGroups.isEmpty()) {
+                return roleGroups.stream()
+                        .map(PermissionGroup::getName)
+                        .map(PermissionHelper::normalizeRole)
+                        .collect(Collectors.toSet());
+            }
+        }
+
+        Object user = getCurrentUser(request);
+        if (user instanceof User currentUser && currentUser.getRoles() != null) {
+            try {
+                return currentUser.getRoles().stream()
+                        .map(nlu.fit.web.souvenirecommerce.model.entity.Role::getName)
+                        .map(PermissionHelper::normalizeRole)
+                        .collect(Collectors.toSet());
+            } catch (RuntimeException ignored) {
+                return Set.of();
+            }
+        }
+
+        return Set.of();
+    }
+
+    public static User getCurrentUser(HttpServletRequest request) {
+        HttpSession session = request.getSession(false);
+        if (session == null) {
+            return null;
+        }
+
+        Object user = session.getAttribute("userInSession");
+        if (user == null) {
+            user = session.getAttribute("user");
+        }
+        if (user == null) {
+            user = session.getAttribute("currentUser");
+        }
+        if (user == null) {
+            user = session.getAttribute("authUser");
+        }
+
+        return user instanceof User currentUser ? currentUser : null;
     }
 
     /**
@@ -144,5 +203,17 @@ public class PermissionHelper {
         }
 
         return -1;
+    }
+
+    private static String normalizeRole(String role) {
+        return role == null ? "" : role.replaceAll("[^A-Za-z]", "").toUpperCase(Locale.ROOT);
+    }
+
+    private static boolean isAdminRole(String role) {
+        return role.equals("ADMIN") || role.equals("SUPERADMIN");
+    }
+
+    private static boolean isOrderManagementRole(String role) {
+        return role.equals("SALE") || role.equals("SALES") || role.equals("STAFF");
     }
 }

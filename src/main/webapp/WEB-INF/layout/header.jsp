@@ -105,9 +105,11 @@
 
                 <span>|</span>
 
-                <a href="${pageContext.request.contextPath}/admin/dashboard">
-                    Kênh quản trị
-                </a>
+                <c:if test="${canAccessAdmin}">
+                    <a href="${pageContext.request.contextPath}${adminEntryPath}">
+                        Kênh quản trị
+                    </a>
+                </c:if>
 
             </div>
 

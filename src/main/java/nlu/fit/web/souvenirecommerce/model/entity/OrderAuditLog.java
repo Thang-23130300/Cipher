@@ -39,6 +39,9 @@ public class OrderAuditLog {
     @Column(name = "new_value", columnDefinition = "TEXT")
     private String newValue;
 
+    @Column(name = "reason", length = 500)
+    private String reason;
+
     @Column(name = "is_signed_field", nullable = false)
     @Builder.Default
     private boolean isSignedField = false;

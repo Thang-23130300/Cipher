@@ -23,6 +23,8 @@ import nlu.fit.web.souvenirecommerce.model.entity.Product;
 import nlu.fit.web.souvenirecommerce.model.entity.Province;
 import nlu.fit.web.souvenirecommerce.model.entity.User;
 import nlu.fit.web.souvenirecommerce.model.enums.OrderStatusCode;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import nlu.fit.web.souvenirecommerce.model.enums.PaymentMethod;
 
 import java.math.BigDecimal;
@@ -30,6 +32,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public class CheckoutService {
+    private static final Logger log = LoggerFactory.getLogger(CheckoutService.class);
     private final OrderRepository orderRepository = new OrderRepository();
     private final OrderStatusRepository orderStatusRepository = new OrderStatusRepository();
     private final ProductRepository productRepository = new ProductRepository();
@@ -112,6 +115,10 @@ public class CheckoutService {
         savedOrder.setSignatureStatus(OrderStatusCode.WAITING_SIGNATURE.name());
 
         orderRepository.update(savedOrder);
+        log.info("Order/signature status transition: orderId={}, oldOrderStatus={}, newOrderStatus={}, "
+                        + "oldSignatureStatus={}, newSignatureStatus={}, endpoint={}, reason={}",
+                savedOrder.getId(), null, savedOrder.getStatusDescription(), null,
+                savedOrder.getSignatureStatus(), "CHECKOUT", "Tạo đơn hàng cần ký số");
 
         orderSignedDataService.createForOrder(savedOrder);
 

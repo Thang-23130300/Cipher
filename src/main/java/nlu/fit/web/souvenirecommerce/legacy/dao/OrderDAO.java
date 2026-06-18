@@ -769,7 +769,7 @@ public class OrderDAO {
     public List<nlu.fit.web.souvenirecommerce.model.entity.OrderAuditLog> getOrderAuditLogs(int orderId) {
         List<nlu.fit.web.souvenirecommerce.model.entity.OrderAuditLog> logs = new ArrayList<>();
         String sql = """
-            SELECT id, actor_id, actor_role, action_type, field_name, old_value, new_value, is_signed_field, created_at
+            SELECT id, actor_id, actor_role, action_type, field_name, old_value, new_value, reason, is_signed_field, created_at
             FROM order_audit_logs
             WHERE order_id = ?
             ORDER BY id DESC
@@ -787,6 +787,7 @@ public class OrderDAO {
                     log.setFieldName(rs.getString("field_name"));
                     log.setOldValue(rs.getString("old_value"));
                     log.setNewValue(rs.getString("new_value"));
+                    log.setReason(rs.getString("reason"));
                     log.setSignedField(rs.getBoolean("is_signed_field"));
 
                     java.sql.Timestamp ts = rs.getTimestamp("created_at");

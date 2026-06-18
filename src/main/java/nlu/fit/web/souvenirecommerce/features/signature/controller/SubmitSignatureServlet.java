@@ -11,6 +11,7 @@ import nlu.fit.web.souvenirecommerce.features.signature.dao.OrderSignedDataDAO;
 import nlu.fit.web.souvenirecommerce.features.signature.key.dao.UserKeyDAO;
 import nlu.fit.web.souvenirecommerce.features.signature.key.dto.UserKeyDTO;
 import nlu.fit.web.souvenirecommerce.features.signature.service.SignatureVerifyService;
+import nlu.fit.web.souvenirecommerce.features.signature.service.SignatureStatusTransitionService;
 import nlu.fit.web.souvenirecommerce.features.notification.service.AdminNotificationService;
 import nlu.fit.web.souvenirecommerce.common.utils.HibernateUtil;
 import nlu.fit.web.souvenirecommerce.legacy.dao.OrderDAO;
@@ -38,6 +39,7 @@ public class SubmitSignatureServlet extends HttpServlet {
     private final OrderSignatureDAO orderSignatureDAO = new OrderSignatureDAO();
     private final UserKeyDAO userKeyDAO = new UserKeyDAO();
     private final SignatureVerifyService signatureVerifyService = new SignatureVerifyService();
+    private final SignatureStatusTransitionService statusTransitionService = new SignatureStatusTransitionService();
     private final AdminNotificationService adminNotificationService = new AdminNotificationService();
 
     @Override
@@ -79,6 +81,21 @@ public class SubmitSignatureServlet extends HttpServlet {
                 System.out.println("[SubmitSignatureServlet] Forbidden: userId=" + currentUser.getId()
                         + " orderId=" + orderId + " ownerId=" + order.getUserId());
                 response.sendError(HttpServletResponse.SC_FORBIDDEN);
+                return;
+            }
+
+            SignatureStatusTransitionService.SigningPreparation preparation =
+                    statusTransitionService.prepareForSigning(orderId, request.getRequestURI());
+            if (preparation.blockedByCancellation()) {
+                System.out.println("[SubmitSignatureServlet] Rejected explicitly cancelled order: orderId=" + orderId);
+                setError(session, "Đơn hàng đã được hủy hợp lệ, không thể ký lại.");
+                redirectToOrders(request, response);
+                return;
+            }
+            if (preparation.alreadyValid()) {
+                System.out.println("[SubmitSignatureServlet] Idempotent signed order: orderId=" + orderId);
+                setSuccess(session, "Đơn hàng đã có chữ ký hợp lệ.");
+                redirectToOrders(request, response);
                 return;
             }
 
@@ -137,17 +154,38 @@ public class SubmitSignatureServlet extends HttpServlet {
                 }
             }
 
-            System.out.println("[SubmitSignatureServlet] before save orderId=" + orderId + ", verifyStatus=" + verifyStatus);
-            orderSignatureDAO.saveOrUpdate(
-                    orderId,
-                    currentUser.getId(),
-                    activeKey.getId(),
-                    signatureValue.trim(),
-                    verifyStatus
-            );
+            System.out.println("[SubmitSignatureServlet] before synchronized status update orderId=" + orderId
+                    + ", signatureStatus=" + orderSignatureStatus);
+            SignatureStatusTransitionService.TransitionResult transition =
+                    statusTransitionService.applyVerificationResult(
+                            orderId,
+                            orderSignatureStatus,
+                            request.getRequestURI(),
+                            valid ? "Xác minh chữ ký thành công" : "Xác minh chữ ký thất bại"
+                    );
+            System.out.println("[SubmitSignatureServlet] synchronized status update orderId=" + orderId
+                    + ", oldOrderStatus=" + transition.oldOrderStatus()
+                    + ", newOrderStatus=" + transition.newOrderStatus()
+                    + ", oldSignatureStatus=" + transition.oldSignatureStatus()
+                    + ", newSignatureStatus=" + transition.newSignatureStatus());
 
-            System.out.println("[SubmitSignatureServlet] before update orderId=" + orderId + ", signatureStatus=" + orderSignatureStatus);
-            orderDAO.updateSignatureStatus(orderId.intValue(), orderSignatureStatus, valid);
+            if (!transition.alreadyValid()) {
+                System.out.println("[SubmitSignatureServlet] before save orderId=" + orderId
+                        + ", verifyStatus=" + verifyStatus);
+                orderSignatureDAO.saveOrUpdate(
+                        orderId,
+                        currentUser.getId(),
+                        activeKey.getId(),
+                        signatureValue.trim(),
+                        verifyStatus
+                );
+            }
+
+            if (transition.alreadyValid()) {
+                setSuccess(session, "Đơn hàng đã có chữ ký hợp lệ. Phản hồi lặp đã được bỏ qua.");
+                redirectToOrders(request, response);
+                return;
+            }
 
             if (VERIFY_INVALID.equals(verifyStatus)) {
                 adminNotificationService.notifySignatureInvalid(orderId, currentUser.getId());
@@ -156,19 +194,19 @@ public class SubmitSignatureServlet extends HttpServlet {
             }
 
             System.out.println("[SubmitSignatureServlet] END orderId=" + orderId);
-            if (valid) {
+            if (ORDER_SIGNED.equals(orderSignatureStatus)) {
                 session.setAttribute("lastOrderId", orderId);
                 session.setAttribute("lastOrderCode", order.getOrderCode());
                 session.setAttribute("signaturePaymentSuccess", Boolean.TRUE);
-                    if ("KEY_COMPROMISED_REVIEW".equals(orderSignatureStatus)) {
-                        setSuccess(session, "Đơn hàng đã được ký nhưng khóa của bạn có cảnh báo sự cố rò rỉ bảo mật. Đơn hàng đang chờ xem xét.");
-                    } else {
-                        setSuccess(session, "Ký hợp lệ. Thanh toán thành công.");
-                    }
+                setSuccess(session, "Ký hợp lệ. Thanh toán thành công.");
                 response.sendRedirect(request.getContextPath() + "/order-success");
                 return;
             }
-            setSuccess(session, "Chữ ký không hợp lệ. Vui lòng kiểm tra lại chữ ký và hash đơn hàng.");
+            if ("KEY_COMPROMISED_REVIEW".equals(orderSignatureStatus)) {
+                setError(session, "Chữ ký đúng nhưng khóa đang có cảnh báo bảo mật. Đơn hàng chưa được xác nhận.");
+            } else {
+                setError(session, "Chữ ký không hợp lệ. Bạn có thể kiểm tra và ký lại đơn hàng.");
+            }
             redirectToOrders(request, response);
             return;
         } catch (Exception e) {
