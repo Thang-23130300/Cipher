@@ -5,6 +5,8 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
+import nlu.fit.web.souvenirecommerce.common.utils.ApplicationLoader;
 import nlu.fit.web.souvenirecommerce.features.signature.key.dto.UserKeyDTO;
 import nlu.fit.web.souvenirecommerce.features.signature.key.service.UserKeyService;
 import nlu.fit.web.souvenirecommerce.model.entity.User;
@@ -36,9 +38,38 @@ public class UserKeyPageServlet extends HttpServlet {
         request.setAttribute("activeKey", activeKey.orElse(null));
         request.setAttribute("keyHistory", keyHistory);
         request.setAttribute("returnUrl", sanitizeReturnUrl(request.getParameter("returnUrl")));
+        moveToolSyncPayloadToRequest(request);
+        request.setAttribute("signingToolPort", getSigningToolPort());
 
         request.getRequestDispatcher("/WEB-INF/views/signature/user-key.jsp")
                 .forward(request, response);
+    }
+
+    private void moveToolSyncPayloadToRequest(HttpServletRequest request) {
+        HttpSession session = request.getSession();
+        if (!Boolean.TRUE.equals(session.getAttribute("toolSyncPending"))) {
+            return;
+        }
+
+        request.setAttribute("toolSyncPending", Boolean.TRUE);
+        for (String name : new String[] {
+                "toolSyncKeyId", "toolSyncPublicKey", "toolSyncFingerprint", "toolSyncCreatedAt"
+        }) {
+            request.setAttribute(name, session.getAttribute(name));
+            session.removeAttribute(name);
+        }
+        session.removeAttribute("toolSyncPending");
+    }
+
+    private int getSigningToolPort() {
+        String configuredPort = ApplicationLoader.getProperties()
+                .getProperty("signing.tool.port", "9090");
+        try {
+            int port = Integer.parseInt(configuredPort.trim());
+            return port >= 1 && port <= 65535 ? port : 9090;
+        } catch (NumberFormatException e) {
+            return 9090;
+        }
     }
 
     private String sanitizeReturnUrl(String returnUrl) {
