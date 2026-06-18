@@ -44,6 +44,7 @@ public class LocalApiServer {
             server.createContext("/api/public-key", new PublicKeyHandler());
             server.createContext("/api/sign", new SignHandler());
             server.createContext("/public-key/saved", new PublicKeySavedHandler());
+            server.createContext("/tool/connect/callback", new ConnectCallbackHandler());
             executor = Executors.newCachedThreadPool();
             server.setExecutor(executor);
             server.start();
@@ -300,6 +301,37 @@ public class LocalApiServer {
                 sendJson(exchange, 500, SimpleJson.object(
                         "success", false,
                         "message", "Could not process saved public key: " + e.getMessage()
+                ));
+            }
+        }
+    }
+
+    private class ConnectCallbackHandler extends BaseHandler {
+        @Override
+        protected void doHandle(HttpExchange exchange) throws IOException {
+            if (!isMethod(exchange, "POST")) {
+                requireMethod(exchange, "POST");
+                return;
+            }
+
+            try {
+                ConnectCallbackNotification notification = ConnectCallbackNotification.fromJson(readBody(exchange));
+                ConnectCallbackResult result = bridge.onConnectCallback(notification);
+                int statusCode = notification.success() ? 200 : 400;
+                sendJson(exchange, statusCode, SimpleJson.object(
+                        "success", notification.success(),
+                        "keyPairMatched", result.keyPairMatched(),
+                        "message", result.message()
+                ));
+            } catch (IllegalArgumentException e) {
+                sendJson(exchange, 400, SimpleJson.object(
+                        "success", false,
+                        "message", e.getMessage()
+                ));
+            } catch (Exception e) {
+                sendJson(exchange, 500, SimpleJson.object(
+                        "success", false,
+                        "message", "Could not process connect callback: " + e.getMessage()
                 ));
             }
         }

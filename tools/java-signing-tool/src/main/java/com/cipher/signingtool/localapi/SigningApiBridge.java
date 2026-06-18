@@ -11,6 +11,8 @@ public interface SigningApiBridge {
 
     PublicKeySavedResult onPublicKeySaved(PublicKeySavedNotification notification);
 
+    ConnectCallbackResult onConnectCallback(ConnectCallbackNotification notification);
+
     boolean isSha256Hex(String hashValue);
 
     boolean confirmSigning(SignRequest request);
