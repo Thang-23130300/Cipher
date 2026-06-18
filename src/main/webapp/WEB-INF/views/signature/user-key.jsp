@@ -132,6 +132,12 @@
             border: 1px solid var(--danger-border);
         }
 
+        .alert-warning {
+            background: var(--warning-soft);
+            color: #92400e;
+            border: 1px solid #fcd34d;
+        }
+
         label {
             display: block;
             font-weight: 700;
@@ -478,10 +484,21 @@
     </div>
 
     <c:if test="${not empty sessionScope.success}">
-        <div class="alert alert-success">
+        <div id="keySaveStatus" class="alert alert-success">
             <c:out value="${sessionScope.success}"/>
         </div>
         <c:remove var="success" scope="session"/>
+    </c:if>
+
+    <c:if test="${toolSyncPending}">
+        <div id="toolSyncPayload"
+             hidden
+             data-tool-port="<c:out value="${signingToolPort}"/>"
+             data-key-id="<c:out value="${toolSyncKeyId}"/>"
+             data-fingerprint="<c:out value="${toolSyncFingerprint}"/>"
+             data-created-at="<c:out value="${toolSyncCreatedAt}"/>">
+            <textarea id="toolSyncPublicKey"><c:out value="${toolSyncPublicKey}"/></textarea>
+        </div>
     </c:if>
 
     <c:if test="${not empty sessionScope.error}">
@@ -608,10 +625,17 @@
 MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8A...
 -----END PUBLIC KEY-----"></textarea>
 
-                    <button type="submit" class="btn btn-primary" style="margin-top: 14px;">
-                        Gửi mã OTP xác nhận
-                    </button>
-                </form>
+            <div style="display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap;">
+                <button type="button" class="btn btn-secondary" id="btnLoadPublicKey" onclick="loadPublicKeyFromTool()">
+                    <i class="fa-solid fa-rotate"></i>
+                    Tải Public Key từ Tool
+                </button>
+                <button type="submit" class="btn btn-primary">
+                    Gửi mã OTP xác nhận
+                </button>
+            </div>
+            <p id="publicKeyToolStatus" class="description" style="display: none; margin-top: 10px;"></p>
+        </form>
             </c:otherwise>
         </c:choose>
     </div>
@@ -777,6 +801,90 @@ MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8A...
     </div>
 </div>
 <script>
+    const SIGNING_TOOL_API_BASE = 'http://127.0.0.1:9090';
+
+    async function notifySigningToolAfterKeySave() {
+        const payloadElement = document.getElementById('toolSyncPayload');
+        if (!payloadElement) {
+            return;
+        }
+
+        const statusElement = document.getElementById('keySaveStatus');
+        const toolPort = payloadElement.dataset.toolPort || '9090';
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+        try {
+            const response = await fetch('http://localhost:' + toolPort + '/public-key/saved', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    success: true,
+                    keyId: payloadElement.dataset.keyId,
+                    publicKey: document.getElementById('toolSyncPublicKey').value,
+                    fingerprint: payloadElement.dataset.fingerprint,
+                    createdAt: payloadElement.dataset.createdAt
+                }),
+                signal: controller.signal
+            });
+            const data = await response.json();
+            if (!response.ok || data.success !== true || data.keyPairMatched !== true) {
+                throw new Error(data.message || 'Signing Tool chưa xác nhận public key khớp.');
+            }
+
+            if (statusElement) {
+                statusElement.className = 'alert alert-success';
+                statusElement.textContent = 'Đã lưu public key trên web và đã đồng bộ với Signing Tool.';
+            }
+        } catch (error) {
+            console.warn('Không thể thông báo public key đã lưu cho Signing Tool:', error);
+            if (statusElement) {
+                statusElement.className = 'alert alert-warning';
+                statusElement.textContent = 'Đã lưu public key trên web, nhưng chưa thông báo được cho Signing Tool. '
+                    + 'Hãy bấm Load Public Key From Web trên tool để đồng bộ lại.';
+            }
+        } finally {
+            clearTimeout(timeoutId);
+        }
+    }
+
+    async function loadPublicKeyFromTool() {
+        const button = document.getElementById('btnLoadPublicKey');
+        const publicKeyArea = document.getElementById('publicKey');
+        const status = document.getElementById('publicKeyToolStatus');
+        const originalHtml = button.innerHTML;
+
+        button.disabled = true;
+        button.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang tải...';
+        status.style.display = 'block';
+        status.style.color = '#64748b';
+        status.textContent = 'Đang đọc Public Key hiện tại từ INOLA Signing Tool...';
+
+        try {
+            const response = await fetch(SIGNING_TOOL_API_BASE + '/api/public-key', {
+                method: 'GET',
+                cache: 'no-store'
+            });
+            const data = await response.json();
+
+            if (!response.ok || data.success === false || !data.publicKey) {
+                throw new Error(data.message || 'Tool chưa có Public Key.');
+            }
+
+            publicKeyArea.value = data.publicKey.trim();
+            status.style.color = '#15803d';
+            status.textContent = 'Đã tải Public Key mới nhất từ Tool. Hãy bấm “Lưu public key” để cập nhật trên website.';
+        } catch (error) {
+            status.style.color = '#b91c1c';
+            status.textContent = 'Không tải được Public Key. Hãy mở Tool, tạo hoặc tải khóa, bật kết nối với website rồi thử lại. Chi tiết: ' + error.message;
+        } finally {
+            button.disabled = false;
+            button.innerHTML = originalHtml;
+        }
+    }
+
     function toggleCompromisedTime(type) {
         var group = document.getElementById('compromisedTimeGroup');
         var input = document.getElementById('compromisedFrom');
@@ -801,6 +909,7 @@ MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8A...
     }
 
     document.addEventListener("DOMContentLoaded", function () {
+        notifySigningToolAfterKeySave();
         const reportType = document.getElementById("reportType");
         if (reportType) {
             toggleCompromisedTime(reportType.value);

@@ -7,6 +7,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import nlu.fit.web.souvenirecommerce.features.signature.key.service.KeyOtpService;
 import nlu.fit.web.souvenirecommerce.features.signature.key.service.UserKeyService;
+import nlu.fit.web.souvenirecommerce.features.signature.key.service.PublicKeyFingerprintService;
+import nlu.fit.web.souvenirecommerce.features.signature.key.dto.UserKeyDTO;
 import nlu.fit.web.souvenirecommerce.model.entity.User;
 
 import java.io.IOException;
