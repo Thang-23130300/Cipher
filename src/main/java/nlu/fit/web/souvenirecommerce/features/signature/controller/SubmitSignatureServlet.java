@@ -84,14 +84,15 @@ public class SubmitSignatureServlet extends HttpServlet {
                 return;
             }
 
-            if ("Đã hủy".equalsIgnoreCase(order.getStatus())) {
-                System.out.println("[SubmitSignatureServlet] Rejected cancelled order: orderId=" + orderId);
-                setError(session, "Đơn hàng đã hủy, không thể ký lại.");
+            SignatureStatusTransitionService.SigningPreparation preparation =
+                    statusTransitionService.prepareForSigning(orderId, request.getRequestURI());
+            if (preparation.blockedByCancellation()) {
+                System.out.println("[SubmitSignatureServlet] Rejected explicitly cancelled order: orderId=" + orderId);
+                setError(session, "Đơn hàng đã được hủy hợp lệ, không thể ký lại.");
                 redirectToOrders(request, response);
                 return;
             }
-
-            if (ORDER_SIGNED.equalsIgnoreCase(order.getSignatureStatus())) {
+            if (preparation.alreadyValid()) {
                 System.out.println("[SubmitSignatureServlet] Idempotent signed order: orderId=" + orderId);
                 setSuccess(session, "Đơn hàng đã có chữ ký hợp lệ.");
                 redirectToOrders(request, response);

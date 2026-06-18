@@ -8,6 +8,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import nlu.fit.web.souvenirecommerce.features.signature.dao.OrderSignedDataDAO;
 import nlu.fit.web.souvenirecommerce.features.signature.key.dao.UserKeyDAO;
+import nlu.fit.web.souvenirecommerce.features.signature.service.SignatureStatusTransitionService;
 import nlu.fit.web.souvenirecommerce.legacy.dao.OrderDAO;
 import nlu.fit.web.souvenirecommerce.legacy.model.Order;
 import nlu.fit.web.souvenirecommerce.model.entity.OrderSignedData;
@@ -21,6 +22,7 @@ public class OrderSignServlet extends HttpServlet {
     private final OrderDAO orderDAO = new OrderDAO();
     private final OrderSignedDataDAO orderSignedDataDAO = new OrderSignedDataDAO();
     private final UserKeyDAO userKeyDAO = new UserKeyDAO();
+    private final SignatureStatusTransitionService statusTransitionService = new SignatureStatusTransitionService();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -58,18 +60,23 @@ public class OrderSignServlet extends HttpServlet {
             return;
         }
 
-        if ("Đã hủy".equalsIgnoreCase(order.getStatus())) {
-            System.out.println("[OrderSignServlet] Rejected cancelled order: orderId=" + orderId);
-            setError(session, "Đơn hàng đã hủy, không thể ký lại.");
+        SignatureStatusTransitionService.SigningPreparation preparation =
+                statusTransitionService.prepareForSigning(orderId, request.getRequestURI());
+        if (preparation.blockedByCancellation()) {
+            System.out.println("[OrderSignServlet] Rejected explicitly cancelled order: orderId=" + orderId);
+            setError(session, "Đơn hàng đã được hủy hợp lệ, không thể ký lại.");
             response.sendRedirect(request.getContextPath() + "/orders");
             return;
         }
-
-        if ("SIGNED".equalsIgnoreCase(order.getSignatureStatus())) {
+        if (preparation.alreadyValid()) {
             System.out.println("[OrderSignServlet] Order already signed: orderId=" + orderId);
             setError(session, "Đơn hàng đã có chữ ký hợp lệ, không cần ký lại.");
             response.sendRedirect(request.getContextPath() + "/orders");
             return;
+        }
+        if (preparation.restoredLegacyCancellation()) {
+            order.setStatus(preparation.orderStatus());
+            setError(session, "Đã khôi phục đơn bị hủy sai về trạng thái chờ ký. Bạn có thể ký lại ngay.");
         }
 
         Optional<OrderSignedData> signedDataOptional = orderSignedDataDAO.findByOrderId(orderId);
