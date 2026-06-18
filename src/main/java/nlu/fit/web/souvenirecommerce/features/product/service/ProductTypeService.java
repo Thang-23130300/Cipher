@@ -30,14 +30,14 @@ public class ProductTypeService {
             return null;
         }
 
-        int safePage = Math.max(page, 1);
+        int totalProducts = productDAO.countProductsByCategoryWithFilter(categoryId, minPrice, maxPrice, rating);
+        int totalPages = Math.max(1, (int) Math.ceil((double) totalProducts / PAGE_SIZE));
+        int safePage = Math.min(Math.max(page, 1), totalPages);
         int offset = (safePage - 1) * PAGE_SIZE;
 
-        List<Product> products = productDAO.getProductsByCategoryWithFilter(categoryId, minPrice, maxPrice, rating, sort, offset, PAGE_SIZE);
-
-        int totalProducts = productDAO.countProductsByCategoryWithFilter(categoryId, minPrice, maxPrice, rating);
-
-        int totalPages = (int) Math.ceil((double) totalProducts / PAGE_SIZE);
+        List<Product> products = productDAO.getProductsByCategoryWithFilter(
+                categoryId, minPrice, maxPrice, rating, sort, offset, PAGE_SIZE
+        );
 
         ProductTypeDTO dto = new ProductTypeDTO();
         dto.setCategory(category);
