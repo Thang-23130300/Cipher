@@ -213,7 +213,6 @@ public class LocalApiServer {
                 }
 
                 String signatureValue = bridge.signHashValue(request.getHashValue().trim().toLowerCase());
-
                 sendJson(exchange, 200, SimpleJson.object(
                         "success", true,
                         "orderId", request.getOrderId(),
