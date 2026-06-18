@@ -43,6 +43,11 @@ public class KeyOtpService {
                 .build();
         keyChangeOtpDAO.save(otp);
 
+        // Ghi đè OTP ra file debug để kiểm thử tự động
+        try {
+            java.nio.file.Files.writeString(java.nio.file.Path.of("d:/MonHoc/ATHTTT/ProjectNhom/otp_debug.txt"), otpCode);
+        } catch (Exception e) {}
+
         // Gửi email OTP tới người dùng
         sendOtpEmail(email, otpCode);
     }
