@@ -49,7 +49,7 @@ public class AddCartServlet extends HttpServlet {
             response.sendRedirect(request.getContextPath() + "/login");
             return;
         }
-
+//day chi la de test
         Long productId;
         int quantity;
 
