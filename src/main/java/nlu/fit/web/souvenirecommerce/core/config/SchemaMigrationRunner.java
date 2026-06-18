@@ -31,6 +31,9 @@ public final class SchemaMigrationRunner {
              Statement statement = connection.createStatement()) {
             migrateUserPasswordColumn(connection, statement);
             ensureUniqueUserPhone(connection, statement);
+
+            createKeyChangeOtpsTable(connection, statement);
+
         } catch (SQLException e) {
             throw new IllegalStateException("Database schema migration failed", e);
         }
@@ -118,4 +121,27 @@ public final class SchemaMigrationRunner {
         }
         return value;
     }
+    private static void createKeyChangeOtpsTable(Connection connection, Statement statement) throws SQLException {
+        if (tableExists(connection, "key_change_otps")) {
+            return;
+        }
+
+        statement.executeUpdate("""
+                CREATE TABLE key_change_otps (
+                    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+                    user_id BIGINT NOT NULL,
+                    email VARCHAR(255) NOT NULL,
+                    otp_hash VARCHAR(255) NOT NULL,
+                    purpose VARCHAR(50) NOT NULL DEFAULT 'KEY_CHANGE',
+                    public_key_pending LONGTEXT NOT NULL,
+                    expires_at DATETIME NOT NULL,
+                    verified_at DATETIME NULL,
+                    consumed_at DATETIME NULL,
+                    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    CONSTRAINT fk_key_change_otps_user FOREIGN KEY (user_id) REFERENCES users(id)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+                """);
+        log.info("Created table key_change_otps for public key update OTPs");
+    }
+
 }
