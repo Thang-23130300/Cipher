@@ -72,7 +72,9 @@ public class OrderSignServlet extends HttpServlet {
         request.setAttribute("orderId", orderId);
         request.setAttribute("orderCode", order.getOrderCode());
         request.setAttribute("hashValue", signedDataOptional.get().getHashValue());
-        request.setAttribute("hasActivePublicKey", userKeyDAO.findActiveKeyByUserId(currentUser.getId()).isPresent());
+        var activePublicKey = userKeyDAO.findActiveKeyByUserId(currentUser.getId());
+        request.setAttribute("hasActivePublicKey", activePublicKey.isPresent());
+        request.setAttribute("activePublicKey", activePublicKey.orElse(null));
 
         request.getRequestDispatcher("/WEB-INF/views/signature/order-sign.jsp")
                 .forward(request, response);
